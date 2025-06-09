@@ -2,6 +2,7 @@ package com.a2y.salesHelper.service.impl;
 
 import com.a2y.salesHelper.db.entity.ParticipantEntity;
 import com.a2y.salesHelper.db.repository.ParticipantRepository;
+import com.a2y.salesHelper.pojo.Participant;
 import com.a2y.salesHelper.service.interfaces.ExcelParserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
@@ -75,6 +76,25 @@ public class ExcelParser implements ExcelParserService {
             participantRepository.saveAll(participants);
         }
         return participants.size();
+    }
+
+    @Override
+    public List<Participant> getAllParticipant() {
+        List<ParticipantEntity> participants =  participantRepository.getAll();
+        List<Participant> response = new ArrayList<>();
+
+        for(ParticipantEntity participant : participants){
+            response.add(Participant.builder()
+                    .name(participant.getName())
+                    .email(participant.getEmail())
+                    .mobile(participant.getMobile())
+                    .designation(participant.getDesignation())
+                    .organization(participant.getOrganization())
+                    .assignedUnassigned(participant.getAssignedUnassigned())
+                    .attended(participant.getAttended())
+                    .build());
+        }
+        return response;
     }
 
 
