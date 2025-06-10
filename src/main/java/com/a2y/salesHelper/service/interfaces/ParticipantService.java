@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-public interface ExcelParserService {
+public interface ParticipantService {
 
     /**
      * Parse Excel file from MultipartFile and save participants to database
@@ -20,6 +20,19 @@ public interface ExcelParserService {
     /**
      * get all the participants from the DB
      * @return
+     * List of all participants
      */
     List<Participant> getAllParticipant();
+
+    /**
+     * Get a map of participant IDs to their names
+     * @return List<participant> containing participant details
+     */
+    List<Participant> deleteParticipantById(Long id);
+
+    /**
+     * Get a map of participant IDs to their names
+     * @return List<participant> containing participant details
+     */
+    List<Participant> updateParticipantById(Participant participant);
 }

@@ -1,6 +1,7 @@
 package com.a2y.salesHelper.db.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 import lombok.ToString;
 
@@ -10,6 +11,7 @@ import java.sql.Timestamp;
 @Table(name = "participants",schema = "sales")
 @Data
 @ToString
+@Builder
 public class ParticipantEntity {
 
     @Id

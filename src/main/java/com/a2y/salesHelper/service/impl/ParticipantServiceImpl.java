@@ -3,7 +3,7 @@ package com.a2y.salesHelper.service.impl;
 import com.a2y.salesHelper.db.entity.ParticipantEntity;
 import com.a2y.salesHelper.db.repository.ParticipantRepository;
 import com.a2y.salesHelper.pojo.Participant;
-import com.a2y.salesHelper.service.interfaces.ExcelParserService;
+import com.a2y.salesHelper.service.interfaces.ParticipantService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -19,7 +19,7 @@ import java.util.Map;
 
 @Service
 @Slf4j
-public class ExcelParser implements ExcelParserService {
+public class ParticipantServiceImpl implements ParticipantService {
 
     private final ParticipantRepository participantRepository;
 
@@ -33,7 +33,7 @@ public class ExcelParser implements ExcelParserService {
             "Name", "Designation", "Organization", "Email", "Mobile", "Attended", "Assigned/Unassigned"
     };
 
-    public ExcelParser(ParticipantRepository participantRepository) {
+    public ParticipantServiceImpl(ParticipantRepository participantRepository) {
         this.participantRepository = participantRepository;
     }
 
@@ -97,6 +97,45 @@ public class ExcelParser implements ExcelParserService {
         return response;
     }
 
+    @Override
+    public List<Participant> deleteParticipantById(Long id) {
+        try{
+            participantRepository.deleteById(id);
+            log.info("Deleted participant with ID: {}", id);
+            return getAllParticipant();
+        } catch (Exception e) {
+            log.error("Error deleting participant with ID {}: {}", id, e.getMessage());
+            return List.of(); // Return empty list on error
+        }
+    }
+
+    @Override
+    public List<Participant> updateParticipantById(Participant participant) {
+        try {
+            ParticipantEntity existingParticipant = participantRepository.findById(participant.getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Participant not found with ID: " + participant.getId()));
+
+            // Update fields
+            ParticipantEntity updatedParticipant = ParticipantEntity.builder()
+                    .id(existingParticipant.getId())
+                    .name(participant.getName())
+                    .email(participant.getEmail())
+                    .mobile(participant.getMobile())
+                    .designation(participant.getDesignation())
+                    .organization(participant.getOrganization())
+                    .assignedUnassigned(participant.getAssignedUnassigned())
+                    .attended(participant.getAttended())
+                    .sheetName(existingParticipant.getSheetName()) // Keep original sheet name
+                    .build();
+
+            participantRepository.save(updatedParticipant);
+            return getAllParticipant();
+        } catch (Exception e) {
+            log.error("Error updating participant: {}", e.getMessage());
+            return List.of(); // Return empty list on error
+        }
+    }
+
 
     private Workbook createWorkbook(String fileName, InputStream inputStream) throws IOException {
         if (fileName != null && fileName.toLowerCase().endsWith(".xlsx")) {
@@ -109,16 +148,16 @@ public class ExcelParser implements ExcelParserService {
     }
 
     private ParticipantEntity parseRowToParticipant(Row row, String sheetName, String sourceFile) {
-        ParticipantEntity participant = new ParticipantEntity();
-
-        participant.setSheetName(sheetName);
-        participant.setName(getCellValueAsString(row.getCell(headerMappings.get("name"))));
-        participant.setDesignation(getCellValueAsString(row.getCell(headerMappings.get("designation"))));
-        participant.setOrganization(getCellValueAsString(row.getCell(headerMappings.get("organization"))));
-        participant.setEmail(getCellValueAsString(row.getCell(headerMappings.get("email"))));
-        participant.setMobile(getCellValueAsString(row.getCell(headerMappings.get("mobile"))));
-        participant.setAttended(getCellValueAsString(row.getCell(headerMappings.get("attended"))));
-        participant.setAssignedUnassigned(getCellValueAsString(row.getCell(headerMappings.get("assigned/unassigned"))));
+        ParticipantEntity participant = ParticipantEntity.builder()
+                .sheetName(sheetName)
+                .name(getCellValueAsString(row.getCell(headerMappings.get("name"))))
+                .designation(getCellValueAsString(row.getCell(headerMappings.get("designation"))))
+                .organization(getCellValueAsString(row.getCell(headerMappings.get("organization"))))
+                .email(getCellValueAsString(row.getCell(headerMappings.get("email"))))
+                .mobile(getCellValueAsString(row.getCell(headerMappings.get("mobile"))))
+                .attended(getCellValueAsString(row.getCell(headerMappings.get("attended"))))
+                .assignedUnassigned(getCellValueAsString(row.getCell(headerMappings.get("assigned/unassigned"))))
+                .build();
         log.info("Parsed participant from row {}: {}", row.getRowNum(), participant);
         return participant;
     }

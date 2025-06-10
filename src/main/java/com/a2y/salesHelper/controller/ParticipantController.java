@@ -2,16 +2,13 @@ package com.a2y.salesHelper.controller;
 
 
 import com.a2y.salesHelper.pojo.Participant;
-import com.a2y.salesHelper.service.interfaces.ExcelParserService;
+import com.a2y.salesHelper.service.interfaces.ParticipantService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -23,7 +20,7 @@ import java.util.List;
 public class ParticipantController {
 
     @Autowired
-    private ExcelParserService excelParserService;
+    private ParticipantService participantService;
 
     @PostMapping("/upload")
     @Operation(
@@ -32,7 +29,7 @@ public class ParticipantController {
     )
     public ResponseEntity<String> uploadExcelFile(MultipartFile file) {
         try {
-            int processedCount = excelParserService.parseExcelFile(file);
+            int processedCount = participantService.parseExcelFile(file);
             return new ResponseEntity<>("Successfully processed " + processedCount + " participants.", HttpStatus.OK);
         } catch (IOException e) {
             return new ResponseEntity<>("Failed to process the file: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -46,7 +43,33 @@ public class ParticipantController {
     @GetMapping()
     public ResponseEntity<List<Participant>> getAllParticipants(){
 
-        List<Participant> response = excelParserService.getAllParticipant();
+        List<Participant> response = participantService.getAllParticipant();
+        if(response.isEmpty()){
+            return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(response,HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(
+            summary = "Delete a participant by ID",
+            description = "Deletes a participant from the database using their ID"
+    )
+    public ResponseEntity<List<Participant>> deleteParticipantById(@PathVariable Long id) {
+        List<Participant> response = participantService.deleteParticipantById(id);
+        if(response.isEmpty()){
+            return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(response,HttpStatus.OK);
+    }
+
+    @PutMapping()
+    @Operation(
+            summary = "Update a participant by ID",
+            description = "Updates a participant's details in the database"
+    )
+    public ResponseEntity<List<Participant>> updateParticipantById(@RequestBody Participant participant) {
+        List<Participant> response = participantService.updateParticipantById(participant);
         if(response.isEmpty()){
             return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
         }
