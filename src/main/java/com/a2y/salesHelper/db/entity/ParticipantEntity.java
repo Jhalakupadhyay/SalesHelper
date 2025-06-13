@@ -1,9 +1,7 @@
 package com.a2y.salesHelper.db.entity;
 
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Data;
-import lombok.ToString;
+import lombok.*;
 
 import java.sql.Timestamp;
 
@@ -12,6 +10,8 @@ import java.sql.Timestamp;
 @Data
 @ToString
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class ParticipantEntity {
 
     @Id
