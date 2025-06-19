@@ -4,7 +4,6 @@ import com.a2y.salesHelper.config.PasswordHashingConfig;
 import com.a2y.salesHelper.db.entity.UserEntity;
 import com.a2y.salesHelper.db.repository.UserRepository;
 import com.a2y.salesHelper.service.interfaces.UserAuthService;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service

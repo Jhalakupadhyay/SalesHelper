@@ -85,6 +85,7 @@ public class ParticipantServiceImpl implements ParticipantService {
 
         for(ParticipantEntity participant : participants){
             response.add(Participant.builder()
+                    .id(participant.getId())
                     .name(participant.getName())
                     .email(participant.getEmail())
                     .mobile(participant.getMobile())
