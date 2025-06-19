@@ -76,4 +76,20 @@ public class ParticipantController {
         return new ResponseEntity<>(response,HttpStatus.OK);
     }
 
+    @GetMapping("/search")
+    @Operation(
+            summary = "Search participants by name",
+            description = "Returns a list of participants whose names contain the specified search term"
+    )
+    public ResponseEntity<List<Participant>> searchParticipantsByName(@RequestParam String name) {
+        List<Participant> participants = participantService.getAllParticipant();
+        List<Participant> filteredParticipants = participants.stream()
+                .filter(participant -> participant.getName().toLowerCase().contains(name.toLowerCase()))
+                .toList();
+
+        if (filteredParticipants.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(filteredParticipants, HttpStatus.OK);
+    }
 }

@@ -15,4 +15,5 @@ public interface ParticipantRepository extends JpaRepository<ParticipantEntity, 
     @Query("SELECT p FROM ParticipantEntity p")
     List<ParticipantEntity> getAll();
 
+    List<ParticipantEntity> findByNameContainingIgnoreCase(String name);
 }

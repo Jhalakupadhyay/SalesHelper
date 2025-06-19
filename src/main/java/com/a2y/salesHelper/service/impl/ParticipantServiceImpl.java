@@ -260,4 +260,24 @@ public class ParticipantServiceImpl implements ParticipantService {
         }
         return headerMappings;
     }
+
+    //Search API to get the Participant by name
+    public List<Participant> searchParticipantsByName(String name) {
+        List<ParticipantEntity> participants = participantRepository.findByNameContainingIgnoreCase(name);
+        List<Participant> response = new ArrayList<>();
+
+        for (ParticipantEntity participant : participants) {
+            response.add(Participant.builder()
+                    .id(participant.getId())
+                    .name(participant.getName())
+                    .email(participant.getEmail())
+                    .mobile(participant.getMobile())
+                    .designation(participant.getDesignation())
+                    .organization(participant.getOrganization())
+                    .assignedUnassigned(participant.getAssignedUnassigned())
+                    .attended(participant.getAttended())
+                    .build());
+        }
+        return response;
+    }
 }
