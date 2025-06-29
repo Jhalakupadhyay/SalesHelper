@@ -15,5 +15,12 @@ public interface ParticipantRepository extends JpaRepository<ParticipantEntity, 
     @Query("SELECT p FROM ParticipantEntity p")
     List<ParticipantEntity> getAll();
 
-    List<ParticipantEntity> findByNameContainingIgnoreCase(String name);
+    // Custom query to find participants by name, designation, or organization and order by event date
+    //IT CHECNKS FOR THE SAME STRIGN WETHER THE NAME DESIGNATION AND ORGANIZATION STARTS WITH THE GIVEN STRING OR MATCHES IT
+    @Query("SELECT p FROM ParticipantEntity p WHERE " +
+            "LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%')) OR " +
+            "LOWER(p.designation) LIKE LOWER(CONCAT('%', :name, '%')) OR " +
+            "LOWER(p.organization) LIKE LOWER(CONCAT('%', :name, '%')) " +
+            "ORDER BY p.eventDate")
+    List<ParticipantEntity> findByNameOrDesignationOrOrganization(String name);
 }

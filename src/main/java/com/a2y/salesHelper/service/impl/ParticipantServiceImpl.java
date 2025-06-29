@@ -1,6 +1,7 @@
 package com.a2y.salesHelper.service.impl;
 
 import com.a2y.salesHelper.db.entity.ParticipantEntity;
+import com.a2y.salesHelper.db.repository.CompaniesRepository;
 import com.a2y.salesHelper.db.repository.ParticipantRepository;
 import com.a2y.salesHelper.pojo.Participant;
 import com.a2y.salesHelper.service.interfaces.ParticipantService;
@@ -12,16 +13,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @Slf4j
 public class ParticipantServiceImpl implements ParticipantService {
 
     private final ParticipantRepository participantRepository;
+    private final CompaniesRepository companiesRepository;
 
     // Fixed header mappings for Participant fields - customize these based on your Excel structure
     Map<String, Integer> headerMappings = new HashMap<>();
@@ -29,8 +28,10 @@ public class ParticipantServiceImpl implements ParticipantService {
             "name", "designation", "organization", "email", "mobile", "attended", "assigned/unassigned" , "Event Name" , "Date" ,"Meeting Done"
     };
 
-    public ParticipantServiceImpl(ParticipantRepository participantRepository) {
+    public ParticipantServiceImpl(ParticipantRepository participantRepository, CompaniesRepository companiesRepository) {
         this.participantRepository = participantRepository;
+
+        this.companiesRepository = companiesRepository;
     }
 
     @Override
@@ -79,6 +80,8 @@ public class ParticipantServiceImpl implements ParticipantService {
         List<ParticipantEntity> participants =  participantRepository.getAll();
         List<Participant> response = new ArrayList<>();
 
+        Set<String> existingAccounts = new HashSet<>(companiesRepository.findAllAccounts());
+
         for(ParticipantEntity participant : participants){
             response.add(Participant.builder()
                     .id(participant.getId())
@@ -92,6 +95,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                     .eventName(participant.getEventName())
                     .eventDate(participant.getEventDate())
                     .meetingDone(participant.getMeetingDone())
+                    .isFocused(existingAccounts.contains(participant.getOrganization()))
                     .build());
         }
         return response;
@@ -264,20 +268,24 @@ public class ParticipantServiceImpl implements ParticipantService {
     }
 
     //Search API to get the Participant by name
-    public List<Participant> searchParticipantsByName(String name) {
-        List<ParticipantEntity> participants = participantRepository.findByNameContainingIgnoreCase(name);
-        List<Participant> response = new ArrayList<>();
+    public List<Participant> searchParticipantFromAllFields(String name) {
+        //Search the participant by name designation and organization
+        List<ParticipantEntity> participant = participantRepository.findByNameOrDesignationOrOrganization(name);
 
-        for (ParticipantEntity participant : participants) {
+        List<Participant> response = new ArrayList<>();
+        for(ParticipantEntity participantEntity : participant) {
             response.add(Participant.builder()
-                    .id(participant.getId())
-                    .name(participant.getName())
-                    .email(participant.getEmail())
-                    .mobile(participant.getMobile())
-                    .designation(participant.getDesignation())
-                    .organization(participant.getOrganization())
-                    .assignedUnassigned(participant.getAssignedUnassigned())
-                    .attended(participant.getAttended())
+                    .id(participantEntity.getId())
+                    .name(participantEntity.getName())
+                    .email(participantEntity.getEmail())
+                    .mobile(participantEntity.getMobile())
+                    .designation(participantEntity.getDesignation())
+                    .organization(participantEntity.getOrganization())
+                    .assignedUnassigned(participantEntity.getAssignedUnassigned())
+                    .attended(participantEntity.getAttended())
+                    .eventName(participantEntity.getEventName())
+                    .eventDate(participantEntity.getEventDate())
+                    .meetingDone(participantEntity.getMeetingDone())
                     .build());
         }
         return response;

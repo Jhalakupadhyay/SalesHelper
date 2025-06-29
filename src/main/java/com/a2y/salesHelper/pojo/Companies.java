@@ -7,7 +7,8 @@ import lombok.NoArgsConstructor;
 
 @Builder
 @Data
-@AllArgsConstructor@NoArgsConstructor
+@AllArgsConstructor
+@NoArgsConstructor
 public class Companies {
 
     private String accounts;

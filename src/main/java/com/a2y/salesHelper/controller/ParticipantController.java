@@ -5,9 +5,9 @@ import com.a2y.salesHelper.pojo.Participant;
 import com.a2y.salesHelper.service.interfaces.ParticipantService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,11 +16,14 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/excel")
-@Tag(name = "Excel Parser", description = "All the API related to Excel parsing")
+@Tag(name = "Participant Excel Parser", description = "All the API related to Excel parsing of Participants")
 public class ParticipantController {
 
-    @Autowired
-    private ParticipantService participantService;
+    private final ParticipantService participantService;
+
+    public ParticipantController(ParticipantService participantService) {
+        this.participantService = participantService;
+    }
 
     @PostMapping("/upload")
     @Operation(

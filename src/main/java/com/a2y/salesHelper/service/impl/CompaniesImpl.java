@@ -2,6 +2,7 @@ package com.a2y.salesHelper.service.impl;
 
 import com.a2y.salesHelper.db.entity.CompanyEntity;
 import com.a2y.salesHelper.db.repository.CompaniesRepository;
+import com.a2y.salesHelper.pojo.Companies;
 import com.a2y.salesHelper.service.interfaces.CompaniesService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -70,6 +71,36 @@ public class CompaniesImpl implements CompaniesService {
             log.warn("No valid company data found in the file: {}", fileName);
         }
         return companies.size();
+    }
+
+    @Override
+    public List<Companies> getAllCompanies() {
+        List<CompanyEntity> companyEntities = companiesRepository.findAll();
+        List<Companies> companiesList = new ArrayList<>();
+        for (CompanyEntity entity : companyEntities) {
+            Companies company = Companies.builder()
+                    .accounts(entity.getAccounts())
+                    .accountOwner(entity.getAccountOwner())
+                    .type(entity.getType())
+                    .focusedOrAssigned(entity.getFocusedOrAssigned())
+                    .etmRegion(entity.getEtmRegion())
+                    .accountTier(entity.getAccountTier())
+                    .meetingUpdate(entity.getMeetingUpdate())
+                    .quarter(entity.getQuarter())
+                    .meetingInitiative(entity.getMeetingInitiative())
+                    .sdrResponsible(entity.getSdrResponsible())
+                    .salesTeamRemarks(entity.getSalesTeamRemarks())
+                    .sdrRemark(entity.getSdrRemark())
+                    .salespinRemark(entity.getSalespinRemark())
+                    .marketingRemark(entity.getMarketingRemark())
+                    .customerName(entity.getCustomerName())
+                    .designation(entity.getDesignation())
+                    .mobileNumber(entity.getMobileNumber())
+                    .email(entity.getEmail())
+                    .build();
+            companiesList.add(company);
+        }
+        return companiesList;
     }
 
     private Workbook createWorkbook(String fileName, InputStream inputStream) throws IOException {

@@ -27,4 +27,5 @@ public class Participant {
     private String meetingDone;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
+    private Boolean isFocused;
 }
