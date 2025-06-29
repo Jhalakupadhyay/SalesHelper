@@ -22,6 +22,9 @@ public class Participant {
     private String mobile;
     private String attended;
     private String assignedUnassigned;
+    private String eventName;
+    private String eventDate;
+    private String meetingDone;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
 }

@@ -48,6 +48,15 @@ public class ParticipantEntity {
     @Column(name = "updated_at")
     private Timestamp updatedAt;
 
+    @Column(name = "event_name", length = 500)
+    private String eventName;
+
+    @Column(name = "event_date")
+    private String eventDate;
+
+    @Column(name = "meeting_done", length = 500)
+    private String meetingDone;
+
     @PrePersist
     protected void onCreate() {
         createdAt = new Timestamp(System.currentTimeMillis());

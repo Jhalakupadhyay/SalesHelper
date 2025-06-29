@@ -26,11 +26,7 @@ public class ParticipantServiceImpl implements ParticipantService {
     // Fixed header mappings for Participant fields - customize these based on your Excel structure
     Map<String, Integer> headerMappings = new HashMap<>();
     private static final String[] EXPECTED_HEADERS_PARTICIPANTS = {
-            "name", "designation", "organization", "email", "mobile", "attended", "assigned/unassigned"
-    };
-
-    private static final String[] EXPECTED_HEADERS_OTHER = {
-            "Name", "Designation", "Organization", "Email", "Mobile", "Attended", "Assigned/Unassigned"
+            "name", "designation", "organization", "email", "mobile", "attended", "assigned/unassigned" , "Event Name" , "Date" ,"Meeting Done"
     };
 
     public ParticipantServiceImpl(ParticipantRepository participantRepository) {
@@ -38,7 +34,7 @@ public class ParticipantServiceImpl implements ParticipantService {
     }
 
     @Override
-    public int parseExcelFile(MultipartFile file) throws IOException {
+    public Integer parseExcelFile(MultipartFile file) throws IOException {
         List<ParticipantEntity> participants = new ArrayList<>();
         String fileName = file.getOriginalFilename();
 
@@ -93,6 +89,9 @@ public class ParticipantServiceImpl implements ParticipantService {
                     .organization(participant.getOrganization())
                     .assignedUnassigned(participant.getAssignedUnassigned())
                     .attended(participant.getAttended())
+                    .eventName(participant.getEventName())
+                    .eventDate(participant.getEventDate())
+                    .meetingDone(participant.getMeetingDone())
                     .build());
         }
         return response;
@@ -158,6 +157,9 @@ public class ParticipantServiceImpl implements ParticipantService {
                 .mobile(getCellValueAsString(row.getCell(headerMappings.get("mobile"))))
                 .attended(getCellValueAsString(row.getCell(headerMappings.get("attended"))))
                 .assignedUnassigned(getCellValueAsString(row.getCell(headerMappings.get("assigned/unassigned"))))
+                .eventName(getCellValueAsString(row.getCell(headerMappings.get("Event Name"))))
+                .eventDate(getCellValueAsString(row.getCell(headerMappings.get("Date"))))
+                .meetingDone(getCellValueAsString(row.getCell(headerMappings.get("Meeting Done"))))
                 .build();
         log.info("Parsed participant from row {}: {}", row.getRowNum(), participant);
         return participant;
