@@ -236,4 +236,92 @@ public class CompaniesImpl implements CompaniesService {
         }
         return headerMappings;
     }
+
+    //Search APi to search by account, accountOwner, customerName,  email
+    //keep in priority accountOwner > account > customerName >  email
+    @Override
+    public List<Companies> searchCompanies(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+        String searchQuery = query.trim().toLowerCase();
+        List<CompanyEntity> companyEntities = companiesRepository.searchByAccountOrAccountOwnerOrCustomerNameOrEmail(searchQuery);
+        List<Companies> companiesList = new ArrayList<>();
+        for (CompanyEntity entity : companyEntities) {
+            Companies company = Companies.builder()
+                    .accounts(entity.getAccounts())
+                    .accountOwner(entity.getAccountOwner())
+                    .type(entity.getType())
+                    .focusedOrAssigned(entity.getFocusedOrAssigned())
+                    .etmRegion(entity.getEtmRegion())
+                    .accountTier(entity.getAccountTier())
+                    .meetingUpdate(entity.getMeetingUpdate())
+                    .quarter(entity.getQuarter())
+                    .meetingInitiative(entity.getMeetingInitiative())
+                    .sdrResponsible(entity.getSdrResponsible())
+                    .salesTeamRemarks(entity.getSalesTeamRemarks())
+                    .sdrRemark(entity.getSdrRemark())
+                    .salespinRemark(entity.getSalespinRemark())
+                    .marketingRemark(entity.getMarketingRemark())
+                    .customerName(entity.getCustomerName())
+                    .designation(entity.getDesignation())
+                    .mobileNumber(entity.getMobileNumber())
+                    .email(entity.getEmail())
+                    .build();
+            companiesList.add(company);
+        }
+        return companiesList;
+    }
+
+    @Override
+    public List<Companies> filterCompanies(String field, String value) {
+        if (field == null || value == null || field.trim().isEmpty() || value.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<CompanyEntity> companyEntities = companiesRepository.findAll();
+        List<Companies> filteredCompanies = new ArrayList<>();
+        for (CompanyEntity entity : companyEntities) {
+            String fieldValue = getFieldValue(entity, field);
+            if (fieldValue != null && fieldValue.equalsIgnoreCase(value)) {
+                Companies company = Companies.builder()
+                        .accounts(entity.getAccounts())
+                        .accountOwner(entity.getAccountOwner())
+                        .type(entity.getType())
+                        .focusedOrAssigned(entity.getFocusedOrAssigned())
+                        .etmRegion(entity.getEtmRegion())
+                        .accountTier(entity.getAccountTier())
+                        .meetingUpdate(entity.getMeetingUpdate())
+                        .quarter(entity.getQuarter())
+                        .meetingInitiative(entity.getMeetingInitiative())
+                        .sdrResponsible(entity.getSdrResponsible())
+                        .salesTeamRemarks(entity.getSalesTeamRemarks())
+                        .sdrRemark(entity.getSdrRemark())
+                        .salespinRemark(entity.getSalespinRemark())
+                        .marketingRemark(entity.getMarketingRemark())
+                        .customerName(entity.getCustomerName())
+                        .designation(entity.getDesignation())
+                        .mobileNumber(entity.getMobileNumber())
+                        .email(entity.getEmail())
+                        .build();
+                filteredCompanies.add(company);
+            }
+        }
+        return filteredCompanies;
+    }
+
+    private String getFieldValue(CompanyEntity entity, String field) {
+        switch (field.toLowerCase()) {
+            case "accounts":
+                return entity.getAccounts();
+            case "accountowner":
+                return entity.getAccountOwner();
+            case "customername":
+                return entity.getCustomerName();
+            case "email":
+                return entity.getEmail();
+            default:
+                log.warn("Unknown field for filtering: {}", field);
+                return null;
+        }
+    }
 }

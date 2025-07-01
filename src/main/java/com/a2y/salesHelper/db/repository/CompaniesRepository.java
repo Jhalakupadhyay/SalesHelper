@@ -26,4 +26,11 @@ public interface CompaniesRepository extends JpaRepository<CompanyEntity, Long> 
 
     @Query("SELECT c.accounts FROM CompanyEntity c")
     List<String> findAllAccounts();
+
+    @Query("SELECT c FROM CompanyEntity c WHERE " +
+            "LOWER(c.accounts) LIKE LOWER(CONCAT('%', :searchQuery, '%')) OR " +
+            "LOWER(c.accountOwner) LIKE LOWER(CONCAT('%', :searchQuery, '%')) OR " +
+            "LOWER(c.customerName) LIKE LOWER(CONCAT('%', :searchQuery, '%')) OR " +
+            "LOWER(c.email) LIKE LOWER(CONCAT('%', :searchQuery, '%'))")
+    List<CompanyEntity> searchByAccountOrAccountOwnerOrCustomerNameOrEmail(String searchQuery);
 }

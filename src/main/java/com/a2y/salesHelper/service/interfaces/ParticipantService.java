@@ -37,4 +37,6 @@ public interface ParticipantService {
      * @return List<participant> containing participant details
      */
     List<Participant> updateParticipantById(Participant participant);
+
+    List<Participant> filterParticipants(String field, String value);
 }

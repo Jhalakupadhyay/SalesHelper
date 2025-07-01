@@ -13,4 +13,9 @@ public interface CompaniesService {
     Integer parseExcelFile(MultipartFile file) throws IOException;
 
     List<Companies> getAllCompanies();
+
+    List<Companies> searchCompanies(String searchQuery);
+
+
+    List<Companies> filterCompanies(String field, String value);
 }

@@ -290,4 +290,65 @@ public class ParticipantServiceImpl implements ParticipantService {
         }
         return response;
     }
+
+    @Override
+    public List<Participant> filterParticipants(String field, String value) {
+        // Validate field
+        if (!headerMappings.containsKey(field)) {
+            log.warn("Invalid field for filtering: {}", field);
+            return Collections.emptyList();
+        }
+
+        // Fetch all participants and filter based on the specified field and value
+        List<ParticipantEntity> allParticipants = participantRepository.getAll();
+        List<Participant> filteredParticipants = new ArrayList<>();
+
+        for (ParticipantEntity participant : allParticipants) {
+            String fieldValue = getFieldValue(participant, field);
+            if (fieldValue != null && fieldValue.toLowerCase().contains(value.toLowerCase())) {
+                filteredParticipants.add(Participant.builder()
+                        .id(participant.getId())
+                        .name(participant.getName())
+                        .email(participant.getEmail())
+                        .mobile(participant.getMobile())
+                        .designation(participant.getDesignation())
+                        .organization(participant.getOrganization())
+                        .assignedUnassigned(participant.getAssignedUnassigned())
+                        .attended(participant.getAttended())
+                        .eventName(participant.getEventName())
+                        .eventDate(participant.getEventDate())
+                        .meetingDone(participant.getMeetingDone())
+                        .build());
+            }
+        }
+        return filteredParticipants;
+    }
+
+    private String getFieldValue(ParticipantEntity participant, String field) {
+        switch (field.toLowerCase()) {
+            case "name":
+                return participant.getName();
+            case "designation":
+                return participant.getDesignation();
+            case "organization":
+                return participant.getOrganization();
+            case "email":
+                return participant.getEmail();
+            case "mobile":
+                return participant.getMobile();
+            case "attended":
+                return participant.getAttended();
+            case "assigned/unassigned":
+                return participant.getAssignedUnassigned();
+            case "event name":
+                return participant.getEventName();
+            case "date":
+                return participant.getEventDate();
+            case "meeting done":
+                return participant.getMeetingDone();
+            default:
+                log.warn("Unknown field for filtering: {}", field);
+                return null;
+        }
+    }
 }

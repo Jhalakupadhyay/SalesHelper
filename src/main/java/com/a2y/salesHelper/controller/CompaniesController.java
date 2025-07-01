@@ -55,4 +55,31 @@ public class CompaniesController {
         }
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
+    @Operation(
+            summary = "Search Companies",
+            description = "Searches companies by account, account owner, customer name, or email."
+    )
+    @PostMapping("/search")
+    public ResponseEntity<List<Companies>> searchCompanies(String searchQuery) {
+        List<Companies> response = companiesService.searchCompanies(searchQuery);
+        if (response.isEmpty()) {
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    //filter api that will filter the companies according to the field passed
+    @Operation(
+            summary = "Filter Companies",
+            description = "Filters companies based on the provided field and value."
+    )
+    @PostMapping("/filter")
+    public ResponseEntity<List<Companies>> filterCompanies(String field, String value) {
+        List<Companies> response = companiesService.filterCompanies(field, value);
+        if (response.isEmpty()) {
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 }

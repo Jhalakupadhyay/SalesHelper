@@ -95,4 +95,18 @@ public class ParticipantController {
         }
         return new ResponseEntity<>(filteredParticipants, HttpStatus.OK);
     }
+
+    //filter api that will filter the participants according to the field passed
+    @PostMapping("/filter")
+    @Operation(
+            summary = "Filter Participants",
+            description = "Filters participants based on the provided field and value."
+    )
+    public ResponseEntity<List<Participant>> filterParticipants(@RequestParam String field, @RequestParam String value) {
+        List<Participant> response = participantService.filterParticipants(field, value);
+        if (response.isEmpty()) {
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 }
