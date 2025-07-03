@@ -12,7 +12,6 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 @Builder
 public class Participant {
-
     private Long id;
     private String sheetName;
     private String name;
@@ -24,7 +23,7 @@ public class Participant {
     private String assignedUnassigned;
     private String eventName;
     private OffsetDateTime eventDate;
-    private String meetingDone;
+    private Boolean meetingDone;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
     private Boolean isFocused;

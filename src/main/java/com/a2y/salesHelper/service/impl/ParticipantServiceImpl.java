@@ -164,7 +164,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                 .assignedUnassigned(getCellValueAsString(row.getCell(headerMappings.get("assigned/unassigned"))))
                 .eventName(getCellValueAsString(row.getCell(headerMappings.get("Event Name"))))
                 .eventDate(OffsetDateTime.parse(getCellValueAsString(row.getCell(headerMappings.get("Date")))))
-                .meetingDone(getCellValueAsString(row.getCell(headerMappings.get("Meeting Done"))))
+                .meetingDone(Boolean.getBoolean(getCellValueAsString(row.getCell(headerMappings.get("Meeting Done")))))
                 .build();
         log.info("Parsed participant from row {}: {}", row.getRowNum(), participant);
         return participant;

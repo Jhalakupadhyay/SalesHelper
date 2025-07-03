@@ -56,7 +56,7 @@ public class ParticipantEntity {
     private OffsetDateTime eventDate;
 
     @Column(name = "meeting_done", length = 500)
-    private String meetingDone;
+    private Boolean meetingDone;
 
     @PrePersist
     protected void onCreate() {
