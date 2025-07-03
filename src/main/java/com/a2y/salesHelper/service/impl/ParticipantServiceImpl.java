@@ -343,8 +343,6 @@ public class ParticipantServiceImpl implements ParticipantService {
                 return participant.getAssignedUnassigned();
             case "event name":
                 return participant.getEventName();
-            case "meeting done":
-                return participant.getMeetingDone();
             default:
                 log.warn("Unknown field for filtering: {}", field);
                 return null;
