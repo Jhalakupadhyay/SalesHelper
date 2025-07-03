@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.OffsetDateTime;
 import java.util.*;
 
 @Service
@@ -162,7 +163,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                 .attended(getCellValueAsString(row.getCell(headerMappings.get("attended"))))
                 .assignedUnassigned(getCellValueAsString(row.getCell(headerMappings.get("assigned/unassigned"))))
                 .eventName(getCellValueAsString(row.getCell(headerMappings.get("Event Name"))))
-                .eventDate(getCellValueAsString(row.getCell(headerMappings.get("Date"))))
+                .eventDate(OffsetDateTime.parse(getCellValueAsString(row.getCell(headerMappings.get("Date")))))
                 .meetingDone(getCellValueAsString(row.getCell(headerMappings.get("Meeting Done"))))
                 .build();
         log.info("Parsed participant from row {}: {}", row.getRowNum(), participant);
@@ -342,8 +343,6 @@ public class ParticipantServiceImpl implements ParticipantService {
                 return participant.getAssignedUnassigned();
             case "event name":
                 return participant.getEventName();
-            case "date":
-                return participant.getEventDate();
             case "meeting done":
                 return participant.getMeetingDone();
             default:
