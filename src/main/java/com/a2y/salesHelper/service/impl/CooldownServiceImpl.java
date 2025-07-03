@@ -6,7 +6,9 @@ import com.a2y.salesHelper.db.repository.CompaniesRepository;
 import com.a2y.salesHelper.db.repository.CooldownRepository;
 import com.a2y.salesHelper.pojo.Cooldown;
 import com.a2y.salesHelper.service.interfaces.CooldownService;
+import org.springframework.stereotype.Service;
 
+@Service
 public class CooldownServiceImpl implements CooldownService {
 
     private final CooldownRepository cooldownRepository;

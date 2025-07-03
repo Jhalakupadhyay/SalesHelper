@@ -1,5 +1,6 @@
 package com.a2y.salesHelper.db.entity;
 
+import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -13,6 +14,7 @@ import java.time.OffsetDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Entity
 @Table(name = "cooldown", schema = "sales")
 public class CooldownEntity {
     @Id

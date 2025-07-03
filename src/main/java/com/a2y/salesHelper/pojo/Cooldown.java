@@ -11,12 +11,10 @@ import java.time.OffsetDateTime;
 
 @Data
 @Builder
-@Entity
 @NoArgsConstructor
 @AllArgsConstructor
 public class Cooldown {
 
-    @Id
     private long orgId;
     private OffsetDateTime cooldownPeriod1;
     private OffsetDateTime cooldownPeriod2;
