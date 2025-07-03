@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,6 +43,26 @@ public class CompaniesController {
         Integer processedCount = companiesService.parseExcelFile(file);
         return new ResponseEntity<>(processedCount, HttpStatus.OK);
     }
+    /**
+     * Retrieves a company by its ID.
+     *
+     * @param id the ID of the company to retrieve
+     * @return the company with the specified ID, or a 404 status if not found
+     */
+    @Operation(
+            summary = "Get Company by ID",
+            description = "Returns a company by its ID"
+    )
+    @PostMapping()
+    public ResponseEntity<Companies> getCompanyById(Long id) {
+        Companies response = companiesService.getCompanyById(id);
+        if (response == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+
 
     @Operation(
             summary = "Gives all the companies stored in the DB",

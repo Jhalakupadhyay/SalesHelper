@@ -1,7 +1,9 @@
 package com.a2y.salesHelper.service.impl;
 
 import com.a2y.salesHelper.db.entity.CompanyEntity;
+import com.a2y.salesHelper.db.entity.CooldownEntity;
 import com.a2y.salesHelper.db.repository.CompaniesRepository;
+import com.a2y.salesHelper.db.repository.CooldownRepository;
 import com.a2y.salesHelper.pojo.Companies;
 import com.a2y.salesHelper.service.interfaces.CompaniesService;
 import lombok.extern.slf4j.Slf4j;
@@ -13,12 +15,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.OffsetDateTime;
 import java.util.*;
 
 @Slf4j
 @Service
 public class CompaniesImpl implements CompaniesService {
     private final CompaniesRepository companiesRepository;
+    private final CooldownRepository cooldownRepository;
 
     Map<String, Integer> headerMappings = new HashMap<>();
 
@@ -28,8 +32,9 @@ public class CompaniesImpl implements CompaniesService {
             ,"Customer Name","Designation","Mob. No.","Email ID"
     };
 
-    public CompaniesImpl(CompaniesRepository companiesRepository) {
+    public CompaniesImpl(CompaniesRepository companiesRepository, CooldownRepository cooldownRepository) {
         this.companiesRepository = companiesRepository;
+        this.cooldownRepository = cooldownRepository;
     }
 
 
@@ -79,6 +84,7 @@ public class CompaniesImpl implements CompaniesService {
         List<Companies> companiesList = new ArrayList<>();
         for (CompanyEntity entity : companyEntities) {
             Companies company = Companies.builder()
+                    .id(entity.getId())
                     .accounts(entity.getAccounts())
                     .accountOwner(entity.getAccountOwner())
                     .type(entity.getType())
@@ -271,6 +277,60 @@ public class CompaniesImpl implements CompaniesService {
             companiesList.add(company);
         }
         return companiesList;
+    }
+
+    @Override
+    public Companies getCompanyById(Long id) {
+
+        if (id == null) {
+            return null;
+        }
+        Optional<CompanyEntity> optionalEntity = companiesRepository.findById(id);
+        if (optionalEntity.isPresent()) {
+            CompanyEntity entity = optionalEntity.get();
+            CooldownEntity cooldownEntity = cooldownRepository.findById(entity.getId())
+                    .orElse(null);
+            OffsetDateTime currentTime = OffsetDateTime.now();
+            OffsetDateTime cooldownTime = null;
+            int cooldownPeriod = 0;
+            if( cooldownEntity != null)
+            {
+                if(currentTime.isBefore(cooldownEntity.getCooldownPeriod1())) {
+                    cooldownTime = cooldownEntity.getCooldownPeriod1();
+                    cooldownPeriod = 1;
+                } else if(currentTime.isBefore(cooldownEntity.getCooldownPeriod2())) {
+                    cooldownTime = cooldownEntity.getCooldownPeriod2();
+                    cooldownPeriod = 2;
+                } else if(currentTime.isBefore(cooldownEntity.getCooldownPeriod3())) {
+                    cooldownTime = cooldownEntity.getCooldownPeriod3();
+                    cooldownPeriod = 3;
+                }
+            }
+            return Companies.builder()
+                    .id(entity.getId())
+                    .accounts(entity.getAccounts())
+                    .accountOwner(entity.getAccountOwner())
+                    .type(entity.getType())
+                    .focusedOrAssigned(entity.getFocusedOrAssigned())
+                    .etmRegion(entity.getEtmRegion())
+                    .accountTier(entity.getAccountTier())
+                    .meetingUpdate(entity.getMeetingUpdate())
+                    .quarter(entity.getQuarter())
+                    .meetingInitiative(entity.getMeetingInitiative())
+                    .sdrResponsible(entity.getSdrResponsible())
+                    .salesTeamRemarks(entity.getSalesTeamRemarks())
+                    .sdrRemark(entity.getSdrRemark())
+                    .salespinRemark(entity.getSalespinRemark())
+                    .marketingRemark(entity.getMarketingRemark())
+                    .customerName(entity.getCustomerName())
+                    .designation(entity.getDesignation())
+                    .mobileNumber(entity.getMobileNumber())
+                    .email(entity.getEmail())
+                    .coolDownPeriod(cooldownTime)
+                    .coolDownCount(cooldownPeriod)
+                    .build();
+        }
+        return null;
     }
 
     @Override

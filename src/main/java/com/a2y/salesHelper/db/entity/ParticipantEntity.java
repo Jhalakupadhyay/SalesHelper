@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.sql.Timestamp;
+import java.time.OffsetDateTime;
 
 @Entity
 @Table(name = "participants",schema = "sales")
@@ -52,7 +53,7 @@ public class ParticipantEntity {
     private String eventName;
 
     @Column(name = "event_date")
-    private String eventDate;
+    private OffsetDateTime eventDate;
 
     @Column(name = "meeting_done", length = 500)
     private String meetingDone;

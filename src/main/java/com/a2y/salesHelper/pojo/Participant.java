@@ -23,7 +23,7 @@ public class Participant {
     private String attended;
     private String assignedUnassigned;
     private String eventName;
-    private String eventDate;
+    private OffsetDateTime eventDate;
     private String meetingDone;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;

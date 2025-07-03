@@ -5,12 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.OffsetDateTime;
+
 @Builder
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class Companies {
-
+    private Long id;
     private String accounts;
     private String accountOwner;
     private String type;
@@ -29,5 +31,6 @@ public class Companies {
     private String designation;
     private Long mobileNumber;
     private String email;
-    private String coolDownPeriod;
+    private OffsetDateTime coolDownPeriod;
+    private int coolDownCount;
 }

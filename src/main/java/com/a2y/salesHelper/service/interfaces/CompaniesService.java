@@ -16,6 +16,7 @@ public interface CompaniesService {
 
     List<Companies> searchCompanies(String searchQuery);
 
+    Companies getCompanyById(Long id);
 
     List<Companies> filterCompanies(String field, String value);
 }
