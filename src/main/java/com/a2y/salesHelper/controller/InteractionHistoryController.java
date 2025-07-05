@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.OffsetDateTime;
@@ -26,8 +27,8 @@ public class InteractionHistoryController {
             description = "Adds an interaction history entry for a participant with the specified date and details."
     )
     @PostMapping("/add")
-    public ResponseEntity<Boolean> addInteractionHistory(Long participantId, OffsetDateTime interactionDate, String interactionDetails) {
-        Boolean isAdded =  interactionHistoryService.addInteractionHistory(participantId, interactionDate, interactionDetails);
+    public ResponseEntity<Boolean> addInteractionHistory(String participantName, String eventName, String organization, String interactionDetails) {
+        Boolean isAdded =  interactionHistoryService.addInteractionHistory(participantName, eventName, organization,interactionDetails);
 
         return new ResponseEntity<>(isAdded, Boolean.TRUE.equals(isAdded) ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST);
     }
@@ -37,8 +38,9 @@ public class InteractionHistoryController {
             description = "Retrieves the interaction history for a participant by their ID."
     )
     @GetMapping("/get")
-    public ResponseEntity<List<InteractionHistory>> getInteractionHistory(Long participantId) {
-        List<InteractionHistory> interactionHistory = interactionHistoryService.getInteractionHistory(participantId);
+    public ResponseEntity<List<InteractionHistory>> getInteractionHistory(@RequestParam String participantName,
+                                                                          @RequestParam String organization) {
+        List<InteractionHistory> interactionHistory = interactionHistoryService.getInteractionHistory(participantName, organization);
 
         if (interactionHistory.isEmpty()) {
             return new ResponseEntity<>(interactionHistory, HttpStatus.NOT_FOUND);

@@ -12,8 +12,11 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 @Builder
 public class InteractionHistory {
-    private Long participantId;
+    private String participantName;
+    private String organization;
+    private String designation;
     private String eventName;
     private OffsetDateTime eventDate;
     private String description;
+    private Boolean meetingDone;
 }

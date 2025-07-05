@@ -1,8 +1,11 @@
 package com.a2y.salesHelper.service.impl;
 
+import com.a2y.salesHelper.db.entity.InteractionHistoryEntity;
 import com.a2y.salesHelper.db.entity.ParticipantEntity;
 import com.a2y.salesHelper.db.repository.CompaniesRepository;
+import com.a2y.salesHelper.db.repository.InteractionHistoryRepository;
 import com.a2y.salesHelper.db.repository.ParticipantRepository;
+import com.a2y.salesHelper.pojo.InteractionHistory;
 import com.a2y.salesHelper.pojo.Participant;
 import com.a2y.salesHelper.service.interfaces.ParticipantService;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +25,7 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     private final ParticipantRepository participantRepository;
     private final CompaniesRepository companiesRepository;
+    private final InteractionHistoryRepository interactionHistoryRepository;
 
     // Fixed header mappings for Participant fields - customize these based on your Excel structure
     Map<String, Integer> headerMappings = new HashMap<>();
@@ -29,15 +33,16 @@ public class ParticipantServiceImpl implements ParticipantService {
             "name", "designation", "organization", "email", "mobile", "attended", "assigned/unassigned" , "Event Name" , "Date" ,"Meeting Done"
     };
 
-    public ParticipantServiceImpl(ParticipantRepository participantRepository, CompaniesRepository companiesRepository) {
+    public ParticipantServiceImpl(ParticipantRepository participantRepository, CompaniesRepository companiesRepository, InteractionHistoryRepository interactionHistoryRepository) {
         this.participantRepository = participantRepository;
-
         this.companiesRepository = companiesRepository;
+        this.interactionHistoryRepository = interactionHistoryRepository;
     }
 
     @Override
     public Integer parseExcelFile(MultipartFile file) throws IOException {
         List<ParticipantEntity> participants = new ArrayList<>();
+        List<InteractionHistoryEntity> interactionHistories = new ArrayList<>();
         String fileName = file.getOriginalFilename();
 
         try (InputStream inputStream = file.getInputStream()) {
@@ -55,9 +60,14 @@ public class ParticipantServiceImpl implements ParticipantService {
                     if (row == null || isRowEmpty(row)) continue;
                     try {
                         ParticipantEntity participant = parseRowToParticipant(row, sheetName, fileName);
+                        InteractionHistoryEntity interactionHistory = parseRowToInteractions(row, sheetName, fileName);
                         if (participant != null && isValidParticipant(participant)) {
                             participants.add(participant);
                             log.info("Parsed participant: {}", participant);
+                        }
+                        if( interactionHistory != null)
+                        {
+                            interactionHistories.add(interactionHistory);
                         }
                     } catch (Exception e) {
                         log.error("Error parsing row " + rowIndex + " in sheet " + sheetName +
@@ -73,7 +83,23 @@ public class ParticipantServiceImpl implements ParticipantService {
             participants.removeIf(participant -> participantRepository.existsByNameAndDesignationAndOrganization(participant.getName(), participant.getDesignation(),participant.getOrganization()));
             participantRepository.saveAll(participants);
         }
+        // Save all interaction histories to database
+        if (!interactionHistories.isEmpty()) {
+            interactionHistoryRepository.saveAll(interactionHistories);
+        }
         return participants.size();
+    }
+
+    private InteractionHistoryEntity parseRowToInteractions(Row row, String sheetName, String fileName) {
+        return InteractionHistoryEntity.builder()
+                .participantName(getCellValueAsString(row.getCell(headerMappings.get("name"))))
+                .designation(getCellValueAsString(row.getCell(headerMappings.get("designation"))))
+                .organization(getCellValueAsString(row.getCell(headerMappings.get("organization"))))
+                .eventName(getCellValueAsString(row.getCell(headerMappings.get("Event Name"))))
+                .eventDate(getCellValueAsString(row.getCell(headerMappings.get("Date"))) != null ? OffsetDateTime.parse(getCellValueAsString(row.getCell(headerMappings.get("Date")))) : null)
+                .description("")
+                .meetingDone(getCellValueAsString(row.getCell(headerMappings.get("Meeting Done"))) != null && getCellValueAsString(row.getCell(headerMappings.get("Meeting Done"))).equalsIgnoreCase("yes"))
+                .build();
     }
 
     @Override
@@ -133,7 +159,6 @@ public class ParticipantServiceImpl implements ParticipantService {
                     .attended(participant.getAttended())
                     .sheetName(existingParticipant.getSheetName()) // Keep original sheet name
                     .build();
-
             participantRepository.save(updatedParticipant);
             return getAllParticipant();
         } catch (Exception e) {
@@ -163,9 +188,6 @@ public class ParticipantServiceImpl implements ParticipantService {
                 .mobile(getCellValueAsString(row.getCell(headerMappings.get("mobile"))))
                 .attended(getCellValueAsString(row.getCell(headerMappings.get("attended"))))
                 .assignedUnassigned(getCellValueAsString(row.getCell(headerMappings.get("assigned/unassigned"))))
-                .eventName(getCellValueAsString(row.getCell(headerMappings.get("Event Name"))))
-                .eventDate(OffsetDateTime.parse(getCellValueAsString(row.getCell(headerMappings.get("Date")))))
-                .meetingDone(Boolean.getBoolean(getCellValueAsString(row.getCell(headerMappings.get("Meeting Done")))))
                 .build();
         log.info("Parsed participant from row {}: {}", row.getRowNum(), participant);
         return participant;

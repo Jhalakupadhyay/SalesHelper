@@ -11,6 +11,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CompositeIdClass implements Serializable {
-    private Long participantId;
+    private String participantName;
     private String eventName;
+    private String organization;
 }

@@ -20,21 +20,34 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
     }
 
     @Override
-    public boolean addInteractionHistory(Long participantId, OffsetDateTime intearctinDate, String interactionDetails) {
-        InteractionHistoryEntity interaction = interactionHistoryRepository.findByParticipantIdAndEventDate(participantId,intearctinDate);
-        //event Date will always be there, so we can use it to check if interaction already exists
-        if(interaction == null){
+    public boolean addInteractionHistory(String participantName, String eventName, String organization, String interactionDetails) {
+        InteractionHistoryEntity existingInteraction = interactionHistoryRepository.findByParticipantNameAndEventNameAndOrganization(
+                participantName, // Designation is not provided in the method signature, assuming it can be null
+                eventName,
+                organization
+        );
+
+        if (existingInteraction == null) {
             return false;
         }
 
-        interaction.setDescription(interactionDetails);
-        interactionHistoryRepository.save(interaction);
+        InteractionHistoryEntity interactionHistoryEntity = InteractionHistoryEntity.builder()
+                .participantName(participantName)
+                .organization(organization)
+                .designation(existingInteraction.getDesignation()) // Assuming designation is part of the existing interaction
+                .eventName(eventName)
+                .eventDate(OffsetDateTime.now())
+                .description(interactionDetails)
+                .meetingDone(false) // Default value, can be changed based on requirements
+                .build();
+
+        interactionHistoryRepository.save(interactionHistoryEntity);
         return true;
     }
 
     @Override
-    public List<InteractionHistory> getInteractionHistory(Long participantId) {
-        List<InteractionHistoryEntity> interaction = interactionHistoryRepository.findByParticipantId(participantId);
+    public List<InteractionHistory> getInteractionHistory(String participantName, String organization) {
+        List<InteractionHistoryEntity> interaction = interactionHistoryRepository.findByParticipantNameAndOrganization(participantName, organization);
 
         if(interaction == null) {
             return new ArrayList<>();
@@ -42,10 +55,13 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
         List<InteractionHistory> interactionHistoryList = new ArrayList<>();
         for (InteractionHistoryEntity entity : interaction) {
             InteractionHistory interactionHistory = InteractionHistory.builder()
-                    .participantId(entity.getParticipantId())
+                    .participantName(entity.getParticipantName())
+                    .organization(entity.getOrganization())
+                    .designation(entity.getDesignation())
                     .eventName(entity.getEventName())
                     .eventDate(entity.getEventDate())
                     .description(entity.getDescription())
+                    .meetingDone(entity.getMeetingDone())
                     .build();
             interactionHistoryList.add(interactionHistory);
         }

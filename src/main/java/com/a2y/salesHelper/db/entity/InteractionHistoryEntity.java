@@ -18,8 +18,15 @@ import java.time.OffsetDateTime;
 public class InteractionHistoryEntity {
 
     @Id
-    @Column(name = "participant_id")
-    private Long participantId;
+    @Column(name = "participant_name")
+    private String participantName;
+
+    @Id
+    @Column(name = "organization", length = 500)
+    private String organization;
+
+    @Column(name = "designation", length = 500)
+    private String designation;
 
     @Id
     @Column(name = "event_name", length = 500)
@@ -30,4 +37,7 @@ public class InteractionHistoryEntity {
 
     @Column(name = "interaction_date")
     private String description;
+
+    @Column(name = "meeting_done")
+    private Boolean meetingDone;
 }

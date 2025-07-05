@@ -8,17 +8,7 @@ import java.util.List;
 
 public interface InteractionHistoryRepository extends JpaRepository<InteractionHistoryEntity, Long> {
 
-    /**
-     * Find InteractionHistory by participantId
-     * @param participantId ID of the participant
-     * @return InteractionHistory object if found, otherwise null
-     */
-    InteractionHistoryEntity findByParticipantIdAndEventDate(Long participantId, OffsetDateTime eventDate);
+    InteractionHistoryEntity findByParticipantNameAndEventNameAndOrganization(String participantName, String eventName, String organization);
 
-    /**
-     * Find InteractionHistory by participantId
-     * @param participantId ID of the participant
-     * @return InteractionHistory object if found, otherwise null
-     */
-    List<InteractionHistoryEntity> findByParticipantId(Long participantId);
+    List<InteractionHistoryEntity> findByParticipantNameAndOrganization(String participantName, String organization);
 }
