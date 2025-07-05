@@ -2,6 +2,7 @@ package com.a2y.salesHelper.controller;
 
 import com.a2y.salesHelper.pojo.Cooldown;
 import com.a2y.salesHelper.service.interfaces.CooldownService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,6 +20,10 @@ public class CooldownController {
         this.cooldownService = cooldownService;
     }
 
+    @Operation(
+            summary = "Add Cooldown",
+            description = "Adds a cooldown for a participant with a specified duration and reason."
+    )
     @PostMapping()
     public ResponseEntity<Boolean> addCooldown(@RequestBody Cooldown cooldown) {
         Boolean isAdded = cooldownService.addCooldown(cooldown);
