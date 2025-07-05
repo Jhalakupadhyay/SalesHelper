@@ -6,6 +6,12 @@ spring:
   security:
     enabled: false
 
+  mail:
+    host: smtp-relay.brevo.com
+    port: ${SMTP_PORT}
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
+
 
   datasource:
     url: ${DB_URL}

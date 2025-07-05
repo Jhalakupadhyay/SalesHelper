@@ -2,8 +2,6 @@ package com.a2y.salesHelper.db.repository;
 
 import com.a2y.salesHelper.db.entity.InteractionHistoryEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
-
-import java.time.OffsetDateTime;
 import java.util.List;
 
 public interface InteractionHistoryRepository extends JpaRepository<InteractionHistoryEntity, Long> {
