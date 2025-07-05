@@ -1,5 +1,6 @@
 package com.a2y.salesHelper.controller;
 
+import com.a2y.salesHelper.enums.Role;
 import com.a2y.salesHelper.service.impl.EmailService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,9 +24,10 @@ public class EmailController {
     @PostMapping("/send-credentials")
     public String sendCredentials(@RequestParam String email,
                                   @RequestParam String username,
-                                  @RequestParam String password) {
+                                  @RequestParam String password,
+                                  @RequestParam Role role) {
         try {
-            emailService.sendCredentialsEmail(email, username, password);
+            emailService.sendCredentialsEmail(email, username, password,role);
             return "Email sent successfully to: " + email;
         } catch (Exception e) {
             return "Failed to send email: " + e.getMessage();

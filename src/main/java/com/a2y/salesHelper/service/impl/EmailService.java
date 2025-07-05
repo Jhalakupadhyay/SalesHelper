@@ -1,5 +1,8 @@
 package com.a2y.salesHelper.service.impl;
 
+import com.a2y.salesHelper.config.PasswordHashingConfig;
+import com.a2y.salesHelper.db.entity.UserEntity;
+import com.a2y.salesHelper.enums.Role;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,13 +14,19 @@ import org.springframework.stereotype.Service;
 @Service
 public class EmailService {
 
+    private final PasswordHashingConfig passwordHashingConfig;
+
     @Autowired
     private JavaMailSender mailSender;
 
     @Value("${spring.mail.username}")
     private String fromEmail;
 
-    public void sendCredentialsEmail(String toEmail, String username, String password) {
+    public EmailService(PasswordHashingConfig passwordHashingConfig) {
+        this.passwordHashingConfig = passwordHashingConfig;
+    }
+
+    public void sendCredentialsEmail(String toEmail, String username, String password, Role role) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -28,6 +37,16 @@ public class EmailService {
             helper.setText(buildHtmlContent(username, password), true);
 
             mailSender.send(message);
+
+            //hash the password and save it to the database
+            UserEntity.builder()
+                    .firstName(username.split(" ")[0])
+                    .lastName(username.split(" ").length > 1 ? username.split(" ")[1] : "")
+                    .email(toEmail)
+                    .password(passwordHashingConfig.passwordEncoder().encode(password)) // Password should be hashed before saving
+                    .role(role)
+                    .build();
+
 
         } catch (MessagingException e) {
             throw new RuntimeException("Failed to send email", e);

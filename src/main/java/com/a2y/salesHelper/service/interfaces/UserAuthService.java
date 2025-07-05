@@ -1,5 +1,7 @@
 package com.a2y.salesHelper.service.interfaces;
 
+import com.a2y.salesHelper.enums.Role;
+
 public interface UserAuthService {
 
     /**
@@ -10,7 +12,7 @@ public interface UserAuthService {
      * @param password the password for the new user
      * @return true if registration is successful, false otherwise
      */
-    boolean registerUser(String userName, String email, String password);
+    boolean registerUser(String userName, String email, String password, Role role);
 
     /**
      * Authenticates a user with the provided credentials.
@@ -20,5 +22,8 @@ public interface UserAuthService {
      * @return true if authentication is successful, false otherwise
      */
     boolean authenticateUser(String email, String password);
+
+    //Reset Password service
+    Boolean resetPassword(String email, String newPassword, String oldPassword);
 
 }

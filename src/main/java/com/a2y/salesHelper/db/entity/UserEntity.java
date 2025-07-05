@@ -1,10 +1,8 @@
 package com.a2y.salesHelper.db.entity;
 
+import com.a2y.salesHelper.enums.Role;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -13,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @NoArgsConstructor
 @Builder
 @Getter
+@Setter
 @Table(name = "user",schema = "sales")public class UserEntity {
 
     @Id
@@ -27,6 +26,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
     private String password;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    @Builder.Default
+    private Role role = Role.USER; // Default role
+
+
     @PrePersist
     @PreUpdate
     public void hashPassword() {
@@ -36,4 +41,5 @@ import org.springframework.security.crypto.password.PasswordEncoder;
             this.password = encoder.encode(this.password);
         }
     }
+
 }

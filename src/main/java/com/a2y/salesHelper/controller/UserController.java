@@ -1,5 +1,6 @@
 package com.a2y.salesHelper.controller;
 
+import com.a2y.salesHelper.enums.Role;
 import com.a2y.salesHelper.service.interfaces.UserAuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,8 +28,8 @@ public class UserController {
             description = "API takes name email and Password and registers the user."
     )
     @PostMapping("/signup")
-    public ResponseEntity<String> registerUser(String userName, String email, String password) {
-        boolean isRegistered = userAuthService.registerUser(userName, email, password);
+    public ResponseEntity<String> registerUser(String userName, String email, String password, Role role) {
+        boolean isRegistered = userAuthService.registerUser(userName, email, password,role);
         if (isRegistered) {
             return new ResponseEntity<>("Registration successful", HttpStatus.CREATED);
         } else {
@@ -47,6 +48,20 @@ public class UserController {
             return new ResponseEntity<>("Login successful", HttpStatus.OK);
         } else {
             return new ResponseEntity<>("Invalid credentials", HttpStatus.UNAUTHORIZED);
+        }
+    }
+
+    @Operation(
+            summary = "Reset Password API",
+            description = "API takes email, new password and old password and resets the user password."
+    )
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(String email, String newPassword, String oldPassword) {
+        Boolean isReset = userAuthService.resetPassword(email, newPassword, oldPassword);
+        if (isReset) {
+            return new ResponseEntity<>("Password reset successful", HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("Password reset failed", HttpStatus.BAD_REQUEST);
         }
     }
 }
