@@ -116,6 +116,7 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     @Override
     public List<Participant> updateParticipantById(Participant participant) {
+        
         try {
             ParticipantEntity existingParticipant = participantRepository.findById(participant.getId())
                     .orElseThrow(() -> new IllegalArgumentException("Participant not found with ID: " + participant.getId()));

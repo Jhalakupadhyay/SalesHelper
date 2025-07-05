@@ -6,9 +6,14 @@ import com.a2y.salesHelper.db.repository.CompaniesRepository;
 import com.a2y.salesHelper.db.repository.CooldownRepository;
 import com.a2y.salesHelper.pojo.Cooldown;
 import com.a2y.salesHelper.service.interfaces.CooldownService;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.OffsetDateTime;
+
 @Service
+@EnableScheduling
 public class CooldownServiceImpl implements CooldownService {
 
     private final CooldownRepository cooldownRepository;
@@ -33,4 +38,20 @@ public class CooldownServiceImpl implements CooldownService {
             throw new RuntimeException(e);
         }
     }
+
+    @Scheduled(fixedRate = 86400000) // Runs every 24 hours
+    public void mailCooldownWhenLessThan7Days() {
+        cooldownRepository.findAll().forEach(cooldownEntity -> {
+            CompanyEntity company = companiesRepository.findById(cooldownEntity.getOrgId()).orElse(null);
+            if (company != null && company.getEmail() != null) {
+                //get all the three cooldown periods
+                //one that is less than 7 days from now
+                if (cooldownEntity.getCooldownPeriod1() != null &&
+                    cooldownEntity.getCooldownPeriod1().isBefore(OffsetDateTime.now().plusDays(7))) {
+                    // TODO: SEND THE MAIL TO THE A2Y TEAM
+                }
+            }
+        });
+    }
+
 }
