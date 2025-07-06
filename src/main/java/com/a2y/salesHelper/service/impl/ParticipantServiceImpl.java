@@ -48,7 +48,6 @@ public class ParticipantServiceImpl implements ParticipantService {
         List<ParticipantEntity> participants = new ArrayList<>();
         List<InteractionHistoryEntity> interactionHistories = new ArrayList<>();
         String fileName = file.getOriginalFilename();
-        OffsetDateTime eventDate = null;
 
         try (InputStream inputStream = file.getInputStream()) {
             Workbook workbook = createWorkbook(fileName, inputStream);
@@ -68,9 +67,6 @@ public class ParticipantServiceImpl implements ParticipantService {
                         InteractionHistoryEntity interactionHistory = parseRowToInteractions(row, sheetName, fileName);
                         if (participant != null && isValidParticipant(participant)) {
                             participants.add(participant);
-                            if(participant.getEventDate() != null) {
-                                eventDate = participant.getEventDate();
-                            }
                             log.info("Parsed participant: {}", participant);
                         }
                         if( interactionHistory != null)
@@ -344,9 +340,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                     .organization(participantEntity.getOrganization())
                     .assignedUnassigned(participantEntity.getAssignedUnassigned())
                     .attended(participantEntity.getAttended())
-                    .eventName(participantEntity.getEventName())
                     .eventDate(participantEntity.getEventDate())
-                    .meetingDone(participantEntity.getMeetingDone())
                     .build());
         }
         return response;
@@ -376,9 +370,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                         .organization(participant.getOrganization())
                         .assignedUnassigned(participant.getAssignedUnassigned())
                         .attended(participant.getAttended())
-                        .eventName(participant.getEventName())
                         .eventDate(participant.getEventDate())
-                        .meetingDone(participant.getMeetingDone())
                         .build());
             }
         }
@@ -401,8 +393,6 @@ public class ParticipantServiceImpl implements ParticipantService {
                 return participant.getAttended();
             case "assigned/unassigned":
                 return participant.getAssignedUnassigned();
-            case "event name":
-                return participant.getEventName();
             default:
                 log.warn("Unknown field for filtering: {}", field);
                 return null;

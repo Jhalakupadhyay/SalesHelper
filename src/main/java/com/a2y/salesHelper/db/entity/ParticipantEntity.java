@@ -49,14 +49,9 @@ public class ParticipantEntity {
     @Column(name = "updated_at")
     private Timestamp updatedAt;
 
-    @Column(name = "event_name", length = 500)
-    private String eventName;
-
     @Column(name = "event_date")
     private OffsetDateTime eventDate;
 
-    @Column(name = "meeting_done", length = 500)
-    private Boolean meetingDone;
 
     @PrePersist
     protected void onCreate() {
