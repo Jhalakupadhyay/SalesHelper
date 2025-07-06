@@ -27,9 +27,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
     private String password;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false)
+    @Column(name = "role", nullable = false,columnDefinition = "role_enum")
     @Builder.Default
-    private Role role = Role.USER; // Default role
+    private Role role;// Default role
 
 
     @PrePersist
