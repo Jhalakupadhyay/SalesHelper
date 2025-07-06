@@ -295,16 +295,16 @@ public class CompaniesImpl implements CompaniesService {
             int cooldownPeriod = 0;
             if( cooldownEntity != null)
             {
-                if(currentTime.isBefore(cooldownEntity.getCooldownPeriod1())) {
-                    cooldownTime = cooldownEntity.getCooldownPeriod1();
-                    cooldownPeriod = 1;
-                } else if(currentTime.isBefore(cooldownEntity.getCooldownPeriod2())) {
-                    cooldownTime = cooldownEntity.getCooldownPeriod2();
-                    cooldownPeriod = 2;
-                } else if(currentTime.isBefore(cooldownEntity.getCooldownPeriod3())) {
-                    cooldownTime = cooldownEntity.getCooldownPeriod3();
-                    cooldownPeriod = 3;
-                }
+//                if(currentTime.isBefore() {
+//                    cooldownTime = cooldownEntity.getCooldownPeriod1();
+//                    cooldownPeriod = 1;
+//                } else if(currentTime.isBefore(cooldownEntity.getCooldownPeriod2())) {
+//                    cooldownTime = cooldownEntity.getCooldownPeriod2();
+//                    cooldownPeriod = 2;
+//                } else if(currentTime.isBefore(cooldownEntity.getCooldownPeriod3())) {
+//                    cooldownTime = cooldownEntity.getCooldownPeriod3();
+//                    cooldownPeriod = 3;
+//                }
             }
             return Companies.builder()
                     .id(entity.getId())

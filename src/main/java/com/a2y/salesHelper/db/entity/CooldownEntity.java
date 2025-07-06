@@ -19,14 +19,14 @@ import java.time.OffsetDateTime;
 @Table(name = "cooldown", schema = "sales")
 public class CooldownEntity {
     @Id
-    private long orgId;
+    private Long orgId;
 
     @Column(name = "cooldown1")
-    private OffsetDateTime cooldownPeriod1;
+    private Long cooldownPeriod1;
 
     @Column(name = "cooldown2")
-    private OffsetDateTime cooldownPeriod2;
+    private Long cooldownPeriod2;
 
     @Column(name = "cooldown3")
-    private OffsetDateTime cooldownPeriod3;
+    private Long cooldownPeriod3;
 }

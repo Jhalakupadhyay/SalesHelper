@@ -15,8 +15,8 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 public class Cooldown {
 
-    private long orgId;
-    private OffsetDateTime cooldownPeriod1;
-    private OffsetDateTime cooldownPeriod2;
-    private OffsetDateTime cooldownPeriod3;
+    private Long orgId;
+    private Long cooldownPeriod1;
+    private Long cooldownPeriod2;
+    private Long cooldownPeriod3;
 }

@@ -48,6 +48,7 @@ public class ParticipantServiceImpl implements ParticipantService {
         List<ParticipantEntity> participants = new ArrayList<>();
         List<InteractionHistoryEntity> interactionHistories = new ArrayList<>();
         String fileName = file.getOriginalFilename();
+        OffsetDateTime eventDate = null;
 
         try (InputStream inputStream = file.getInputStream()) {
             Workbook workbook = createWorkbook(fileName, inputStream);
@@ -67,6 +68,9 @@ public class ParticipantServiceImpl implements ParticipantService {
                         InteractionHistoryEntity interactionHistory = parseRowToInteractions(row, sheetName, fileName);
                         if (participant != null && isValidParticipant(participant)) {
                             participants.add(participant);
+                            if(participant.getEventDate() != null) {
+                                eventDate = participant.getEventDate();
+                            }
                             log.info("Parsed participant: {}", participant);
                         }
                         if( interactionHistory != null)
@@ -121,7 +125,7 @@ public class ParticipantServiceImpl implements ParticipantService {
 
             Long id = companiesRepository.findByAccounts(participant.getOrganization());
 
-            OffsetDateTime coolDownTime = null;
+            Long coolDownTime = null;
 
             //getting all the cooldowns
             if(id != null)
@@ -132,15 +136,15 @@ public class ParticipantServiceImpl implements ParticipantService {
                     //get current time
                     OffsetDateTime currentTime = OffsetDateTime.now();
 
-                    if(cooldown.getCooldownPeriod1().isAfter(currentTime))
+                    if(currentTime.isBefore(participant.getEventDate().plusDays(cooldown.getCooldownPeriod1())))
                     {
                         coolDownTime = cooldown.getCooldownPeriod1();
                     }
-                    else if(cooldown.getCooldownPeriod2().isAfter(currentTime))
+                    else if(currentTime.isBefore(participant.getEventDate().plusDays(cooldown.getCooldownPeriod2())))
                     {
                         coolDownTime = cooldown.getCooldownPeriod2();
                     }
-                    else if(cooldown.getCooldownPeriod3().isAfter(currentTime))
+                    else if(currentTime.isBefore(participant.getEventDate().plusDays(cooldown.getCooldownPeriod3())))
                     {
                         coolDownTime = cooldown.getCooldownPeriod3();
                     }

@@ -39,19 +39,19 @@ public class CooldownServiceImpl implements CooldownService {
         }
     }
 
-    @Scheduled(fixedRate = 86400000) // Runs every 24 hours
-    public void mailCooldownWhenLessThan7Days() {
-        cooldownRepository.findAll().forEach(cooldownEntity -> {
-            CompanyEntity company = companiesRepository.findById(cooldownEntity.getOrgId()).orElse(null);
-            if (company != null && company.getEmail() != null) {
-                //get all the three cooldown periods
-                //one that is less than 7 days from now
-                if (cooldownEntity.getCooldownPeriod1() != null &&
-                    cooldownEntity.getCooldownPeriod1().isBefore(OffsetDateTime.now().plusDays(7))) {
-                    // TODO: SEND THE MAIL TO THE A2Y TEAM
-                }
-            }
-        });
-    }
+//    @Scheduled(fixedRate = 86400000) // Runs every 24 hours
+//    public void mailCooldownWhenLessThan7Days() {
+//        cooldownRepository.findAll().forEach(cooldownEntity -> {
+//            CompanyEntity company = companiesRepository.findById(cooldownEntity.getOrgId()).orElse(null);
+//            if (company != null && company.getEmail() != null) {
+//                //get all the three cooldown periods
+//                //one that is less than 7 days from now
+//                if (cooldownEntity.getCooldownPeriod1() != null &&
+//                    cooldownEntity.getCooldownPeriod1().isBefore(OffsetDateTime.now().plusDays(7))) {
+//                    // TODO: SEND THE MAIL TO THE A2Y TEAM
+//                }
+//            }
+//        });
+//    }
 
 }
