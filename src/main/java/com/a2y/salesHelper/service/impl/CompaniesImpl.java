@@ -217,7 +217,7 @@ public class CompaniesImpl implements CompaniesService {
      * Parse the header row to create dynamic column mappings
      */
     private Map<String, Integer> parseHeaders(Sheet sheet, Map<String, Integer> headerMappings) {
-        Row headerRow = sheet.getRow(0);
+        Row headerRow = sheet.getRow(1);
         if (headerRow == null) {
             log.warn("No header row found in sheet: {}", sheet.getSheetName());
             return headerMappings;

@@ -1,16 +1,13 @@
 package com.a2y.salesHelper.service.impl;
 
-import com.a2y.salesHelper.db.entity.CompanyEntity;
 import com.a2y.salesHelper.db.entity.CooldownEntity;
 import com.a2y.salesHelper.db.repository.CompaniesRepository;
 import com.a2y.salesHelper.db.repository.CooldownRepository;
 import com.a2y.salesHelper.pojo.Cooldown;
 import com.a2y.salesHelper.service.interfaces.CooldownService;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.OffsetDateTime;
 
 @Service
 @EnableScheduling
