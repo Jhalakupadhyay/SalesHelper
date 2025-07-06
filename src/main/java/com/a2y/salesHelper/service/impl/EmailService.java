@@ -2,6 +2,7 @@ package com.a2y.salesHelper.service.impl;
 
 import com.a2y.salesHelper.config.PasswordHashingConfig;
 import com.a2y.salesHelper.db.entity.UserEntity;
+import com.a2y.salesHelper.db.repository.UserRepository;
 import com.a2y.salesHelper.enums.Role;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 public class EmailService {
 
     private final PasswordHashingConfig passwordHashingConfig;
+    private final UserRepository userRepository;
 
     @Autowired
     private JavaMailSender mailSender;
@@ -22,8 +24,9 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
-    public EmailService(PasswordHashingConfig passwordHashingConfig) {
+    public EmailService(PasswordHashingConfig passwordHashingConfig, UserRepository userRepository) {
         this.passwordHashingConfig = passwordHashingConfig;
+        this.userRepository = userRepository;
     }
 
     public void sendCredentialsEmail(String toEmail, String username, String password, Role role) {
@@ -39,13 +42,16 @@ public class EmailService {
             mailSender.send(message);
 
             //hash the password and save it to the database
-            UserEntity.builder()
+            UserEntity userEntity = UserEntity.builder()
                     .firstName(username.split(" ")[0])
                     .lastName(username.split(" ").length > 1 ? username.split(" ")[1] : "")
                     .email(toEmail)
                     .password(passwordHashingConfig.passwordEncoder().encode(password)) // Password should be hashed before saving
                     .role(role)
                     .build();
+
+            // Save the user entity to the database (assuming you have a UserRepository)
+            userRepository.save(userEntity);
 
 
         } catch (MessagingException e) {
