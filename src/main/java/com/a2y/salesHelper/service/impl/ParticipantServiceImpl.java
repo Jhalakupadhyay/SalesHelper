@@ -120,31 +120,30 @@ public class ParticipantServiceImpl implements ParticipantService {
             log.info("Processing participant: {}", participant.getOrganization());
 
             Long id = companiesRepository.findByAccounts(participant.getOrganization());
-            if(id == null) {
-                log.warn("No ID found for organization: {}", participant.getOrganization());
-                continue; // Skip this participant if no ID is found
-            }
 
             OffsetDateTime coolDownTime = null;
 
             //getting all the cooldowns
-            CooldownEntity cooldown = cooldownRepository.findById(id).orElse(null);
-            if(cooldown!= null)
+            if(id != null)
             {
-                //get current time
-                OffsetDateTime currentTime = OffsetDateTime.now();
+                CooldownEntity cooldown = cooldownRepository.findById(id).orElse(null);
+                if(cooldown!= null)
+                {
+                    //get current time
+                    OffsetDateTime currentTime = OffsetDateTime.now();
 
-                if(cooldown.getCooldownPeriod1().isAfter(currentTime))
-                {
-                    coolDownTime = cooldown.getCooldownPeriod1();
-                }
-                else if(cooldown.getCooldownPeriod2().isAfter(currentTime))
-                {
-                    coolDownTime = cooldown.getCooldownPeriod2();
-                }
-                else if(cooldown.getCooldownPeriod3().isAfter(currentTime))
-                {
-                    coolDownTime = cooldown.getCooldownPeriod3();
+                    if(cooldown.getCooldownPeriod1().isAfter(currentTime))
+                    {
+                        coolDownTime = cooldown.getCooldownPeriod1();
+                    }
+                    else if(cooldown.getCooldownPeriod2().isAfter(currentTime))
+                    {
+                        coolDownTime = cooldown.getCooldownPeriod2();
+                    }
+                    else if(cooldown.getCooldownPeriod3().isAfter(currentTime))
+                    {
+                        coolDownTime = cooldown.getCooldownPeriod3();
+                    }
                 }
             }
             response.add(Participant.builder()
