@@ -1,8 +1,10 @@
 package com.a2y.salesHelper.service.impl;
 
+import com.a2y.salesHelper.db.entity.CooldownEntity;
 import com.a2y.salesHelper.db.entity.InteractionHistoryEntity;
 import com.a2y.salesHelper.db.entity.ParticipantEntity;
 import com.a2y.salesHelper.db.repository.CompaniesRepository;
+import com.a2y.salesHelper.db.repository.CooldownRepository;
 import com.a2y.salesHelper.db.repository.InteractionHistoryRepository;
 import com.a2y.salesHelper.db.repository.ParticipantRepository;
 import com.a2y.salesHelper.pojo.InteractionHistory;
@@ -26,6 +28,7 @@ public class ParticipantServiceImpl implements ParticipantService {
     private final ParticipantRepository participantRepository;
     private final CompaniesRepository companiesRepository;
     private final InteractionHistoryRepository interactionHistoryRepository;
+    private final CooldownRepository cooldownRepository;
 
     // Fixed header mappings for Participant fields - customize these based on your Excel structure
     Map<String, Integer> headerMappings = new HashMap<>();
@@ -33,10 +36,11 @@ public class ParticipantServiceImpl implements ParticipantService {
             "name", "designation", "organization", "email", "mobile", "attended", "assigned/unassigned" , "Event Name" , "Date" ,"Meeting Done"
     };
 
-    public ParticipantServiceImpl(ParticipantRepository participantRepository, CompaniesRepository companiesRepository, InteractionHistoryRepository interactionHistoryRepository) {
+    public ParticipantServiceImpl(ParticipantRepository participantRepository, CompaniesRepository companiesRepository, InteractionHistoryRepository interactionHistoryRepository, CooldownRepository cooldownRepository) {
         this.participantRepository = participantRepository;
         this.companiesRepository = companiesRepository;
         this.interactionHistoryRepository = interactionHistoryRepository;
+        this.cooldownRepository = cooldownRepository;
     }
 
     @Override
@@ -107,9 +111,42 @@ public class ParticipantServiceImpl implements ParticipantService {
         List<ParticipantEntity> participants =  participantRepository.getAll();
         List<Participant> response = new ArrayList<>();
 
+        //get the orgID for the organization from the companies repository
+
         Set<String> existingAccounts = new HashSet<>(companiesRepository.findAllAccounts());
 
         for(ParticipantEntity participant : participants){
+
+            log.info("Processing participant: {}", participant.getOrganization());
+
+            Long id = companiesRepository.findByAccounts(participant.getOrganization());
+            if(id == null) {
+                log.warn("No ID found for organization: {}", participant.getOrganization());
+                continue; // Skip this participant if no ID is found
+            }
+
+            OffsetDateTime coolDownTime = null;
+
+            //getting all the cooldowns
+            CooldownEntity cooldown = cooldownRepository.findById(id).orElse(null);
+            if(cooldown!= null)
+            {
+                //get current time
+                OffsetDateTime currentTime = OffsetDateTime.now();
+
+                if(cooldown.getCooldownPeriod1().isAfter(currentTime))
+                {
+                    coolDownTime = cooldown.getCooldownPeriod1();
+                }
+                else if(cooldown.getCooldownPeriod2().isAfter(currentTime))
+                {
+                    coolDownTime = cooldown.getCooldownPeriod2();
+                }
+                else if(cooldown.getCooldownPeriod3().isAfter(currentTime))
+                {
+                    coolDownTime = cooldown.getCooldownPeriod3();
+                }
+            }
             response.add(Participant.builder()
                     .id(participant.getId())
                     .name(participant.getName())
@@ -118,10 +155,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                     .designation(participant.getDesignation())
                     .organization(participant.getOrganization())
                     .assignedUnassigned(participant.getAssignedUnassigned())
-                    .attended(participant.getAttended())
-                    .eventName(participant.getEventName())
-                    .eventDate(participant.getEventDate())
-                    .meetingDone(participant.getMeetingDone())
+                    .coolDownTime(coolDownTime)
                     .isFocused(existingAccounts.contains(participant.getOrganization()))
                     .build());
         }

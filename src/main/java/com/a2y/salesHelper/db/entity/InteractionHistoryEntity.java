@@ -35,7 +35,7 @@ public class InteractionHistoryEntity {
     @Column(name = "event_date")
     private OffsetDateTime eventDate;
 
-    @Column(name = "interaction_date")
+    @Column(name = "description")
     private String description;
 
     @Column(name = "meeting_done")

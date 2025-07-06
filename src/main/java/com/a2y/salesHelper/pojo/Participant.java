@@ -27,4 +27,5 @@ public class Participant {
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
     private Boolean isFocused;
+    private OffsetDateTime coolDownTime;
 }

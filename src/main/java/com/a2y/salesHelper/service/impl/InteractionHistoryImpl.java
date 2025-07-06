@@ -38,7 +38,7 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
                 .eventName(eventName)
                 .eventDate(OffsetDateTime.now())
                 .description(interactionDetails)
-                .meetingDone(false) // Default value, can be changed based on requirements
+                .meetingDone(Boolean.TRUE) // Default value, can be changed based on requirements
                 .build();
 
         interactionHistoryRepository.save(interactionHistoryEntity);
