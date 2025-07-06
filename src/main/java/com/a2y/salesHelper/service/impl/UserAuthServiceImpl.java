@@ -52,12 +52,17 @@ public class UserAuthServiceImpl implements UserAuthService {
     public Boolean resetPassword(String email, String newPassword, String oldPassword) {
         try {
             UserEntity userEntity = userRepository.findByEmail(email);
-            if (userEntity != null && passwordHashingConfig.passwordEncoder().matches(oldPassword, userEntity.getPassword())) {
+            if(userEntity == null) {
+                throw new RuntimeException("User does not exist"); // User not found
+            }
+            if( passwordHashingConfig.passwordEncoder().matches(oldPassword, userEntity.getPassword()))
+            {
                 userEntity.setPassword(passwordHashingConfig.passwordEncoder().encode(newPassword));
                 userRepository.save(userEntity);
                 return true;
+            }else {
+                throw new RuntimeException("Old password does not match.");
             }
-            return false;
         } catch (Exception e) {
             throw new RuntimeException("Password reset failed: " + e.getMessage(), e);
         }
