@@ -117,9 +117,8 @@ public class ParticipantServiceImpl implements ParticipantService {
 
         for(ParticipantEntity participant : participants){
 
-            log.info("Processing participant: {}", participant.getOrganization());
-
             Long id = companiesRepository.findByAccounts(participant.getOrganization());
+
 
             Long coolDownTime = null;
 
@@ -134,15 +133,15 @@ public class ParticipantServiceImpl implements ParticipantService {
 
                     if(currentTime.isBefore(participant.getEventDate().plusDays(cooldown.getCooldownPeriod1())))
                     {
-                        coolDownTime = cooldown.getCooldownPeriod1();
+                        coolDownTime = cooldown.getCooldownPeriod1() - participant.getEventDate().until(currentTime, java.time.temporal.ChronoUnit.DAYS);
                     }
-                    else if(currentTime.isBefore(participant.getEventDate().plusDays(cooldown.getCooldownPeriod2())))
+                    else if(currentTime.isBefore(participant.getEventDate().plusDays(cooldown.getCooldownPeriod2()).plusDays(cooldown.getCooldownPeriod1())))
                     {
-                        coolDownTime = cooldown.getCooldownPeriod2();
+                        coolDownTime = cooldown.getCooldownPeriod2() - participant.getEventDate().until(currentTime, java.time.temporal.ChronoUnit.DAYS);
                     }
-                    else if(currentTime.isBefore(participant.getEventDate().plusDays(cooldown.getCooldownPeriod3())))
+                    else if(currentTime.isBefore(participant.getEventDate().plusDays(cooldown.getCooldownPeriod3()).plusDays(cooldown.getCooldownPeriod2()).plusDays(cooldown.getCooldownPeriod1())))
                     {
-                        coolDownTime = cooldown.getCooldownPeriod3();
+                        coolDownTime = cooldown.getCooldownPeriod3() - participant.getEventDate().until(currentTime, java.time.temporal.ChronoUnit.DAYS);
                     }
                 }
             }
