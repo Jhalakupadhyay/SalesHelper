@@ -55,7 +55,7 @@ public class EmailService {
 
             //if already exists, update the user entity
             if (existingUser != null) {
-                 // Set the ID to update the existing user
+                userEntity.setId(existingUser.getId());
             }
 
             // Save the user entity to the database (assuming you have a UserRepository)
