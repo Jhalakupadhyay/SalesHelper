@@ -6,13 +6,14 @@ import lombok.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+@Builder
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-@Getter
-@Setter
-@Table(name = "user",schema = "sales")public class UserEntity {
+@Data
+@Table(name = "user",schema = "sales")
+
+public class UserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,7 +29,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false,columnDefinition = "role_enum")
-    @Builder.Default
     private Role role;// Default role
 
 

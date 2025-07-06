@@ -50,6 +50,14 @@ public class EmailService {
                     .role(role)
                     .build();
 
+            //check if the user already exists
+            UserEntity existingUser = userRepository.findByEmail(toEmail);
+
+            //if already exists, update the user entity
+            if (existingUser != null) {
+                 // Set the ID to update the existing user
+            }
+
             // Save the user entity to the database (assuming you have a UserRepository)
             userRepository.save(userEntity);
 
