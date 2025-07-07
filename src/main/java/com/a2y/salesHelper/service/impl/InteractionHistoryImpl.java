@@ -35,12 +35,13 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
 
 
         InteractionHistoryEntity interactionHistoryEntity = InteractionHistoryEntity.builder()
-                .participantName(existingInteraction.getParticipantName())
+                .participantName(editRequest.getParticipantName())
                 .organization(existingInteraction.getOrganization()) // Assuming organization is part of the existing interaction
                 .designation(existingInteraction.getDesignation()) // Assuming designation is part of the existing interaction
                 .eventName(existingInteraction.getEventName()) // Assuming eventName is part of the existing interaction
                 .eventDate(OffsetDateTime.now())
                 .description(editRequest.getDescription())
+                .createdAt(editRequest.getCreatedAt())
                 .meetingDone(Boolean.TRUE)
                 .build();
 
