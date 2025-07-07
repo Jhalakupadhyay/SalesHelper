@@ -48,6 +48,7 @@ public class EmailService {
                     .email(toEmail)
                     .password(passwordHashingConfig.passwordEncoder().encode(password)) // Password should be hashed before saving
                     .role(role)
+                    .isReset(Boolean.FALSE)
                     .build();
 
             //check if the user already exists

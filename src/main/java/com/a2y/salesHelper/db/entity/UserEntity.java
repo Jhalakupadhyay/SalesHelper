@@ -27,6 +27,8 @@ public class UserEntity {
 
     private String password;
 
+    private Boolean isReset;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false,columnDefinition = "role_enum")
     private Role role;// Default role

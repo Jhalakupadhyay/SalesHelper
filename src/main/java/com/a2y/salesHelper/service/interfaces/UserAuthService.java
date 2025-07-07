@@ -1,6 +1,7 @@
 package com.a2y.salesHelper.service.interfaces;
 
 import com.a2y.salesHelper.enums.Role;
+import com.a2y.salesHelper.pojo.User;
 
 public interface UserAuthService {
 
@@ -21,7 +22,7 @@ public interface UserAuthService {
      * @param password the password of the user
      * @return true if authentication is successful, false otherwise
      */
-    boolean authenticateUser(String email, String password);
+    User authenticateUser(String email, String password);
 
     //Reset Password service
     Boolean resetPassword(String email, String newPassword, String oldPassword);

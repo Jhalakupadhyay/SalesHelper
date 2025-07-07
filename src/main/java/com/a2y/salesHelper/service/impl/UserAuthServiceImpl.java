@@ -4,6 +4,7 @@ import com.a2y.salesHelper.config.PasswordHashingConfig;
 import com.a2y.salesHelper.db.entity.UserEntity;
 import com.a2y.salesHelper.db.repository.UserRepository;
 import com.a2y.salesHelper.enums.Role;
+import com.a2y.salesHelper.pojo.User;
 import com.a2y.salesHelper.service.interfaces.UserAuthService;
 import org.springframework.stereotype.Service;
 
@@ -38,11 +39,26 @@ public class UserAuthServiceImpl implements UserAuthService {
     }
 
     @Override
-    public boolean authenticateUser(String email, String password) {
+    public User authenticateUser(String email, String password) {
 
         try {
             UserEntity userEntity = userRepository.findByEmail(email);
-            return userEntity != null && passwordHashingConfig.passwordEncoder().matches(password, userEntity.getPassword());
+            if (userEntity == null) {
+                throw new RuntimeException("User does not exist"); // User not found
+            }
+            if (passwordHashingConfig.passwordEncoder().matches(password, userEntity.getPassword())) {
+                // Password matches, return user details
+                return User.builder()
+                        .id(userEntity.getId())
+                        .firstName(userEntity.getFirstName())
+                        .lastName(userEntity.getLastName())
+                        .email(userEntity.getEmail())
+                        .role(userEntity.getRole())
+                        .isReset(userEntity.getIsReset())
+                        .build();
+            } else {
+                throw new RuntimeException("Invalid credentials"); // Password does not match
+            }
         } catch (Exception e) {
             throw new RuntimeException("User authentication failed: " + e.getMessage(), e);
         }
@@ -58,6 +74,7 @@ public class UserAuthServiceImpl implements UserAuthService {
             if( passwordHashingConfig.passwordEncoder().matches(oldPassword, userEntity.getPassword()))
             {
                 userEntity.setPassword(passwordHashingConfig.passwordEncoder().encode(newPassword));
+                userEntity.setIsReset(Boolean.TRUE); // Set isReset to true
                 userRepository.save(userEntity);
                 return true;
             }else {

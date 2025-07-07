@@ -1,5 +1,6 @@
 package com.a2y.salesHelper.pojo;
 
+import com.a2y.salesHelper.enums.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,9 +12,17 @@ import lombok.NoArgsConstructor;
 @Builder
 public class User {
 
-    private String userName;
+    private Long id;
+
+    private String firstName;
+
+    private String lastName;
 
     private String email;
 
     private String password;
+
+    private Boolean isReset;
+
+    private Role role; // Default role
 }
