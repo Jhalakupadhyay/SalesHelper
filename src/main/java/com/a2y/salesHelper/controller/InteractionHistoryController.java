@@ -51,8 +51,8 @@ public class InteractionHistoryController {
             description = "ADDS an interaction history entry for a participant."
     )
     @PostMapping("/add")
-    public ResponseEntity<Boolean> addInteractionHistory(String participantName, String eventName, String organization, String interactionDetails, String designation, OffsetDateTime Date) {
-        Boolean isAdded = interactionHistoryService.addInteractionHistory(participantName, eventName, organization, interactionDetails, designation, Date);
+    public ResponseEntity<Boolean> addInteractionHistory(@RequestBody InteractionHistory interactionHistory) {
+        Boolean isAdded = interactionHistoryService.addInteractionHistory(interactionHistory);
 
         return new ResponseEntity<>(isAdded, Boolean.TRUE.equals(isAdded) ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST);
     }

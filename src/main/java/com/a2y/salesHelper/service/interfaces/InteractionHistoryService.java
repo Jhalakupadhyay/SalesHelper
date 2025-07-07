@@ -29,11 +29,7 @@ public interface InteractionHistoryService {
 
     /**
      * Add interaction history for a participant
-     * @param participantName Name of the participant
-     * @param eventName Name of the event
-     * @param organization Organization of the participant
-     * @param interactionDetails Details of the interaction
      * @return true if added successfully, false otherwise
      */
-    boolean addInteractionHistory(String participantName, String eventName, String organization, String interactionDetails, String designation, OffsetDateTime Date);
+    boolean addInteractionHistory(InteractionHistory interactionHistory);
 }
