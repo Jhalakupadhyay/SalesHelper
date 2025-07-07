@@ -33,5 +33,5 @@ public interface InteractionHistoryService {
      * @param interactionDetails Details of the interaction
      * @return true if added successfully, false otherwise
      */
-    boolean addInteractionHistory(String participantName, String eventName, String organization, String interactionDetails);
+    boolean addInteractionHistory(String participantName, String eventName, String organization, String interactionDetails,String designation);
 }

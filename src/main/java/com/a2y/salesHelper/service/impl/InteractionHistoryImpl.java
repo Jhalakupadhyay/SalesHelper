@@ -72,11 +72,12 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
     }
 
     @Override
-    public boolean addInteractionHistory(String participantName, String eventName, String organization, String interactionDetails) {
+    public boolean addInteractionHistory(String participantName, String eventName, String organization, String interactionDetails, String designation) {
         InteractionHistoryEntity interactionHistoryEntity = InteractionHistoryEntity.builder()
                 .participantName(participantName)
                 .organization(organization)
                 .eventName(eventName)
+                .designation(designation) // Designation is provided in the method signature
                 .eventDate(OffsetDateTime.now())
                 .description(interactionDetails)
                 .meetingDone(Boolean.TRUE) // Default value, can be changed based on requirements
