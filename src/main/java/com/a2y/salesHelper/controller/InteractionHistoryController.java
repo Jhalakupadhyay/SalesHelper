@@ -1,5 +1,6 @@
 package com.a2y.salesHelper.controller;
 
+import com.a2y.salesHelper.pojo.EditRequest;
 import com.a2y.salesHelper.pojo.InteractionHistory;
 import com.a2y.salesHelper.service.interfaces.InteractionHistoryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -7,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.Timestamp;
 import java.time.OffsetDateTime;
 import java.util.List;
 
@@ -25,8 +27,8 @@ public class InteractionHistoryController {
             description = "Adds an interaction history entry for a participant with the specified date and details."
     )
     @PostMapping("/edit")
-    public ResponseEntity<Boolean> editInteractionHistory(@RequestParam String participantName, @RequestParam OffsetDateTime createdAt ,String description) {
-        Boolean isAdded =  interactionHistoryService.editInteractionHistory(participantName, createdAt,description);
+    public ResponseEntity<Boolean> editInteractionHistory(@RequestBody EditRequest editRequest) {
+        Boolean isAdded =  interactionHistoryService.editInteractionHistory(editRequest);
 
         return new ResponseEntity<>(isAdded, Boolean.TRUE.equals(isAdded) ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST);
     }

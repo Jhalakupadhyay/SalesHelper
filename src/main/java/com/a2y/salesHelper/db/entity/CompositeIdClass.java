@@ -6,12 +6,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class CompositeIdClass implements Serializable {
     private String participantName;
-    private String eventName;
-    private String organization;
+    private Timestamp createdAt;
 }

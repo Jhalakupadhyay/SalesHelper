@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.sql.Timestamp;
 import java.time.OffsetDateTime;
 
 @Entity
@@ -21,14 +22,12 @@ public class InteractionHistoryEntity {
     @Column(name = "participant_name")
     private String participantName;
 
-    @Id
     @Column(name = "organization", length = 500)
     private String organization;
 
     @Column(name = "designation", length = 500)
     private String designation;
 
-    @Id
     @Column(name = "event_name", length = 500)
     private String eventName;
 
@@ -41,9 +40,12 @@ public class InteractionHistoryEntity {
     @Column(name = "meeting_done")
     private Boolean meetingDone;
 
+    @Id
+    @Column(name = "created_at",nullable = false)
+    private Timestamp createdAt;
+
     @PrePersist
     protected void onCreate() {
-        this.createdAt = OffsetDateTime.now();
+        createdAt = new Timestamp(System.currentTimeMillis());
     }
-    private OffsetDateTime createdAt;
 }

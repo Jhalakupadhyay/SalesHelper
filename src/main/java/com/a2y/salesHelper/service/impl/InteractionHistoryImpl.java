@@ -2,12 +2,15 @@ package com.a2y.salesHelper.service.impl;
 
 import com.a2y.salesHelper.db.entity.InteractionHistoryEntity;
 import com.a2y.salesHelper.db.repository.InteractionHistoryRepository;
+import com.a2y.salesHelper.pojo.EditRequest;
 import com.a2y.salesHelper.pojo.InteractionHistory;
 import com.a2y.salesHelper.service.interfaces.InteractionHistoryService;
 import lombok.extern.slf4j.Slf4j;
 import lombok.extern.slf4j.XSlf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 
+import java.sql.Timestamp;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,21 +26,21 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
     }
 
     @Override
-    public boolean editInteractionHistory(String participantName, OffsetDateTime createdAt, String des) {
+    public boolean editInteractionHistory(EditRequest editRequest) {
         InteractionHistoryEntity existingInteraction = interactionHistoryRepository
-                .findByParticipantNameAndCreatedAt(participantName, createdAt);
+                .findByParticipantNameAndCreatedAt(editRequest.getParticipantName(), editRequest.getCreatedAt());
         if (existingInteraction == null) {
             return false;
         }
 
 
         InteractionHistoryEntity interactionHistoryEntity = InteractionHistoryEntity.builder()
-                .participantName(participantName)
+                .participantName(existingInteraction.getParticipantName())
                 .organization(existingInteraction.getOrganization()) // Assuming organization is part of the existing interaction
                 .designation(existingInteraction.getDesignation()) // Assuming designation is part of the existing interaction
                 .eventName(existingInteraction.getEventName()) // Assuming eventName is part of the existing interaction
                 .eventDate(OffsetDateTime.now())
-                .description(des)
+                .description(editRequest.getDescription())
                 .meetingDone(Boolean.TRUE)
                 .build();
 
@@ -80,8 +83,7 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
                 .designation(interactionHistory.getDesignation()) // Designation is provided in the method signature
                 .eventDate(interactionHistory.getEventDate()) // Use provided date or current time
                 .description(interactionHistory.getDescription())
-                .meetingDone(Boolean.TRUE)
-                .createdAt(interactionHistory.getCreatedAt())// Default value, can be changed based on requirements
+                .meetingDone(Boolean.TRUE)// Default value, can be changed based on requirements
                 .build();
 
         interactionHistoryRepository.save(interactionHistoryEntity);
