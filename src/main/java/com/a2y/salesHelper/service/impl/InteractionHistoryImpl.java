@@ -68,6 +68,7 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
                     .eventDate(entity.getEventDate())
                     .description(entity.getDescription())
                     .meetingDone(entity.getMeetingDone())
+                    .createdAt(entity.getCreatedAt()) // Use existing createdAt or current time
                     .build();
             interactionHistoryList.add(interactionHistory);
         }
