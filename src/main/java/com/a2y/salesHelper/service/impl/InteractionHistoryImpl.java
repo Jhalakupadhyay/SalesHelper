@@ -20,7 +20,7 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
     }
 
     @Override
-    public boolean addInteractionHistory(String participantName, String eventName, String organization, String interactionDetails) {
+    public boolean editInteractionHistory(String participantName, String eventName, String organization, String interactionDetails) {
         InteractionHistoryEntity existingInteraction = interactionHistoryRepository.findByParticipantNameAndEventNameAndOrganization(
                 participantName, // Designation is not provided in the method signature, assuming it can be null
                 eventName,
@@ -45,6 +45,9 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
         return true;
     }
 
+    //add interaction history
+
+
     @Override
     public List<InteractionHistory> getInteractionHistory(String participantName, String organization) {
         List<InteractionHistoryEntity> interaction = interactionHistoryRepository.findByParticipantNameAndOrganization(participantName, organization);
@@ -66,5 +69,20 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
             interactionHistoryList.add(interactionHistory);
         }
         return interactionHistoryList;
+    }
+
+    @Override
+    public boolean addInteractionHistory(String participantName, String eventName, String organization, String interactionDetails) {
+        InteractionHistoryEntity interactionHistoryEntity = InteractionHistoryEntity.builder()
+                .participantName(participantName)
+                .organization(organization)
+                .eventName(eventName)
+                .eventDate(OffsetDateTime.now())
+                .description(interactionDetails)
+                .meetingDone(Boolean.TRUE) // Default value, can be changed based on requirements
+                .build();
+
+        interactionHistoryRepository.save(interactionHistoryEntity);
+        return true;
     }
 }

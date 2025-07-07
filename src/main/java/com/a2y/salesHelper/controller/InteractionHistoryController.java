@@ -23,8 +23,8 @@ public class InteractionHistoryController {
             summary = "Add Interaction History",
             description = "Adds an interaction history entry for a participant with the specified date and details."
     )
-    @PostMapping("/add")
-    public ResponseEntity<Boolean> addInteractionHistory(String participantName, String eventName, String organization, String interactionDetails) {
+    @PostMapping("/edit")
+    public ResponseEntity<Boolean> editInteractionHistory(String participantName, String eventName, String organization, String interactionDetails) {
         Boolean isAdded =  interactionHistoryService.addInteractionHistory(participantName, eventName, organization,interactionDetails);
 
         return new ResponseEntity<>(isAdded, Boolean.TRUE.equals(isAdded) ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST);
@@ -44,4 +44,16 @@ public class InteractionHistoryController {
         }
         return new ResponseEntity<>(interactionHistory, HttpStatus.OK);
     }
+
+    @Operation(
+            summary = "Add Interaction History",
+            description = "ADDS an interaction history entry for a participant."
+    )
+    @PostMapping("/add")
+    public ResponseEntity<Boolean> addInteractionHistory(String participantName, String eventName, String organization, String interactionDetails) {
+        Boolean isAdded = interactionHistoryService.addInteractionHistory(participantName, eventName, organization, interactionDetails);
+
+        return new ResponseEntity<>(isAdded, Boolean.TRUE.equals(isAdded) ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST);
+    }
+
 }

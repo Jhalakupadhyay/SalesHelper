@@ -15,7 +15,7 @@ public interface InteractionHistoryService {
      * @param interactionDetails Details of the interaction
      * @return true if added successfully, false otherwise
      */
-    boolean addInteractionHistory(String participantName, String eventName, String organization, String interactionDetails);
+    boolean editInteractionHistory(String participantName, String eventName, String organization, String interactionDetails);
 
     /**
      * Get interaction history for a participant
@@ -24,4 +24,14 @@ public interface InteractionHistoryService {
      * @return List of InteractionHistory objects
      */
     List<InteractionHistory> getInteractionHistory(String participantName, String organization);
+
+    /**
+     * Add interaction history for a participant
+     * @param participantName Name of the participant
+     * @param eventName Name of the event
+     * @param organization Organization of the participant
+     * @param interactionDetails Details of the interaction
+     * @return true if added successfully, false otherwise
+     */
+    boolean addInteractionHistory(String participantName, String eventName, String organization, String interactionDetails);
 }
