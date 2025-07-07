@@ -89,6 +89,7 @@ public class ParticipantServiceImpl implements ParticipantService {
         }
         // Save all interaction histories to database
         if (!interactionHistories.isEmpty()) {
+            interactionHistories.removeIf(interactionHistory -> interactionHistory.getMeetingDone() == Boolean.FALSE || interactionHistory.getEventDate() == null);
             interactionHistoryRepository.saveAll(interactionHistories);
         }
         return participants.size();
@@ -130,6 +131,11 @@ public class ParticipantServiceImpl implements ParticipantService {
                 {
                     //get current time
                     OffsetDateTime currentTime = OffsetDateTime.now();
+
+                    if(participant.getEventDate() == null) {
+                        log.warn("Participant {} has no event date set, skipping cooldown calculation", participant.getName());
+                        continue; // Skip this participant if no event date is set
+                    }
 
                     if(currentTime.isBefore(participant.getEventDate().plusDays(cooldown.getCooldownPeriod1())))
                     {
