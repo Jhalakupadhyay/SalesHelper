@@ -1,6 +1,7 @@
 package com.a2y.salesHelper.controller;
 
 import com.a2y.salesHelper.enums.Role;
+import com.a2y.salesHelper.pojo.User;
 import com.a2y.salesHelper.service.interfaces.UserAuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -42,12 +43,12 @@ public class UserController {
             description = "API takes email and password and signIn the user accordingly."
     )
     @PostMapping("/login")
-    public ResponseEntity<String> loginUser(String email, String password) {
-        boolean isAuthenticated = userAuthService.authenticateUser(email, password);
-        if (isAuthenticated) {
-            return new ResponseEntity<>("Login successful", HttpStatus.OK);
+    public ResponseEntity<User> loginUser(String email, String password) {
+        User isAuthenticated = userAuthService.authenticateUser(email, password);
+        if (isAuthenticated != null) {
+            return new ResponseEntity<>(isAuthenticated, HttpStatus.OK);
         } else {
-            return new ResponseEntity<>("Invalid credentials", HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
     }
 
