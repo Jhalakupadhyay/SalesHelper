@@ -4,6 +4,8 @@ import com.a2y.salesHelper.db.entity.InteractionHistoryEntity;
 import com.a2y.salesHelper.db.repository.InteractionHistoryRepository;
 import com.a2y.salesHelper.pojo.InteractionHistory;
 import com.a2y.salesHelper.service.interfaces.InteractionHistoryService;
+import lombok.extern.slf4j.Slf4j;
+import lombok.extern.slf4j.XSlf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
@@ -11,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Slf4j
 public class InteractionHistoryImpl implements InteractionHistoryService {
 
     private final InteractionHistoryRepository interactionHistoryRepository;
@@ -31,6 +34,8 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
             return false;
         }
 
+       log.info("Existing Interaction Found: " + existingInteraction.getDesignation());
+
         InteractionHistoryEntity interactionHistoryEntity = InteractionHistoryEntity.builder()
                 .participantName(participantName)
                 .organization(organization)
@@ -38,7 +43,7 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
                 .eventName(eventName)
                 .eventDate(OffsetDateTime.now())
                 .description(interactionDetails)
-                .meetingDone(Boolean.TRUE) // Default value, can be changed based on requirements
+                .meetingDone(Boolean.TRUE)
                 .build();
 
         interactionHistoryRepository.save(interactionHistoryEntity);
@@ -72,13 +77,13 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
     }
 
     @Override
-    public boolean addInteractionHistory(String participantName, String eventName, String organization, String interactionDetails, String designation) {
+    public boolean addInteractionHistory(String participantName, String eventName, String organization, String interactionDetails, String designation, OffsetDateTime date) {
         InteractionHistoryEntity interactionHistoryEntity = InteractionHistoryEntity.builder()
                 .participantName(participantName)
                 .organization(organization)
                 .eventName(eventName)
                 .designation(designation) // Designation is provided in the method signature
-                .eventDate(OffsetDateTime.now())
+                .eventDate(date != null ? date : OffsetDateTime.now()) // Use provided date or current time
                 .description(interactionDetails)
                 .meetingDone(Boolean.TRUE) // Default value, can be changed based on requirements
                 .build();

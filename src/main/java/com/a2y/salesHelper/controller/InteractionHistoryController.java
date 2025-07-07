@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @RestController()
@@ -50,8 +51,8 @@ public class InteractionHistoryController {
             description = "ADDS an interaction history entry for a participant."
     )
     @PostMapping("/add")
-    public ResponseEntity<Boolean> addInteractionHistory(String participantName, String eventName, String organization, String interactionDetails,String designation) {
-        Boolean isAdded = interactionHistoryService.addInteractionHistory(participantName, eventName, organization, interactionDetails, designation);
+    public ResponseEntity<Boolean> addInteractionHistory(String participantName, String eventName, String organization, String interactionDetails, String designation, OffsetDateTime Date) {
+        Boolean isAdded = interactionHistoryService.addInteractionHistory(participantName, eventName, organization, interactionDetails, designation, Date);
 
         return new ResponseEntity<>(isAdded, Boolean.TRUE.equals(isAdded) ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST);
     }

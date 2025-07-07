@@ -2,6 +2,8 @@ package com.a2y.salesHelper.service.interfaces;
 
 import com.a2y.salesHelper.pojo.InteractionHistory;
 import org.springframework.stereotype.Service;
+
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Service
@@ -33,5 +35,5 @@ public interface InteractionHistoryService {
      * @param interactionDetails Details of the interaction
      * @return true if added successfully, false otherwise
      */
-    boolean addInteractionHistory(String participantName, String eventName, String organization, String interactionDetails,String designation);
+    boolean addInteractionHistory(String participantName, String eventName, String organization, String interactionDetails, String designation, OffsetDateTime Date);
 }
