@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.security.Timestamp;
+import java.time.OffsetDateTime;
 
 
 @Data
@@ -15,6 +16,6 @@ import java.security.Timestamp;
 @Builder
 public class EditRequest {
     String participantName;
-    Timestamp createdAt;
+    OffsetDateTime createdAt;
     String description;
 }

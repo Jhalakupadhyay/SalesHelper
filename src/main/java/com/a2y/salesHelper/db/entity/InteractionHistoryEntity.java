@@ -42,10 +42,10 @@ public class InteractionHistoryEntity {
 
     @Id
     @Column(name = "created_at",nullable = false)
-    private Timestamp createdAt;
+    private OffsetDateTime createdAt;
 
     @PrePersist
     protected void onCreate() {
-        createdAt = new Timestamp(System.currentTimeMillis());
+        createdAt = OffsetDateTime.now();
     }
 }
