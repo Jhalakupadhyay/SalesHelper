@@ -369,6 +369,72 @@ public class CompaniesImpl implements CompaniesService {
         return filteredCompanies;
     }
 
+    @Override
+    public Companies updateCompanyById(Companies company) {
+        if (company == null || company.getId() == null) {
+            throw new IllegalArgumentException("Company or Company ID cannot be null");
+        }
+        Optional<CompanyEntity> optionalEntity = companiesRepository.findById(company.getId());
+        if (optionalEntity.isPresent()) {
+            CompanyEntity entity = optionalEntity.get();
+            entity.setAccounts(company.getAccounts());
+            entity.setAccountOwner(company.getAccountOwner());
+            entity.setType(company.getType());
+            entity.setFocusedOrAssigned(company.getFocusedOrAssigned());
+            entity.setEtmRegion(company.getEtmRegion());
+            entity.setAccountTier(company.getAccountTier());
+            entity.setMeetingUpdate(company.getMeetingUpdate());
+            entity.setQuarter(company.getQuarter());
+            entity.setMeetingInitiative(company.getMeetingInitiative());
+            entity.setSdrResponsible(company.getSdrResponsible());
+            entity.setSalesTeamRemarks(company.getSalesTeamRemarks());
+            entity.setSdrRemark(company.getSdrRemark());
+            entity.setSalespinRemark(company.getSalespinRemark());
+            entity.setMarketingRemark(company.getMarketingRemark());
+            entity.setCustomerName(company.getCustomerName());
+            entity.setDesignation(company.getDesignation());
+            entity.setMobileNumber(company.getMobileNumber());
+            entity.setEmail(company.getEmail());
+
+            CompanyEntity updatedEntity = companiesRepository.save(entity);
+            return Companies.builder()
+                    .id(updatedEntity.getId())
+                    .accounts(updatedEntity.getAccounts())
+                    .accountOwner(updatedEntity.getAccountOwner())
+                    .type(updatedEntity.getType())
+                    .focusedOrAssigned(updatedEntity.getFocusedOrAssigned())
+                    .etmRegion(updatedEntity.getEtmRegion())
+                    .accountTier(updatedEntity.getAccountTier())
+                    .meetingUpdate(updatedEntity.getMeetingUpdate())
+                    .quarter(updatedEntity.getQuarter())
+                    .meetingInitiative(updatedEntity.getMeetingInitiative())
+                    .sdrResponsible(updatedEntity.getSdrResponsible())
+                    .salesTeamRemarks(updatedEntity.getSalesTeamRemarks())
+                    .sdrRemark(updatedEntity.getSdrRemark())
+                    .salespinRemark(updatedEntity.getSalespinRemark())
+                    .marketingRemark(updatedEntity.getMarketingRemark())
+                    .customerName(updatedEntity.getCustomerName())
+                    .designation(updatedEntity.getDesignation())
+                    .mobileNumber(updatedEntity.getMobileNumber())
+                    .email(updatedEntity.getEmail())
+                    .build();
+        }
+        throw new NoSuchElementException("Company with ID " + company.getId() + " not found");
+    }
+
+    @Override
+    public Boolean deleteCompanyById(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Company ID cannot be null");
+        }
+        Optional<CompanyEntity> optionalEntity = companiesRepository.findById(id);
+        if (optionalEntity.isPresent()) {
+            companiesRepository.deleteById(id);
+            return true;
+        }
+        return false; // Return false if the company with the given ID does not exist
+    }
+
     private String getFieldValue(CompanyEntity entity, String field) {
         switch (field.toLowerCase()) {
             case "accounts":

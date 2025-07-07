@@ -19,4 +19,8 @@ public interface CompaniesService {
     Companies getCompanyById(Long id);
 
     List<Companies> filterCompanies(String field, String value);
+
+    Companies updateCompanyById(Companies company);
+
+    Boolean deleteCompanyById(Long id);
 }

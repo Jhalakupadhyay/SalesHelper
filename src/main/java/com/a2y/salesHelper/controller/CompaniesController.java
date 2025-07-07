@@ -7,10 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -100,6 +97,32 @@ public class CompaniesController {
         List<Companies> response = companiesService.filterCompanies(field, value);
         if (response.isEmpty()) {
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @Operation(
+            summary = "Update Company by ID",
+            description = "Updates a company in the database using its ID"
+    )
+    @PutMapping("/update")
+    public ResponseEntity<Companies> updateCompanyById(Companies company) {
+        Companies response = companiesService.updateCompanyById(company);
+        if (response == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @Operation(
+            summary = "Delete Company by ID",
+            description = "Deletes a company from the database using its ID"
+    )
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<Boolean> deleteCompanyById(@PathVariable Long id) {
+        Boolean response = companiesService.deleteCompanyById(id);
+        if (!response) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
