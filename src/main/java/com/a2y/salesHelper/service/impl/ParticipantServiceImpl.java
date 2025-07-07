@@ -159,6 +159,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                     .designation(participant.getDesignation())
                     .organization(participant.getOrganization())
                     .assignedUnassigned(participant.getAssignedUnassigned())
+                            .eventName(participant.getEventName())
                     .coolDownTime(coolDownTime)
                     .isFocused(existingAccounts.contains(participant.getOrganization()))
                     .build());
