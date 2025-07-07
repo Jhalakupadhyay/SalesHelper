@@ -52,6 +52,9 @@ public class ParticipantEntity {
     @Column(name = "event_date")
     private OffsetDateTime eventDate;
 
+    @Column(name = "event_name", length = 500)
+    private String eventName;
+
 
     @PrePersist
     protected void onCreate() {

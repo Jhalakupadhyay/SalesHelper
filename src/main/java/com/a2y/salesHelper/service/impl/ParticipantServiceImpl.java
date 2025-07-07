@@ -226,6 +226,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                 .mobile(getCellValueAsString(row.getCell(headerMappings.get("mobile"))))
                 .attended(getCellValueAsString(row.getCell(headerMappings.get("attended"))))
                 .assignedUnassigned(getCellValueAsString(row.getCell(headerMappings.get("assigned/unassigned"))))
+                .eventName(getCellValueAsString(row.getCell(headerMappings.get("Event Name"))))
                 .build();
         log.info("Parsed participant from row {}: {}", row.getRowNum(), participant);
         return participant;
