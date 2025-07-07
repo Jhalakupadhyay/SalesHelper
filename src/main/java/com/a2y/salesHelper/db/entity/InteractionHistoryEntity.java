@@ -40,4 +40,10 @@ public class InteractionHistoryEntity {
 
     @Column(name = "meeting_done")
     private Boolean meetingDone;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = OffsetDateTime.now();
+    }
+    private OffsetDateTime createdAt;
 }

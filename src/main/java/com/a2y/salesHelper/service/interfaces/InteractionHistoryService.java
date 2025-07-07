@@ -13,11 +13,9 @@ public interface InteractionHistoryService {
     /**
      * Add interaction history for a participant
      * @param participantName ID of the participant
-     * @param eventName Date of the interaction
-     * @param interactionDetails Details of the interaction
      * @return true if added successfully, false otherwise
      */
-    boolean editInteractionHistory(String participantName, String eventName, String organization, String interactionDetails);
+    boolean editInteractionHistory(String participantName, OffsetDateTime createdA,String description);
 
     /**
      * Get interaction history for a participant

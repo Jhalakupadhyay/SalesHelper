@@ -19,4 +19,5 @@ public class InteractionHistory {
     private OffsetDateTime eventDate;
     private String description;
     private Boolean meetingDone;
+    private OffsetDateTime createdAt;
 }

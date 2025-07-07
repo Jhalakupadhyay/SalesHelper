@@ -23,26 +23,21 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
     }
 
     @Override
-    public boolean editInteractionHistory(String participantName, String eventName, String organization, String interactionDetails) {
-        InteractionHistoryEntity existingInteraction = interactionHistoryRepository.findByParticipantNameAndEventNameAndOrganization(
-                participantName, // Designation is not provided in the method signature, assuming it can be null
-                eventName,
-                organization
-        );
-
+    public boolean editInteractionHistory(String participantName, OffsetDateTime createdAt, String des) {
+        InteractionHistoryEntity existingInteraction = interactionHistoryRepository
+                .findByParticipantNameAndCreatedAt(participantName, createdAt);
         if (existingInteraction == null) {
             return false;
         }
 
-       log.info("Existing Interaction Found: " + existingInteraction.getDesignation());
 
         InteractionHistoryEntity interactionHistoryEntity = InteractionHistoryEntity.builder()
                 .participantName(participantName)
-                .organization(organization)
+                .organization(existingInteraction.getOrganization()) // Assuming organization is part of the existing interaction
                 .designation(existingInteraction.getDesignation()) // Assuming designation is part of the existing interaction
-                .eventName(eventName)
+                .eventName(existingInteraction.getEventName()) // Assuming eventName is part of the existing interaction
                 .eventDate(OffsetDateTime.now())
-                .description(interactionDetails)
+                .description(des)
                 .meetingDone(Boolean.TRUE)
                 .build();
 
@@ -85,7 +80,8 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
                 .designation(interactionHistory.getDesignation()) // Designation is provided in the method signature
                 .eventDate(interactionHistory.getEventDate()) // Use provided date or current time
                 .description(interactionHistory.getDescription())
-                .meetingDone(Boolean.TRUE) // Default value, can be changed based on requirements
+                .meetingDone(Boolean.TRUE)
+                .createdAt(interactionHistory.getCreatedAt())// Default value, can be changed based on requirements
                 .build();
 
         interactionHistoryRepository.save(interactionHistoryEntity);

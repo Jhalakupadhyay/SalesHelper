@@ -25,8 +25,8 @@ public class InteractionHistoryController {
             description = "Adds an interaction history entry for a participant with the specified date and details."
     )
     @PostMapping("/edit")
-    public ResponseEntity<Boolean> editInteractionHistory(String participantName, String eventName, String organization, String interactionDetails) {
-        Boolean isAdded =  interactionHistoryService.editInteractionHistory(participantName, eventName, organization,interactionDetails);
+    public ResponseEntity<Boolean> editInteractionHistory(@RequestParam String participantName, @RequestParam OffsetDateTime createdAt ,String description) {
+        Boolean isAdded =  interactionHistoryService.editInteractionHistory(participantName, createdAt,description);
 
         return new ResponseEntity<>(isAdded, Boolean.TRUE.equals(isAdded) ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST);
     }
