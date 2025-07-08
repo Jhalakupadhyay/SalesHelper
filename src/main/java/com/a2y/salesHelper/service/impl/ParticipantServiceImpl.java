@@ -127,15 +127,10 @@ public class ParticipantServiceImpl implements ParticipantService {
             if(id != null)
             {
                 CooldownEntity cooldown = cooldownRepository.findById(id).orElse(null);
-                if(cooldown!= null)
+                if(cooldown!= null && participant.getEventDate() != null)
                 {
                     //get current time
                     OffsetDateTime currentTime = OffsetDateTime.now();
-
-                    if(participant.getEventDate() == null) {
-                        log.warn("Participant {} has no event date set, skipping cooldown calculation", participant.getName());
-                        continue; // Skip this participant if no event date is set
-                    }
 
                     if(currentTime.isBefore(participant.getEventDate().plusDays(cooldown.getCooldownPeriod1())))
                     {
