@@ -2,6 +2,7 @@ package com.a2y.salesHelper.service.impl;
 
 import com.a2y.salesHelper.db.entity.InteractionHistoryEntity;
 import com.a2y.salesHelper.db.repository.InteractionHistoryRepository;
+import com.a2y.salesHelper.db.repository.ParticipantRepository;
 import com.a2y.salesHelper.pojo.EditRequest;
 import com.a2y.salesHelper.pojo.InteractionHistory;
 import com.a2y.salesHelper.service.interfaces.InteractionHistoryService;
@@ -16,9 +17,11 @@ import java.util.List;
 public class InteractionHistoryImpl implements InteractionHistoryService {
 
     private final InteractionHistoryRepository interactionHistoryRepository;
+    private final ParticipantRepository participantRepository;
 
-    public InteractionHistoryImpl(InteractionHistoryRepository interactionHistoryRepository) {
+    public InteractionHistoryImpl(InteractionHistoryRepository interactionHistoryRepository, ParticipantRepository participantRepository) {
         this.interactionHistoryRepository = interactionHistoryRepository;
+        this.participantRepository = participantRepository;
     }
 
     @Override
@@ -83,6 +86,14 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
                 .description(interactionHistory.getDescription())
                 .meetingDone(Boolean.TRUE)// Default value, can be changed based on requirements
                 .build();
+
+        //also update the eventDate in participant table
+        participantRepository.findByNameAndDesignationAndOrganization(interactionHistory.getParticipantName(),
+                interactionHistory.getDesignation(), interactionHistory.getOrganization())
+                .ifPresent(participant -> {
+                    participant.setEventDate(interactionHistory.getEventDate());
+                    participantRepository.save(participant);
+                });
 
         interactionHistoryRepository.save(interactionHistoryEntity);
         return true;

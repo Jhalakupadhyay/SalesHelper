@@ -13,6 +13,8 @@ import java.time.OffsetDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
+@Setter
 public class ParticipantEntity {
 
     @Id

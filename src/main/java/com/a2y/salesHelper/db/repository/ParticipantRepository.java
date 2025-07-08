@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ParticipantRepository extends JpaRepository<ParticipantEntity, Long> {
 
@@ -23,4 +24,6 @@ public interface ParticipantRepository extends JpaRepository<ParticipantEntity, 
             "LOWER(p.organization) LIKE LOWER(CONCAT('%', :name, '%')) " +
             "ORDER BY p.eventDate")
     List<ParticipantEntity> findByNameOrDesignationOrOrganization(String name);
+
+    Optional<ParticipantEntity> findByNameAndDesignationAndOrganization(String participantName, String designation, String organization);
 }
