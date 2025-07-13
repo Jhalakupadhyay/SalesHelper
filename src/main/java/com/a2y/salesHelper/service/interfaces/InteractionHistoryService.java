@@ -14,7 +14,7 @@ public interface InteractionHistoryService {
 
     /**
      * Add interaction history for a participant
-     * @param participantName ID of the participant
+     * @param editRequest EditRequest object containing participant details, date, and description
      * @return true if added successfully, false otherwise
      */
     boolean editInteractionHistory(EditRequest editRequest);
@@ -25,7 +25,7 @@ public interface InteractionHistoryService {
      * @param organization Organization of the participant
      * @return List of InteractionHistory objects
      */
-    List<InteractionHistory> getInteractionHistory(String participantName, String organization);
+    List<InteractionHistory> getInteractionHistory(String participantName, String organization,Long clientId);
 
     /**
      * Add interaction history for a participant

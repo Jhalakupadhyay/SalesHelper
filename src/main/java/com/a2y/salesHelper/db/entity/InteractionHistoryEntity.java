@@ -22,6 +22,9 @@ public class InteractionHistoryEntity {
     @Column(name = "participant_name")
     private String participantName;
 
+    @Column(name = "client_id", nullable = false)
+    private Long clientId;
+
     @Column(name = "organization", length = 500)
     private String organization;
 

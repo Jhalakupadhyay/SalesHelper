@@ -17,26 +17,28 @@ public interface ParticipantService {
      * @return number of participants processed
      * @throws IOException if file processing fails
      */
-    Integer parseExcelFile(MultipartFile file) throws IOException;
+    Integer parseExcelFile(MultipartFile file,Long clientId) throws IOException;
 
     /**
      * get all the participants from the DB
      * @return
      * List of all participants
      */
-    List<Participant> getAllParticipant();
+    List<Participant> getAllParticipant(Long clientId);
 
     /**
      * Get a map of participant IDs to their names
      * @return List<participant> containing participant details
      */
-    List<Participant> deleteParticipantById(Long id);
+    Boolean deleteParticipantById(Long id);
 
     /**
      * Get a map of participant IDs to their names
      * @return List<participant> containing participant details
      */
-    List<Participant> updateParticipantById(Participant participant);
+    Boolean updateParticipantById(Participant participant);
 
-    List<Participant> filterParticipants(String field, String value);
+    List<Participant> filterParticipants(String field, String value,Long clientId);
+
+    List<Participant> searchParticipant(String name,Long clientId);
 }

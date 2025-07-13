@@ -18,6 +18,9 @@ public class CompanyEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "client_id", nullable = false)
+    private Long clientId;
+
     @Column(name = "accounts", length = 500)
     private String accounts;
 
@@ -71,7 +74,4 @@ public class CompanyEntity {
 
     @Column(name = "email", length = 500)
     private String email;
-
-    @Column(name = "cool_down_period", length = 500)
-    private String coolDownPeriod;
 }

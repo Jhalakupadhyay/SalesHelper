@@ -1,9 +1,6 @@
 package com.a2y.salesHelper.db.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,9 +14,14 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 @Entity
 @Table(name = "cooldown", schema = "sales")
-public class CooldownEntity {
+public class ClientEntity {
+
     @Id
+    @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
     private Long orgId;
+
+    @Column(name = "org_name", length = 500)
+    private String orgName;
 
     @Column(name = "cooldown1")
     private Long cooldownPeriod1;

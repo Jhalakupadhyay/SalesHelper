@@ -15,7 +15,8 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 @Builder
 public class EditRequest {
-    String participantName;
-    OffsetDateTime createdAt;
-    String description;
+    private String participantName;
+    private Long clientId;
+    private OffsetDateTime createdAt;
+    private String description;
 }

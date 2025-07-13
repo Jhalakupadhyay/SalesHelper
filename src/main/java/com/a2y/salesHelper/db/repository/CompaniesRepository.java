@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface CompaniesRepository extends JpaRepository<CompanyEntity, Long> {
 
@@ -24,8 +25,8 @@ public interface CompaniesRepository extends JpaRepository<CompanyEntity, Long> 
      */
     void deleteById(Long id);
 
-    @Query("SELECT c.accounts FROM CompanyEntity c")
-    List<String> findAllAccounts();
+    @Query("SELECT c.accounts FROM CompanyEntity c WHERE c.clientId = :clientId")
+    List<String> findAllAccounts(Long clientId);
 
     @Query("SELECT c FROM CompanyEntity c WHERE " +
             "LOWER(c.accounts) LIKE LOWER(CONCAT('%', :searchQuery, '%')) OR " +
@@ -37,4 +38,15 @@ public interface CompaniesRepository extends JpaRepository<CompanyEntity, Long> 
     //QUERY THAT WILL RETURN THE ID OF THE ROW WITH THE GIVEN ORGANIZATION
     @Query("SELECT c.id FROM CompanyEntity c WHERE c.accounts ILIKE :organization")
     Long findByAccounts(String organization);
+
+    /**
+     * Find all companies for a specific client.
+     *
+     * @param clientId the ID of the client
+     * @return a list of company entities
+     */
+    Optional<CompanyEntity> findByIdAndClientId(Long id,Long clientId);
+
+    @Query("SELECT c FROM CompanyEntity c WHERE c.clientId = :clientId")
+    List<CompanyEntity> findAllByClientId(Long clientId);
 }

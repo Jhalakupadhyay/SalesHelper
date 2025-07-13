@@ -13,6 +13,7 @@ import java.time.OffsetDateTime;
 @Builder
 public class InteractionHistory {
     private String participantName;
+    private Long clientId;
     private String organization;
     private String designation;
     private String eventName;

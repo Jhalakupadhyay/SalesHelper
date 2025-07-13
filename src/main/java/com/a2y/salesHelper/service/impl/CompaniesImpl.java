@@ -1,9 +1,9 @@
 package com.a2y.salesHelper.service.impl;
 
+import com.a2y.salesHelper.db.entity.ClientEntity;
 import com.a2y.salesHelper.db.entity.CompanyEntity;
-import com.a2y.salesHelper.db.entity.CooldownEntity;
+import com.a2y.salesHelper.db.repository.ClientRepository;
 import com.a2y.salesHelper.db.repository.CompaniesRepository;
-import com.a2y.salesHelper.db.repository.CooldownRepository;
 import com.a2y.salesHelper.pojo.Companies;
 import com.a2y.salesHelper.service.interfaces.CompaniesService;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ import java.util.*;
 @Service
 public class CompaniesImpl implements CompaniesService {
     private final CompaniesRepository companiesRepository;
-    private final CooldownRepository cooldownRepository;
+    private final ClientRepository clientRepository;
 
     Map<String, Integer> headerMappings = new HashMap<>();
 
@@ -32,14 +32,14 @@ public class CompaniesImpl implements CompaniesService {
             ,"Customer Name","Designation","Mob. No.","Email ID"
     };
 
-    public CompaniesImpl(CompaniesRepository companiesRepository, CooldownRepository cooldownRepository) {
+    public CompaniesImpl(CompaniesRepository companiesRepository, ClientRepository clientRepository) {
         this.companiesRepository = companiesRepository;
-        this.cooldownRepository = cooldownRepository;
+        this.clientRepository = clientRepository;
     }
 
 
     @Override
-    public Integer parseExcelFile(MultipartFile file) throws IOException {
+    public Integer parseExcelFile(MultipartFile file,Long clientId) throws IOException {
         List<CompanyEntity> companies = new ArrayList<>();
         String fileName = file.getOriginalFilename();
 
@@ -56,7 +56,7 @@ public class CompaniesImpl implements CompaniesService {
                     Row row = sheet.getRow(rowIndex);
                     if (row == null || isRowEmpty(row)) continue;
                     try {
-                        CompanyEntity company = parseRowToCompany(row);
+                        CompanyEntity company = parseRowToCompany(row,clientId);
                         if (company != null) {
                             companies.add(company);
                         }
@@ -69,7 +69,7 @@ public class CompaniesImpl implements CompaniesService {
         }
         if(!companies.isEmpty()) {
             log.info("Saving {} companies to the database", companies.size());
-            Set<String> existingAccounts = new HashSet<>(companiesRepository.findAllAccounts());
+            Set<String> existingAccounts = new HashSet<>(companiesRepository.findAllAccounts(clientId));
             companies.removeIf(company -> existingAccounts.contains(company.getAccounts()));
             companiesRepository.saveAll(companies);
         } else {
@@ -79,12 +79,13 @@ public class CompaniesImpl implements CompaniesService {
     }
 
     @Override
-    public List<Companies> getAllCompanies() {
-        List<CompanyEntity> companyEntities = companiesRepository.findAll();
+    public List<Companies> getAllCompanies(Long clientId) {
+        List<CompanyEntity> companyEntities = companiesRepository.findAllByClientId(clientId);
         List<Companies> companiesList = new ArrayList<>();
         for (CompanyEntity entity : companyEntities) {
             Companies company = Companies.builder()
                     .id(entity.getId())
+                    .clientId(entity.getClientId())
                     .accounts(entity.getAccounts())
                     .accountOwner(entity.getAccountOwner())
                     .type(entity.getType())
@@ -119,7 +120,7 @@ public class CompaniesImpl implements CompaniesService {
         }
     }
 
-    private CompanyEntity parseRowToCompany(Row row) {
+    private CompanyEntity parseRowToCompany(Row row,Long clientId) {
 
         return CompanyEntity.builder()
                 .accounts(getCellValue(row, "Accounts"))
@@ -243,69 +244,16 @@ public class CompaniesImpl implements CompaniesService {
         return headerMappings;
     }
 
-    //Search APi to search by account, accountOwner, customerName,  email
-    //keep in priority accountOwner > account > customerName >  email
     @Override
-    public List<Companies> searchCompanies(String query) {
-        if (query == null || query.trim().isEmpty()) {
-            return Collections.emptyList();
-        }
-        String searchQuery = query.trim().toLowerCase();
-        List<CompanyEntity> companyEntities = companiesRepository.searchByAccountOrAccountOwnerOrCustomerNameOrEmail(searchQuery);
-        List<Companies> companiesList = new ArrayList<>();
-        for (CompanyEntity entity : companyEntities) {
-            Companies company = Companies.builder()
-                    .accounts(entity.getAccounts())
-                    .accountOwner(entity.getAccountOwner())
-                    .type(entity.getType())
-                    .focusedOrAssigned(entity.getFocusedOrAssigned())
-                    .etmRegion(entity.getEtmRegion())
-                    .accountTier(entity.getAccountTier())
-                    .meetingUpdate(entity.getMeetingUpdate())
-                    .quarter(entity.getQuarter())
-                    .meetingInitiative(entity.getMeetingInitiative())
-                    .sdrResponsible(entity.getSdrResponsible())
-                    .salesTeamRemarks(entity.getSalesTeamRemarks())
-                    .sdrRemark(entity.getSdrRemark())
-                    .salespinRemark(entity.getSalespinRemark())
-                    .marketingRemark(entity.getMarketingRemark())
-                    .customerName(entity.getCustomerName())
-                    .designation(entity.getDesignation())
-                    .mobileNumber(entity.getMobileNumber())
-                    .email(entity.getEmail())
-                    .build();
-            companiesList.add(company);
-        }
-        return companiesList;
-    }
-
-    @Override
-    public Companies getCompanyById(Long id) {
+    public Companies getCompanyById(Long id,Long clientId) {
 
         if (id == null) {
             return null;
         }
-        Optional<CompanyEntity> optionalEntity = companiesRepository.findById(id);
+        Optional<CompanyEntity> optionalEntity = companiesRepository.findByIdAndClientId(id,clientId);
         if (optionalEntity.isPresent()) {
             CompanyEntity entity = optionalEntity.get();
-            CooldownEntity cooldownEntity = cooldownRepository.findById(entity.getId())
-                    .orElse(null);
-            OffsetDateTime currentTime = OffsetDateTime.now();
             OffsetDateTime cooldownTime = null;
-            int cooldownPeriod = 0;
-            if( cooldownEntity != null)
-            {
-//                if(currentTime.isBefore() {
-//                    cooldownTime = cooldownEntity.getCooldownPeriod1();
-//                    cooldownPeriod = 1;
-//                } else if(currentTime.isBefore(cooldownEntity.getCooldownPeriod2())) {
-//                    cooldownTime = cooldownEntity.getCooldownPeriod2();
-//                    cooldownPeriod = 2;
-//                } else if(currentTime.isBefore(cooldownEntity.getCooldownPeriod3())) {
-//                    cooldownTime = cooldownEntity.getCooldownPeriod3();
-//                    cooldownPeriod = 3;
-//                }
-            }
             return Companies.builder()
                     .id(entity.getId())
                     .accounts(entity.getAccounts())
@@ -326,8 +274,6 @@ public class CompaniesImpl implements CompaniesService {
                     .designation(entity.getDesignation())
                     .mobileNumber(entity.getMobileNumber())
                     .email(entity.getEmail())
-                    .coolDownPeriod(cooldownTime)
-                    .coolDownCount(cooldownPeriod)
                     .build();
         }
         return null;
@@ -374,27 +320,28 @@ public class CompaniesImpl implements CompaniesService {
         if (company == null || company.getId() == null) {
             throw new IllegalArgumentException("Company or Company ID cannot be null");
         }
-        Optional<CompanyEntity> optionalEntity = companiesRepository.findById(company.getId());
+        Optional<CompanyEntity> optionalEntity = companiesRepository.findByIdAndClientId(company.getId(), company.getClientId());
         if (optionalEntity.isPresent()) {
             CompanyEntity entity = optionalEntity.get();
-            entity.setAccounts(company.getAccounts());
-            entity.setAccountOwner(company.getAccountOwner());
-            entity.setType(company.getType());
-            entity.setFocusedOrAssigned(company.getFocusedOrAssigned());
-            entity.setEtmRegion(company.getEtmRegion());
-            entity.setAccountTier(company.getAccountTier());
-            entity.setMeetingUpdate(company.getMeetingUpdate());
-            entity.setQuarter(company.getQuarter());
-            entity.setMeetingInitiative(company.getMeetingInitiative());
-            entity.setSdrResponsible(company.getSdrResponsible());
-            entity.setSalesTeamRemarks(company.getSalesTeamRemarks());
-            entity.setSdrRemark(company.getSdrRemark());
-            entity.setSalespinRemark(company.getSalespinRemark());
-            entity.setMarketingRemark(company.getMarketingRemark());
-            entity.setCustomerName(company.getCustomerName());
-            entity.setDesignation(company.getDesignation());
-            entity.setMobileNumber(company.getMobileNumber());
-            entity.setEmail(company.getEmail());
+            entity.builder()
+                    .accounts(company.getAccounts())
+                    .accountOwner(company.getAccountOwner())
+                    .type(company.getType())
+                    .focusedOrAssigned(company.getFocusedOrAssigned())
+                    .etmRegion(company.getEtmRegion())
+                    .accountTier(company.getAccountTier())
+                    .meetingUpdate(company.getMeetingUpdate())
+                    .quarter(company.getQuarter())
+                    .meetingInitiative(company.getMeetingInitiative())
+                    .sdrResponsible(company.getSdrResponsible())
+                    .salesTeamRemarks(company.getSalesTeamRemarks())
+                    .sdrRemark(company.getSdrRemark())
+                    .salespinRemark(company.getSalespinRemark())
+                    .marketingRemark(company.getMarketingRemark())
+                    .customerName(company.getCustomerName())
+                    .designation(company.getDesignation())
+                    .mobileNumber(company.getMobileNumber())
+                    .email(company.getEmail());
 
             CompanyEntity updatedEntity = companiesRepository.save(entity);
             return Companies.builder()

@@ -21,6 +21,9 @@ public class ParticipantEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "client_id", nullable = false)
+    private Long clientId;
+
     @Column(name = "sheet_name")
     private String sheetName;
 

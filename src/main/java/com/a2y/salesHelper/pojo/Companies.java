@@ -13,6 +13,7 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 public class Companies {
     private Long id;
+    private Long clientId;
     private String accounts;
     private String accountOwner;
     private String type;
@@ -32,5 +33,4 @@ public class Companies {
     private Long mobileNumber;
     private String email;
     private OffsetDateTime coolDownPeriod;
-    private int coolDownCount;
 }

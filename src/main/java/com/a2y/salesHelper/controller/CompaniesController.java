@@ -36,14 +36,15 @@ public class CompaniesController {
             summary = "Upload the Excel Sheets",
             description = "Accepts Multipart file and Parses it to save data in DB"
     )
-    public ResponseEntity<Integer> uploadExcelFile(MultipartFile file) throws IOException {
-        Integer processedCount = companiesService.parseExcelFile(file);
+    public ResponseEntity<Integer> uploadExcelFile(MultipartFile file, @RequestParam Long clientId) throws IOException {
+        Integer processedCount = companiesService.parseExcelFile(file,clientId);
         return new ResponseEntity<>(processedCount, HttpStatus.OK);
     }
     /**
      * Retrieves a company by its ID.
      *
      * @param id the ID of the company to retrieve
+     * @param clientId the ID of the client to which the company belongs
      * @return the company with the specified ID, or a 404 status if not found
      */
     @Operation(
@@ -51,8 +52,8 @@ public class CompaniesController {
             description = "Returns a company by its ID"
     )
     @PostMapping()
-    public ResponseEntity<Companies> getCompanyById(Long id) {
-        Companies response = companiesService.getCompanyById(id);
+    public ResponseEntity<Companies> getCompanyById(@RequestParam  Long id,@RequestParam Long clientId) {
+        Companies response = companiesService.getCompanyById(id,clientId);
         if (response == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -66,26 +67,14 @@ public class CompaniesController {
             description = "Returns all the Companies stored in DB"
     )
     @PostMapping("/getAll")
-    public ResponseEntity<List<Companies>> getAllCompanies() {
-        List<Companies> response = companiesService.getAllCompanies();
+    public ResponseEntity<List<Companies>> getAllCompanies(@RequestParam Long clientId) {
+        List<Companies> response = companiesService.getAllCompanies(clientId);
         if (response.isEmpty()) {
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @Operation(
-            summary = "Search Companies",
-            description = "Searches companies by account, account owner, customer name, or email."
-    )
-    @PostMapping("/search")
-    public ResponseEntity<List<Companies>> searchCompanies(String searchQuery) {
-        List<Companies> response = companiesService.searchCompanies(searchQuery);
-        if (response.isEmpty()) {
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
 
     //filter api that will filter the companies according to the field passed
     @Operation(
@@ -119,7 +108,7 @@ public class CompaniesController {
             description = "Deletes a company from the database using its ID"
     )
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Boolean> deleteCompanyById(@PathVariable Long id) {
+    public ResponseEntity<Boolean> deleteCompanyById(@RequestParam Long id) {
         Boolean response = companiesService.deleteCompanyById(id);
         if (!response) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

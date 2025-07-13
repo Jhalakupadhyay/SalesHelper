@@ -13,9 +13,10 @@ import java.time.OffsetDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Cooldown {
+public class ClientPojo {
 
     private Long orgId;
+    private String orgName;
     private Long cooldownPeriod1;
     private Long cooldownPeriod2;
     private Long cooldownPeriod3;

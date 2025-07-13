@@ -1,13 +1,11 @@
 package com.a2y.salesHelper.service.impl;
 
-import com.a2y.salesHelper.db.entity.CooldownEntity;
 import com.a2y.salesHelper.db.entity.InteractionHistoryEntity;
 import com.a2y.salesHelper.db.entity.ParticipantEntity;
+import com.a2y.salesHelper.db.repository.ClientRepository;
 import com.a2y.salesHelper.db.repository.CompaniesRepository;
-import com.a2y.salesHelper.db.repository.CooldownRepository;
 import com.a2y.salesHelper.db.repository.InteractionHistoryRepository;
 import com.a2y.salesHelper.db.repository.ParticipantRepository;
-import com.a2y.salesHelper.pojo.InteractionHistory;
 import com.a2y.salesHelper.pojo.Participant;
 import com.a2y.salesHelper.service.interfaces.ParticipantService;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +26,7 @@ public class ParticipantServiceImpl implements ParticipantService {
     private final ParticipantRepository participantRepository;
     private final CompaniesRepository companiesRepository;
     private final InteractionHistoryRepository interactionHistoryRepository;
-    private final CooldownRepository cooldownRepository;
+    private final ClientRepository clientRepository;
 
     // Fixed header mappings for Participant fields - customize these based on your Excel structure
     Map<String, Integer> headerMappings = new HashMap<>();
@@ -36,15 +34,15 @@ public class ParticipantServiceImpl implements ParticipantService {
             "name", "designation", "organization", "email", "mobile", "attended", "assigned/unassigned" , "Event Name" , "Date" ,"Meeting Done"
     };
 
-    public ParticipantServiceImpl(ParticipantRepository participantRepository, CompaniesRepository companiesRepository, InteractionHistoryRepository interactionHistoryRepository, CooldownRepository cooldownRepository) {
+    public ParticipantServiceImpl(ParticipantRepository participantRepository, CompaniesRepository companiesRepository, InteractionHistoryRepository interactionHistoryRepository, ClientRepository clientRepository) {
         this.participantRepository = participantRepository;
         this.companiesRepository = companiesRepository;
         this.interactionHistoryRepository = interactionHistoryRepository;
-        this.cooldownRepository = cooldownRepository;
+        this.clientRepository = clientRepository;
     }
 
     @Override
-    public Integer parseExcelFile(MultipartFile file) throws IOException {
+    public Integer parseExcelFile(MultipartFile file,Long clientId) throws IOException {
         List<ParticipantEntity> participants = new ArrayList<>();
         List<InteractionHistoryEntity> interactionHistories = new ArrayList<>();
         String fileName = file.getOriginalFilename();
@@ -63,8 +61,8 @@ public class ParticipantServiceImpl implements ParticipantService {
                     Row row = sheet.getRow(rowIndex);
                     if (row == null || isRowEmpty(row)) continue;
                     try {
-                        ParticipantEntity participant = parseRowToParticipant(row, sheetName, fileName);
-                        InteractionHistoryEntity interactionHistory = parseRowToInteractions(row, sheetName, fileName);
+                        ParticipantEntity participant = parseRowToParticipant(row, sheetName, clientId);
+                        InteractionHistoryEntity interactionHistory = parseRowToInteractions(row);
                         if (participant != null && isValidParticipant(participant)) {
                             participants.add(participant);
                             log.info("Parsed participant: {}", participant);
@@ -95,7 +93,7 @@ public class ParticipantServiceImpl implements ParticipantService {
         return participants.size();
     }
 
-    private InteractionHistoryEntity parseRowToInteractions(Row row, String sheetName, String fileName) {
+    private InteractionHistoryEntity parseRowToInteractions(Row row) {
         return InteractionHistoryEntity.builder()
                 .participantName(getCellValueAsString(row.getCell(headerMappings.get("name"))))
                 .designation(getCellValueAsString(row.getCell(headerMappings.get("designation"))))
@@ -108,13 +106,13 @@ public class ParticipantServiceImpl implements ParticipantService {
     }
 
     @Override
-    public List<Participant> getAllParticipant() {
+    public List<Participant> getAllParticipant(Long clientId) {
         List<ParticipantEntity> participants =  participantRepository.getAll();
         List<Participant> response = new ArrayList<>();
 
         //get the orgID for the organization from the companies repository
 
-        Set<String> existingAccounts = new HashSet<>(companiesRepository.findAllAccounts());
+        Set<String> existingAccounts = new HashSet<>(companiesRepository.findAllAccounts(clientId));
 
         for(ParticipantEntity participant : participants){
 
@@ -124,28 +122,28 @@ public class ParticipantServiceImpl implements ParticipantService {
             Long coolDownTime = null;
 
             //getting all the cooldowns
-            if(id != null)
-            {
-                CooldownEntity cooldown = cooldownRepository.findById(id).orElse(null);
-                if(cooldown!= null && participant.getEventDate() != null)
-                {
-                    //get current time
-                    OffsetDateTime currentTime = OffsetDateTime.now();
-
-                    if(currentTime.isBefore(participant.getEventDate().plusDays(cooldown.getCooldownPeriod1())))
-                    {
-                        coolDownTime = cooldown.getCooldownPeriod1() - participant.getEventDate().until(currentTime, java.time.temporal.ChronoUnit.DAYS);
-                    }
-                    else if(currentTime.isBefore(participant.getEventDate().plusDays(cooldown.getCooldownPeriod2()).plusDays(cooldown.getCooldownPeriod1())))
-                    {
-                        coolDownTime = cooldown.getCooldownPeriod2() - participant.getEventDate().until(currentTime, java.time.temporal.ChronoUnit.DAYS);
-                    }
-                    else if(currentTime.isBefore(participant.getEventDate().plusDays(cooldown.getCooldownPeriod3()).plusDays(cooldown.getCooldownPeriod2()).plusDays(cooldown.getCooldownPeriod1())))
-                    {
-                        coolDownTime = cooldown.getCooldownPeriod3() - participant.getEventDate().until(currentTime, java.time.temporal.ChronoUnit.DAYS);
-                    }
-                }
-            }
+//            if(id != null)
+//            {
+//                CooldownEntity cooldown = cooldownRepository.findById(id).orElse(null);
+//                if(cooldown!= null && participant.getEventDate() != null)
+//                {
+//                    //get current time
+//                    OffsetDateTime currentTime = OffsetDateTime.now();
+//
+//                    if(currentTime.isBefore(participant.getEventDate().plusDays(cooldown.getCooldownPeriod1())))
+//                    {
+//                        coolDownTime = cooldown.getCooldownPeriod1() - participant.getEventDate().until(currentTime, java.time.temporal.ChronoUnit.DAYS);
+//                    }
+//                    else if(currentTime.isBefore(participant.getEventDate().plusDays(cooldown.getCooldownPeriod2()).plusDays(cooldown.getCooldownPeriod1())))
+//                    {
+//                        coolDownTime = cooldown.getCooldownPeriod2() - participant.getEventDate().until(currentTime, java.time.temporal.ChronoUnit.DAYS);
+//                    }
+//                    else if(currentTime.isBefore(participant.getEventDate().plusDays(cooldown.getCooldownPeriod3()).plusDays(cooldown.getCooldownPeriod2()).plusDays(cooldown.getCooldownPeriod1())))
+//                    {
+//                        coolDownTime = cooldown.getCooldownPeriod3() - participant.getEventDate().until(currentTime, java.time.temporal.ChronoUnit.DAYS);
+//                    }
+//                }
+//            }
             response.add(Participant.builder()
                     .id(participant.getId())
                     .name(participant.getName())
@@ -163,19 +161,19 @@ public class ParticipantServiceImpl implements ParticipantService {
     }
 
     @Override
-    public List<Participant> deleteParticipantById(Long id) {
+    public Boolean deleteParticipantById(Long id) {
         try{
             participantRepository.deleteById(id);
             log.info("Deleted participant with ID: {}", id);
-            return getAllParticipant();
+            return Boolean.TRUE;
         } catch (Exception e) {
             log.error("Error deleting participant with ID {}: {}", id, e.getMessage());
-            return List.of(); // Return empty list on error
+            return Boolean.FALSE; // Return empty list on error
         }
     }
 
     @Override
-    public List<Participant> updateParticipantById(Participant participant) {
+    public Boolean updateParticipantById(Participant participant) {
         
         try {
             ParticipantEntity existingParticipant = participantRepository.findById(participant.getId())
@@ -194,10 +192,10 @@ public class ParticipantServiceImpl implements ParticipantService {
                     .sheetName(existingParticipant.getSheetName()) // Keep original sheet name
                     .build();
             participantRepository.save(updatedParticipant);
-            return getAllParticipant();
+            return Boolean.TRUE;
         } catch (Exception e) {
             log.error("Error updating participant: {}", e.getMessage());
-            return List.of(); // Return empty list on error
+            return Boolean.FALSE; // Return empty list on error
         }
     }
 
@@ -212,9 +210,10 @@ public class ParticipantServiceImpl implements ParticipantService {
         }
     }
 
-    private ParticipantEntity parseRowToParticipant(Row row, String sheetName, String sourceFile) {
+    private ParticipantEntity parseRowToParticipant(Row row, String sheetName, Long clientId) {
         ParticipantEntity participant = ParticipantEntity.builder()
                 .sheetName(sheetName)
+                .clientId(clientId)
                 .name(getCellValueAsString(row.getCell(headerMappings.get("name"))))
                 .designation(getCellValueAsString(row.getCell(headerMappings.get("designation"))))
                 .organization(getCellValueAsString(row.getCell(headerMappings.get("organization"))))
@@ -326,30 +325,8 @@ public class ParticipantServiceImpl implements ParticipantService {
         return headerMappings;
     }
 
-    //Search API to get the Participant by name
-    public List<Participant> searchParticipantFromAllFields(String name) {
-        //Search the participant by name designation and organization
-        List<ParticipantEntity> participant = participantRepository.findByNameOrDesignationOrOrganization(name);
-
-        List<Participant> response = new ArrayList<>();
-        for(ParticipantEntity participantEntity : participant) {
-            response.add(Participant.builder()
-                    .id(participantEntity.getId())
-                    .name(participantEntity.getName())
-                    .email(participantEntity.getEmail())
-                    .mobile(participantEntity.getMobile())
-                    .designation(participantEntity.getDesignation())
-                    .organization(participantEntity.getOrganization())
-                    .assignedUnassigned(participantEntity.getAssignedUnassigned())
-                    .attended(participantEntity.getAttended())
-                    .eventDate(participantEntity.getEventDate())
-                    .build());
-        }
-        return response;
-    }
-
     @Override
-    public List<Participant> filterParticipants(String field, String value) {
+    public List<Participant> filterParticipants(String field, String value,Long clientId) {
         // Validate field
         if (!headerMappings.containsKey(field)) {
             log.warn("Invalid field for filtering: {}", field);
@@ -357,7 +334,7 @@ public class ParticipantServiceImpl implements ParticipantService {
         }
 
         // Fetch all participants and filter based on the specified field and value
-        List<ParticipantEntity> allParticipants = participantRepository.getAll();
+        List<ParticipantEntity> allParticipants = participantRepository.getAllByClientId(clientId);
         List<Participant> filteredParticipants = new ArrayList<>();
 
         for (ParticipantEntity participant : allParticipants) {
@@ -377,6 +354,28 @@ public class ParticipantServiceImpl implements ParticipantService {
             }
         }
         return filteredParticipants;
+    }
+
+    @Override
+    public List<Participant> searchParticipant(String name, Long clientId) {
+        // Search participants by name and clientId
+        List<ParticipantEntity> participants = participantRepository.findByNameAndClientId(name, clientId);
+        List<Participant> response = new ArrayList<>();
+
+        for (ParticipantEntity participant : participants) {
+            response.add(Participant.builder()
+                    .id(participant.getId())
+                    .name(participant.getName())
+                    .email(participant.getEmail())
+                    .mobile(participant.getMobile())
+                    .designation(participant.getDesignation())
+                    .organization(participant.getOrganization())
+                    .assignedUnassigned(participant.getAssignedUnassigned())
+                    .attended(participant.getAttended())
+                    .eventDate(participant.getEventDate())
+                    .build());
+        }
+        return response;
     }
 
     private String getFieldValue(ParticipantEntity participant, String field) {

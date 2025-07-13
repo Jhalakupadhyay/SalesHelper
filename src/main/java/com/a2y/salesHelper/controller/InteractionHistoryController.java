@@ -7,9 +7,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.sql.Timestamp;
-import java.time.OffsetDateTime;
 import java.util.List;
 
 @RestController()
@@ -39,8 +36,8 @@ public class InteractionHistoryController {
     )
     @GetMapping("/get")
     public ResponseEntity<List<InteractionHistory>> getInteractionHistory(@RequestParam String participantName,
-                                                                          @RequestParam String organization) {
-        List<InteractionHistory> interactionHistory = interactionHistoryService.getInteractionHistory(participantName, organization);
+                                                                          @RequestParam String organization,@RequestParam Long clientId) {
+        List<InteractionHistory> interactionHistory = interactionHistoryService.getInteractionHistory(participantName, organization,clientId);
 
         if (interactionHistory.isEmpty()) {
             return new ResponseEntity<>(interactionHistory, HttpStatus.NOT_FOUND);

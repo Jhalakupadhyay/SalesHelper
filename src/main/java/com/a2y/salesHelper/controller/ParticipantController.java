@@ -30,9 +30,9 @@ public class ParticipantController {
             summary = "Upload the Excel Sheets",
             description = "Accepts Multipart file and Parses it to save data in DB"
     )
-    public ResponseEntity<String> uploadExcelFile(MultipartFile file) {
+    public ResponseEntity<String> uploadExcelFile(MultipartFile file,@RequestParam Long clientId) {
         try {
-            int processedCount = participantService.parseExcelFile(file);
+            int processedCount = participantService.parseExcelFile(file,clientId);
             return new ResponseEntity<>("Successfully processed " + processedCount + " participants.", HttpStatus.OK);
         } catch (IOException e) {
             return new ResponseEntity<>("Failed to process the file: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -44,9 +44,9 @@ public class ParticipantController {
             description = "Returns all the Participants stored in DB"
     )
     @GetMapping()
-    public ResponseEntity<List<Participant>> getAllParticipants(){
+    public ResponseEntity<List<Participant>> getAllParticipants(@RequestParam Long clientId){
 
-        List<Participant> response = participantService.getAllParticipant();
+        List<Participant> response = participantService.getAllParticipant(clientId);
         if(response.isEmpty()){
             return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
         }
@@ -58,12 +58,9 @@ public class ParticipantController {
             summary = "Delete a participant by ID",
             description = "Deletes a participant from the database using their ID"
     )
-    public ResponseEntity<List<Participant>> deleteParticipantById(@PathVariable Long id) {
-        List<Participant> response = participantService.deleteParticipantById(id);
-        if(response.isEmpty()){
-            return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(response,HttpStatus.OK);
+    public ResponseEntity<Boolean> deleteParticipantById(@PathVariable Long id) {
+        Boolean response = participantService.deleteParticipantById(id);
+        return new ResponseEntity<>(response, response ? HttpStatus.OK : HttpStatus.NOT_FOUND);
     }
 
     @PutMapping()
@@ -71,12 +68,9 @@ public class ParticipantController {
             summary = "Update a participant by ID",
             description = "Updates a participant's details in the database"
     )
-    public ResponseEntity<List<Participant>> updateParticipantById(@RequestBody Participant participant) {
-        List<Participant> response = participantService.updateParticipantById(participant);
-        if(response.isEmpty()){
-            return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(response,HttpStatus.OK);
+    public ResponseEntity<Boolean> updateParticipantById(@RequestBody Participant participant) {
+        Boolean response = participantService.updateParticipantById(participant);
+        return new ResponseEntity<>(response, response ? HttpStatus.OK : HttpStatus.NOT_FOUND);
     }
 
     @GetMapping("/search")
@@ -84,8 +78,8 @@ public class ParticipantController {
             summary = "Search participants by name",
             description = "Returns a list of participants whose names contain the specified search term"
     )
-    public ResponseEntity<List<Participant>> searchParticipantsByName(@RequestParam String name) {
-        List<Participant> participants = participantService.getAllParticipant();
+    public ResponseEntity<List<Participant>> searchParticipantsByName(@RequestParam String name, @RequestParam Long clientId) {
+        List<Participant> participants = participantService.searchParticipant(name,clientId);
         List<Participant> filteredParticipants = participants.stream()
                 .filter(participant -> participant.getName().toLowerCase().contains(name.toLowerCase()))
                 .toList();
@@ -102,8 +96,8 @@ public class ParticipantController {
             summary = "Filter Participants",
             description = "Filters participants based on the provided field and value."
     )
-    public ResponseEntity<List<Participant>> filterParticipants(@RequestParam String field, @RequestParam String value) {
-        List<Participant> response = participantService.filterParticipants(field, value);
+    public ResponseEntity<List<Participant>> filterParticipants(@RequestParam String field, @RequestParam String value,@RequestParam Long clientId) {
+        List<Participant> response = participantService.filterParticipants(field, value,clientId);
         if (response.isEmpty()) {
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         }

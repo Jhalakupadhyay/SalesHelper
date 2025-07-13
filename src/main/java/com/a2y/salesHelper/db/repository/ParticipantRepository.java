@@ -22,8 +22,14 @@ public interface ParticipantRepository extends JpaRepository<ParticipantEntity, 
             "LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%')) OR " +
             "LOWER(p.designation) LIKE LOWER(CONCAT('%', :name, '%')) OR " +
             "LOWER(p.organization) LIKE LOWER(CONCAT('%', :name, '%')) " +
+            "AND p.clientId = :clientId " +
             "ORDER BY p.eventDate")
-    List<ParticipantEntity> findByNameOrDesignationOrOrganization(String name);
+    List<ParticipantEntity> findByNameOrDesignationOrOrganization(String name,Long clientId);
 
-    Optional<ParticipantEntity> findByNameAndDesignationAndOrganization(String participantName, String designation, String organization);
+    Optional<ParticipantEntity> findByNameAndDesignationAndOrganizationAndClientId(String participantName, String designation, String organization, Long clientId);
+
+    List<ParticipantEntity> findByNameAndClientId(String name, Long clientId);
+
+    @Query("SELECT p FROM ParticipantEntity p WHERE p.clientId = :clientId")
+    List<ParticipantEntity> getAllByClientId(Long clientId);
 }

@@ -1,6 +1,6 @@
 package com.a2y.salesHelper.controller;
 
-import com.a2y.salesHelper.pojo.Cooldown;
+import com.a2y.salesHelper.pojo.ClientPojo;
 import com.a2y.salesHelper.service.interfaces.CooldownService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
@@ -11,12 +11,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.OffsetDateTime;
 
-@RestController( "api/cooldown" )
-public class CooldownController {
+@RestController( "api/client" )
+public class ClientController {
 
     private final CooldownService cooldownService;
 
-    public CooldownController(CooldownService cooldownService) {
+    public ClientController(CooldownService cooldownService) {
         this.cooldownService = cooldownService;
     }
 
@@ -25,8 +25,8 @@ public class CooldownController {
             description = "Adds a cooldown for a participant with a specified duration and reason."
     )
     @PostMapping()
-    public ResponseEntity<Boolean> addCooldown(@RequestBody Cooldown cooldown) {
-        Boolean isAdded = cooldownService.addCooldown(cooldown);
+    public ResponseEntity<Boolean> addCooldown(@RequestBody ClientPojo client) {
+        Boolean isAdded = cooldownService.addCooldown(client);
         return new ResponseEntity<>(isAdded, Boolean.TRUE.equals(isAdded) ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST);
     }
 }

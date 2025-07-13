@@ -1,9 +1,9 @@
 package com.a2y.salesHelper.service.impl;
 
-import com.a2y.salesHelper.db.entity.CooldownEntity;
+import com.a2y.salesHelper.db.entity.ClientEntity;
+import com.a2y.salesHelper.db.repository.ClientRepository;
 import com.a2y.salesHelper.db.repository.CompaniesRepository;
-import com.a2y.salesHelper.db.repository.CooldownRepository;
-import com.a2y.salesHelper.pojo.Cooldown;
+import com.a2y.salesHelper.pojo.ClientPojo;
 import com.a2y.salesHelper.service.interfaces.CooldownService;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Service;
@@ -13,22 +13,23 @@ import org.springframework.stereotype.Service;
 @EnableScheduling
 public class CooldownServiceImpl implements CooldownService {
 
-    private final CooldownRepository cooldownRepository;
+    private final ClientRepository clientRepository;
     private final CompaniesRepository companiesRepository;
 
-    public CooldownServiceImpl(CooldownRepository cooldownRepository, CompaniesRepository companiesRepository) {
-        this.cooldownRepository = cooldownRepository;
+    public CooldownServiceImpl(ClientRepository cooldownRepository, CompaniesRepository companiesRepository) {
+        this.clientRepository = cooldownRepository;
         this.companiesRepository = companiesRepository;
     }
 
     @Override
-    public Boolean addCooldown(Cooldown cooldown) {
+    public Boolean addCooldown(ClientPojo client) {
         try{
-            cooldownRepository.save(CooldownEntity.builder()
-                    .orgId(cooldown.getOrgId())
-                    .cooldownPeriod1(cooldown.getCooldownPeriod1())
-                    .cooldownPeriod2(cooldown.getCooldownPeriod2())
-                    .cooldownPeriod3(cooldown.getCooldownPeriod3())
+            clientRepository.save(ClientEntity.builder()
+                    .orgId(client.getOrgId())
+                    .orgName(client.getOrgName())
+                    .cooldownPeriod1(client.getCooldownPeriod1())
+                    .cooldownPeriod2(client.getCooldownPeriod2())
+                    .cooldownPeriod3(client.getCooldownPeriod3())
                     .build());
             return true;
         } catch (RuntimeException e) {

@@ -27,7 +27,7 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
     @Override
     public boolean editInteractionHistory(EditRequest editRequest) {
         InteractionHistoryEntity existingInteraction = interactionHistoryRepository
-                .findByParticipantNameAndCreatedAt(editRequest.getParticipantName(), editRequest.getCreatedAt());
+                .findByParticipantNameAndCreatedAtAndClientId(editRequest.getParticipantName(), editRequest.getCreatedAt(), editRequest.getClientId());
         if (existingInteraction == null) {
             return false;
         }
@@ -35,9 +35,10 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
 
         InteractionHistoryEntity interactionHistoryEntity = InteractionHistoryEntity.builder()
                 .participantName(editRequest.getParticipantName())
-                .organization(existingInteraction.getOrganization()) // Assuming organization is part of the existing interaction
-                .designation(existingInteraction.getDesignation()) // Assuming designation is part of the existing interaction
-                .eventName(existingInteraction.getEventName()) // Assuming eventName is part of the existing interaction
+                .clientId(existingInteraction.getClientId())
+                .organization(existingInteraction.getOrganization())
+                .designation(existingInteraction.getDesignation())
+                .eventName(existingInteraction.getEventName())
                 .eventDate(OffsetDateTime.now())
                 .description(editRequest.getDescription())
                 .createdAt(editRequest.getCreatedAt())
@@ -52,8 +53,8 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
 
 
     @Override
-    public List<InteractionHistory> getInteractionHistory(String participantName, String organization) {
-        List<InteractionHistoryEntity> interaction = interactionHistoryRepository.findByParticipantNameAndOrganization(participantName, organization);
+    public List<InteractionHistory> getInteractionHistory(String participantName, String organization,Long clientId) {
+        List<InteractionHistoryEntity> interaction = interactionHistoryRepository.findByParticipantNameAndOrganizationAndClientId(participantName, organization);
 
         if(interaction == null) {
             return new ArrayList<>();
@@ -62,6 +63,7 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
         for (InteractionHistoryEntity entity : interaction) {
             InteractionHistory interactionHistory = InteractionHistory.builder()
                     .participantName(entity.getParticipantName())
+                    .clientId(entity.getClientId()) // Assuming clientId is part of the interaction
                     .organization(entity.getOrganization())
                     .designation(entity.getDesignation())
                     .eventName(entity.getEventName())
@@ -79,6 +81,7 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
     public boolean addInteractionHistory(InteractionHistory interactionHistory) {
         InteractionHistoryEntity interactionHistoryEntity = InteractionHistoryEntity.builder()
                 .participantName(interactionHistory.getParticipantName())
+                .clientId(interactionHistory.getClientId()) // Client ID is provided in the method signature
                 .organization(interactionHistory.getOrganization())
                 .eventName(interactionHistory.getEventName())
                 .designation(interactionHistory.getDesignation()) // Designation is provided in the method signature
@@ -88,8 +91,8 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
                 .build();
 
         //also update the eventDate in participant table
-        participantRepository.findByNameAndDesignationAndOrganization(interactionHistory.getParticipantName(),
-                interactionHistory.getDesignation(), interactionHistory.getOrganization())
+        participantRepository.findByNameAndDesignationAndOrganizationAndClientId(interactionHistory.getParticipantName(),
+                interactionHistory.getDesignation(), interactionHistory.getOrganization(), interactionHistory.getClientId())
                 .ifPresent(participant -> {
                     participant.setEventDate(interactionHistory.getEventDate());
                     participantRepository.save(participant);

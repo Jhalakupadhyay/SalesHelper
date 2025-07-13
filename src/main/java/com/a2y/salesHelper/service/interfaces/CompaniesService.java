@@ -10,13 +10,11 @@ import java.util.List;
 @Service
 public interface CompaniesService {
 
-    Integer parseExcelFile(MultipartFile file) throws IOException;
+    Integer parseExcelFile(MultipartFile file, Long clientId) throws IOException;
 
-    List<Companies> getAllCompanies();
+    List<Companies> getAllCompanies(Long clientId);
 
-    List<Companies> searchCompanies(String searchQuery);
-
-    Companies getCompanyById(Long id);
+    Companies getCompanyById(Long id,Long clientId);
 
     List<Companies> filterCompanies(String field, String value);
 
