@@ -3,9 +3,6 @@ package com.a2y.salesHelper.service.interfaces;
 import com.a2y.salesHelper.pojo.EditRequest;
 import com.a2y.salesHelper.pojo.InteractionHistory;
 import org.springframework.stereotype.Service;
-
-import java.sql.Timestamp;
-import java.time.OffsetDateTime;
 import java.util.List;
 
 @Service

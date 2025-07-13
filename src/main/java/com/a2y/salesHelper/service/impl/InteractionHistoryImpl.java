@@ -54,7 +54,7 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
 
     @Override
     public List<InteractionHistory> getInteractionHistory(String participantName, String organization,Long clientId) {
-        List<InteractionHistoryEntity> interaction = interactionHistoryRepository.findByParticipantNameAndOrganizationAndClientId(participantName, organization);
+        List<InteractionHistoryEntity> interaction = interactionHistoryRepository.findByParticipantNameAndOrganizationAndClientId(participantName, organization,clientId);
 
         if(interaction == null) {
             return new ArrayList<>();
