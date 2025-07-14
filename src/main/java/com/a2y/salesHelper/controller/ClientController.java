@@ -1,6 +1,7 @@
 package com.a2y.salesHelper.controller;
 
 import com.a2y.salesHelper.pojo.ClientPojo;
+import com.a2y.salesHelper.pojo.ClientResponse;
 import com.a2y.salesHelper.service.interfaces.CooldownService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
@@ -35,8 +36,8 @@ public class ClientController {
             description = "Retrieves all the clients from the database."
     )
     @GetMapping("/get")
-    public ResponseEntity<List<ClientPojo>> getCooldown() {
-        List<ClientPojo> cooldown = cooldownService.getClients();
+    public ResponseEntity<List<ClientResponse>> getCooldown() {
+        List<ClientResponse> cooldown = cooldownService.getClients();
         if (cooldown == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

@@ -4,6 +4,7 @@ import com.a2y.salesHelper.db.entity.ClientEntity;
 import com.a2y.salesHelper.db.repository.ClientRepository;
 import com.a2y.salesHelper.db.repository.CompaniesRepository;
 import com.a2y.salesHelper.pojo.ClientPojo;
+import com.a2y.salesHelper.pojo.ClientResponse;
 import com.a2y.salesHelper.service.interfaces.CooldownService;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Service;
@@ -27,7 +28,6 @@ public class CooldownServiceImpl implements CooldownService {
     public Boolean addCooldown(ClientPojo client) {
         try{
             clientRepository.save(ClientEntity.builder()
-                    .orgId(client.getOrgId())
                     .orgName(client.getOrgName())
                     .cooldownPeriod1(client.getCooldownPeriod1())
                     .cooldownPeriod2(client.getCooldownPeriod2())
@@ -40,10 +40,10 @@ public class CooldownServiceImpl implements CooldownService {
     }
 
     @Override
-    public List<ClientPojo> getClients() {
+    public List<ClientResponse> getClients() {
         return clientRepository.findAll().stream()
-                .map(clientEntity -> ClientPojo.builder()
-                        .orgId(clientEntity.getOrgId())
+                .map(clientEntity -> ClientResponse.builder()
+                        .clientId(clientEntity.getOrgId())
                         .orgName(clientEntity.getOrgName())
                         .cooldownPeriod1(clientEntity.getCooldownPeriod1())
                         .cooldownPeriod2(clientEntity.getCooldownPeriod2())
