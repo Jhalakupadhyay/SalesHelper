@@ -291,6 +291,8 @@ public class CompaniesImpl implements CompaniesService {
             String fieldValue = getFieldValue(entity, field);
             if (fieldValue != null && fieldValue.equalsIgnoreCase(value)) {
                 Companies company = Companies.builder()
+                        .id(entity.getId())
+                        .clientId(entity.getClientId())
                         .accounts(entity.getAccounts())
                         .accountOwner(entity.getAccountOwner())
                         .type(entity.getType())
