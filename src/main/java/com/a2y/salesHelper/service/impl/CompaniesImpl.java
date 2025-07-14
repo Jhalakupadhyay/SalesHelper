@@ -324,25 +324,25 @@ public class CompaniesImpl implements CompaniesService {
         Optional<CompanyEntity> optionalEntity = companiesRepository.findByIdAndClientId(company.getId(), company.getClientId());
         if (optionalEntity.isPresent()) {
             CompanyEntity entity = optionalEntity.get();
-            entity.builder()
-                    .accounts(company.getAccounts())
-                    .accountOwner(company.getAccountOwner())
-                    .type(company.getType())
-                    .focusedOrAssigned(company.getFocusedOrAssigned())
-                    .etmRegion(company.getEtmRegion())
-                    .accountTier(company.getAccountTier())
-                    .meetingUpdate(company.getMeetingUpdate())
-                    .quarter(company.getQuarter())
-                    .meetingInitiative(company.getMeetingInitiative())
-                    .sdrResponsible(company.getSdrResponsible())
-                    .salesTeamRemarks(company.getSalesTeamRemarks())
-                    .sdrRemark(company.getSdrRemark())
-                    .salespinRemark(company.getSalespinRemark())
-                    .marketingRemark(company.getMarketingRemark())
-                    .customerName(company.getCustomerName())
-                    .designation(company.getDesignation())
-                    .mobileNumber(company.getMobileNumber())
-                    .email(company.getEmail());
+            entity.setAccounts(company.getAccounts());
+            entity.setAccountOwner(company.getAccountOwner());
+            entity.setType(company.getType());
+            entity.setFocusedOrAssigned(company.getFocusedOrAssigned());
+            entity.setEtmRegion(company.getEtmRegion());
+            entity.setAccountTier(company.getAccountTier());
+            entity.setMeetingUpdate(company.getMeetingUpdate());
+            entity.setQuarter(company.getQuarter());
+            entity.setMeetingInitiative(company.getMeetingInitiative());
+            entity.setSdrResponsible(company.getSdrResponsible());
+            entity.setSalesTeamRemarks(company.getSalesTeamRemarks());
+            entity.setSdrRemark(company.getSdrRemark());
+            entity.setSalespinRemark(company.getSalespinRemark());
+            entity.setMarketingRemark(company.getMarketingRemark());
+            entity.setCustomerName(company.getCustomerName());
+            entity.setDesignation(company.getDesignation());
+            entity.setMobileNumber(company.getMobileNumber());
+            entity.setEmail(company.getEmail());
+
 
             CompanyEntity updatedEntity = companiesRepository.save(entity);
             return Companies.builder()
