@@ -123,6 +123,7 @@ public class CompaniesImpl implements CompaniesService {
     private CompanyEntity parseRowToCompany(Row row,Long clientId) {
 
         return CompanyEntity.builder()
+                .clientId(clientId)
                 .accounts(getCellValue(row, "Accounts"))
                 .accountOwner(getCellValue(row, "Account Owner"))
                 .type(getCellValue(row, "Type"))
