@@ -82,8 +82,8 @@ public class CompaniesController {
             description = "Filters companies based on the provided field and value."
     )
     @PostMapping("/filter")
-    public ResponseEntity<List<Companies>> filterCompanies(String field, String value) {
-        List<Companies> response = companiesService.filterCompanies(field, value);
+    public ResponseEntity<List<Companies>> filterCompanies(String field, String value,Long clientId) {
+        List<Companies> response = companiesService.filterCompanies(field, value,clientId);
         if (response.isEmpty()) {
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         }

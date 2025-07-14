@@ -16,7 +16,7 @@ public interface CompaniesService {
 
     Companies getCompanyById(Long id,Long clientId);
 
-    List<Companies> filterCompanies(String field, String value);
+    List<Companies> filterCompanies(String field, String value,Long clientId);
 
     Companies updateCompanyById(Companies company);
 

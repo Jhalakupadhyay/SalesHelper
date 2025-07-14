@@ -281,11 +281,11 @@ public class CompaniesImpl implements CompaniesService {
     }
 
     @Override
-    public List<Companies> filterCompanies(String field, String value) {
+    public List<Companies> filterCompanies(String field, String value,Long clientId) {
         if (field == null || value == null || field.trim().isEmpty() || value.trim().isEmpty()) {
             return Collections.emptyList();
         }
-        List<CompanyEntity> companyEntities = companiesRepository.findAll();
+        List<CompanyEntity> companyEntities = companiesRepository.findAllByClientId(clientId);
         List<Companies> filteredCompanies = new ArrayList<>();
         for (CompanyEntity entity : companyEntities) {
             String fieldValue = getFieldValue(entity, field);
