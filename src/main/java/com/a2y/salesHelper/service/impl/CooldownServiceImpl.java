@@ -8,6 +8,8 @@ import com.a2y.salesHelper.service.interfaces.CooldownService;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 
 @Service
 @EnableScheduling
@@ -35,6 +37,19 @@ public class CooldownServiceImpl implements CooldownService {
         } catch (RuntimeException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public List<ClientPojo> getClients() {
+        return clientRepository.findAll().stream()
+                .map(clientEntity -> ClientPojo.builder()
+                        .orgId(clientEntity.getOrgId())
+                        .orgName(clientEntity.getOrgName())
+                        .cooldownPeriod1(clientEntity.getCooldownPeriod1())
+                        .cooldownPeriod2(clientEntity.getCooldownPeriod2())
+                        .cooldownPeriod3(clientEntity.getCooldownPeriod3())
+                        .build())
+                .toList();
     }
 
 //    @Scheduled(fixedRate = 86400000) // Runs every 24 hours
