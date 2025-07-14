@@ -12,6 +12,7 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 @Builder
 public class Participant {
+    private Long clientId;
     private Long id;
     private String sheetName;
     private String name;
