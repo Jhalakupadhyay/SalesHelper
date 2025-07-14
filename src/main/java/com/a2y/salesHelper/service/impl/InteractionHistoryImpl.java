@@ -1,6 +1,8 @@
 package com.a2y.salesHelper.service.impl;
 
+import com.a2y.salesHelper.db.entity.ClientEntity;
 import com.a2y.salesHelper.db.entity.InteractionHistoryEntity;
+import com.a2y.salesHelper.db.repository.ClientRepository;
 import com.a2y.salesHelper.db.repository.InteractionHistoryRepository;
 import com.a2y.salesHelper.db.repository.ParticipantRepository;
 import com.a2y.salesHelper.pojo.EditRequest;
@@ -18,10 +20,12 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
 
     private final InteractionHistoryRepository interactionHistoryRepository;
     private final ParticipantRepository participantRepository;
+    private final ClientRepository clientRepository;
 
-    public InteractionHistoryImpl(InteractionHistoryRepository interactionHistoryRepository, ParticipantRepository participantRepository) {
+    public InteractionHistoryImpl(InteractionHistoryRepository interactionHistoryRepository, ParticipantRepository participantRepository, ClientRepository clientRepository) {
         this.interactionHistoryRepository = interactionHistoryRepository;
         this.participantRepository = participantRepository;
+        this.clientRepository = clientRepository;
     }
 
     @Override
@@ -79,13 +83,60 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
 
     @Override
     public boolean addInteractionHistory(InteractionHistory interactionHistory) {
+
+        ClientEntity client = clientRepository.getReferenceById(interactionHistory.getClientId());
+
+        if (client == null) {
+            log.error("Client with ID {} not found", interactionHistory.getClientId());
+            return false;
+        }
+
+        Long cooldown1 = client.getCooldownPeriod1();
+        Long cooldown2 = client.getCooldownPeriod2();
+        Long cooldown3 = client.getCooldownPeriod3();
+
+        OffsetDateTime cooldownDate;
+        int cooldownCount;
+
+        //get the latest interaction history for the participant
+        InteractionHistoryEntity latestInteraction = interactionHistoryRepository
+                .findTopByParticipantNameAndClientIdOrderByCreatedAtDesc(interactionHistory.getParticipantName(), interactionHistory.getClientId());
+
+        if(latestInteraction.getCooldownCount() == 1)
+        {
+            if(interactionHistory.getEventDate().isBefore(latestInteraction.getCooldownDate())) {
+                cooldownDate = interactionHistory.getEventDate().plusSeconds(cooldown2);
+                cooldownCount = 2;
+            }else {
+                cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
+                cooldownCount = 1;
+            }
+        }
+        else if(latestInteraction.getCooldownCount() == 2)
+        {
+            if(interactionHistory.getEventDate().isBefore(latestInteraction.getCooldownDate())) {
+                cooldownDate = interactionHistory.getEventDate().plusSeconds(cooldown3);
+                cooldownCount = 3;
+            }else {
+                cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
+                cooldownCount = 1;
+            }
+        } else {
+            cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
+            cooldownCount = 1;
+        }
+
+
+
         InteractionHistoryEntity interactionHistoryEntity = InteractionHistoryEntity.builder()
                 .participantName(interactionHistory.getParticipantName())
                 .clientId(interactionHistory.getClientId()) // Client ID is provided in the method signature
                 .organization(interactionHistory.getOrganization())
                 .eventName(interactionHistory.getEventName())
                 .designation(interactionHistory.getDesignation()) // Designation is provided in the method signature
-                .eventDate(interactionHistory.getEventDate()) // Use provided date or current time
+                .eventDate(interactionHistory.getEventDate())
+                .cooldownDate(cooldownDate)
+                .cooldownCount(cooldownCount)// Use provided date or current time
                 .description(interactionHistory.getDescription())
                 .meetingDone(Boolean.TRUE)// Default value, can be changed based on requirements
                 .build();

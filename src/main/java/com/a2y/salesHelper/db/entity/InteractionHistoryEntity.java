@@ -5,8 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.sql.Timestamp;
 import java.time.OffsetDateTime;
 
 @Entity
@@ -36,6 +34,12 @@ public class InteractionHistoryEntity {
 
     @Column(name = "event_date")
     private OffsetDateTime eventDate;
+
+    @Column(name = "cooldown_date", nullable = false)
+    OffsetDateTime cooldownDate;
+
+    @Column(name = "cooldown_count",nullable = false)
+    private Integer cooldownCount;
 
     @Column(name = "description")
     private String description;

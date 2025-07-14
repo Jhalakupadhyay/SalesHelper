@@ -1,5 +1,6 @@
 package com.a2y.salesHelper.service.impl;
 
+import com.a2y.salesHelper.db.entity.ClientEntity;
 import com.a2y.salesHelper.db.entity.InteractionHistoryEntity;
 import com.a2y.salesHelper.db.entity.ParticipantEntity;
 import com.a2y.salesHelper.db.repository.ClientRepository;
@@ -116,34 +117,15 @@ public class ParticipantServiceImpl implements ParticipantService {
 
         for(ParticipantEntity participant : participants){
 
-            Long id = companiesRepository.findByAccounts(participant.getOrganization());
+            Long cooldownTime = null;
+            //check the latest interaction history for the participant
+            InteractionHistoryEntity latestInteraction = interactionHistoryRepository
+                    .findTopByParticipantNameAndClientIdOrderByCreatedAtDesc(participant.getName(), participant.getClientId());
 
+            if(latestInteraction != null) {
+                cooldownTime = OffsetDateTime.now().toEpochSecond() - latestInteraction.getCreatedAt().toEpochSecond();
+            }
 
-            Long coolDownTime = null;
-
-            //getting all the cooldowns
-//            if(id != null)
-//            {
-//                CooldownEntity cooldown = cooldownRepository.findById(id).orElse(null);
-//                if(cooldown!= null && participant.getEventDate() != null)
-//                {
-//                    //get current time
-//                    OffsetDateTime currentTime = OffsetDateTime.now();
-//
-//                    if(currentTime.isBefore(participant.getEventDate().plusDays(cooldown.getCooldownPeriod1())))
-//                    {
-//                        coolDownTime = cooldown.getCooldownPeriod1() - participant.getEventDate().until(currentTime, java.time.temporal.ChronoUnit.DAYS);
-//                    }
-//                    else if(currentTime.isBefore(participant.getEventDate().plusDays(cooldown.getCooldownPeriod2()).plusDays(cooldown.getCooldownPeriod1())))
-//                    {
-//                        coolDownTime = cooldown.getCooldownPeriod2() - participant.getEventDate().until(currentTime, java.time.temporal.ChronoUnit.DAYS);
-//                    }
-//                    else if(currentTime.isBefore(participant.getEventDate().plusDays(cooldown.getCooldownPeriod3()).plusDays(cooldown.getCooldownPeriod2()).plusDays(cooldown.getCooldownPeriod1())))
-//                    {
-//                        coolDownTime = cooldown.getCooldownPeriod3() - participant.getEventDate().until(currentTime, java.time.temporal.ChronoUnit.DAYS);
-//                    }
-//                }
-//            }
             response.add(Participant.builder()
                     .id(participant.getId())
                     .clientId(participant.getClientId())
@@ -154,7 +136,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                     .organization(participant.getOrganization())
                     .assignedUnassigned(participant.getAssignedUnassigned())
                             .eventName(participant.getEventName())
-                    .coolDownTime(coolDownTime)
+                    .coolDownTime(cooldownTime)
                     .isFocused(existingAccounts.contains(participant.getOrganization()))
                     .build());
         }
