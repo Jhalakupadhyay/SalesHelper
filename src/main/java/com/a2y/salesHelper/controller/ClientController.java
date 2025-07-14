@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.time.OffsetDateTime;
 import java.util.List;
 
 @RestController( "api/client" )
@@ -23,8 +21,8 @@ public class ClientController {
     }
 
     @Operation(
-            summary = "Add Cooldown",
-            description = "Adds a cooldown for a participant with a specified duration and reason."
+            summary = "Add Client",
+            description = "Adds a Client"
     )
     @PostMapping()
     public ResponseEntity<Boolean> addCooldown(@RequestBody ClientPojo client) {
