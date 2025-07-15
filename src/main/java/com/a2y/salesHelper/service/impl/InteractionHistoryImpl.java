@@ -106,7 +106,7 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
             if(latestInteraction.getCooldownCount() == 1)
             {
                 if(interactionHistory.getEventDate().isBefore(latestInteraction.getCooldownDate())) {
-                    cooldownDate = interactionHistory.getEventDate().plusSeconds(cooldown2);
+                    cooldownDate = interactionHistory.getEventDate().plusDays(cooldown2);
                     cooldownCount = 2;
                 }else {
                     cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
@@ -116,7 +116,7 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
             else if(latestInteraction.getCooldownCount() == 2)
             {
                 if(interactionHistory.getEventDate().isBefore(latestInteraction.getCooldownDate())) {
-                    cooldownDate = interactionHistory.getEventDate().plusSeconds(cooldown3);
+                    cooldownDate = interactionHistory.getEventDate().plusDays(cooldown3);
                     cooldownCount = 3;
                 }else {
                     cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
