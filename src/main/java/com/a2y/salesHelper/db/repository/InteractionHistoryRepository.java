@@ -15,5 +15,5 @@ public interface InteractionHistoryRepository extends JpaRepository<InteractionH
 
     InteractionHistoryEntity findByParticipantNameAndCreatedAtAndClientId(String participantName, OffsetDateTime createdAt, Long clientId);
 
-    InteractionHistoryEntity findTopByParticipantNameAndClientIdOrderByCreatedAtDesc(String participantName, Long clientId);
+    InteractionHistoryEntity findTopByParticipantNameAndOrganizationAndClientIdOrderByCreatedAtDesc(String participantName, String organization , Long clientId);
 }

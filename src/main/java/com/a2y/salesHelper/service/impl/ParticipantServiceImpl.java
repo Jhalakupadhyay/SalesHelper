@@ -120,10 +120,13 @@ public class ParticipantServiceImpl implements ParticipantService {
             Long cooldownTime = null;
             //check the latest interaction history for the participant
             InteractionHistoryEntity latestInteraction = interactionHistoryRepository
-                    .findTopByParticipantNameAndClientIdOrderByCreatedAtDesc(participant.getName(), participant.getClientId());
+                    .findTopByParticipantNameAndOrganizationAndClientIdOrderByCreatedAtDesc(participant.getName(), participant.getOrganization(),participant.getClientId());
+            log.info("Latest interaction for participant {}: {}", participant.getName(), latestInteraction);
 
             if(latestInteraction != null) {
-                cooldownTime = OffsetDateTime.now().toEpochSecond() - latestInteraction.getCreatedAt().toEpochSecond();
+                //get the difference between current date and the cooldown date in days
+                cooldownTime =  latestInteraction.getCooldownDate() != null ?
+                        (latestInteraction.getCooldownDate().toEpochSecond()) / (24 * 3600) - OffsetDateTime.now().toEpochSecond()/(24 * 3600) : null;
             }
 
             response.add(Participant.builder()

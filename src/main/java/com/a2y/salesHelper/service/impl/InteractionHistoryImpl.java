@@ -100,28 +100,33 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
 
         //get the latest interaction history for the participant
         InteractionHistoryEntity latestInteraction = interactionHistoryRepository
-                .findTopByParticipantNameAndClientIdOrderByCreatedAtDesc(interactionHistory.getParticipantName(), interactionHistory.getClientId());
+                .findTopByParticipantNameAndOrganizationAndClientIdOrderByCreatedAtDesc(interactionHistory.getParticipantName(), interactionHistory.getOrganization(),interactionHistory.getClientId());
 
-        if(latestInteraction.getCooldownCount() == 1)
-        {
-            if(interactionHistory.getEventDate().isBefore(latestInteraction.getCooldownDate())) {
-                cooldownDate = interactionHistory.getEventDate().plusSeconds(cooldown2);
-                cooldownCount = 2;
-            }else {
+        if(latestInteraction != null){
+            if(latestInteraction.getCooldownCount() == 1)
+            {
+                if(interactionHistory.getEventDate().isBefore(latestInteraction.getCooldownDate())) {
+                    cooldownDate = interactionHistory.getEventDate().plusSeconds(cooldown2);
+                    cooldownCount = 2;
+                }else {
+                    cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
+                    cooldownCount = 1;
+                }
+            }
+            else if(latestInteraction.getCooldownCount() == 2)
+            {
+                if(interactionHistory.getEventDate().isBefore(latestInteraction.getCooldownDate())) {
+                    cooldownDate = interactionHistory.getEventDate().plusSeconds(cooldown3);
+                    cooldownCount = 3;
+                }else {
+                    cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
+                    cooldownCount = 1;
+                }
+            } else {
                 cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
                 cooldownCount = 1;
             }
-        }
-        else if(latestInteraction.getCooldownCount() == 2)
-        {
-            if(interactionHistory.getEventDate().isBefore(latestInteraction.getCooldownDate())) {
-                cooldownDate = interactionHistory.getEventDate().plusSeconds(cooldown3);
-                cooldownCount = 3;
-            }else {
-                cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
-                cooldownCount = 1;
-            }
-        } else {
+        }else {
             cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
             cooldownCount = 1;
         }
@@ -140,6 +145,8 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
                 .description(interactionHistory.getDescription())
                 .meetingDone(Boolean.TRUE)// Default value, can be changed based on requirements
                 .build();
+
+        log.info("Adding interaction history for participant: {}", interactionHistoryEntity.toString());
 
         //also update the eventDate in participant table
         participantRepository.findByNameAndDesignationAndOrganizationAndClientId(interactionHistory.getParticipantName(),
