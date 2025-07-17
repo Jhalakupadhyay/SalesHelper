@@ -37,7 +37,7 @@ public class EmailService {
             helper.setFrom(fromEmail);
             helper.setTo(toEmail);
             helper.setSubject("Your Account Credentials");
-            helper.setText(buildHtmlContent(username, password), true);
+            helper.setText(buildHtmlContent(toEmail, password), true);
 
             mailSender.send(message);
 
@@ -137,7 +137,7 @@ public class EmailService {
                 "</div>" +
                 "<table class=\"credentials-table\">" +
                 "<tr>" +
-                "<td>Username</td>" +
+                "<td>Email</td>" +
                 "<td>" + username + "</td>" +
                 "</tr>" +
                 "<tr>" +
