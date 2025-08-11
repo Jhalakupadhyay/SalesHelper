@@ -18,6 +18,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 
 @Service
@@ -32,7 +35,7 @@ public class ParticipantServiceImpl implements ParticipantService {
     // Fixed header mappings for Participant fields - customize these based on your Excel structure
     Map<String, Integer> headerMappings = new HashMap<>();
     private static final String[] EXPECTED_HEADERS_PARTICIPANTS = {
-            "name", "designation", "organization", "email", "mobile", "attended", "assigned/unassigned" , "Event Name" , "Date" ,"Meeting Done"
+            "name", "designation", "Company Name", "email Id", "mobile no", "assigned/unassigned" , "Event Name" , "Date" ,"Meeting Done","City"
     };
 
     public ParticipantServiceImpl(ParticipantRepository participantRepository, CompaniesRepository companiesRepository, InteractionHistoryRepository interactionHistoryRepository, ClientRepository clientRepository) {
@@ -58,7 +61,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                 parseHeaders(sheet,headerMappings);
                 log.info("Headers Parsed for sheet '{}': {}", sheetName, headerMappings);
                 // Skip header row and process data rows
-                for (int rowIndex = 2; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
+                for (int rowIndex = 1; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
                     Row row = sheet.getRow(rowIndex);
                     if (row == null || isRowEmpty(row)) continue;
                     try {
@@ -83,7 +86,24 @@ public class ParticipantServiceImpl implements ParticipantService {
 
         // Save all participants to database
         if (!participants.isEmpty()) {
+            Map<String,Long> map = new HashMap<>();
             participants.removeIf(participant -> participantRepository.existsByNameAndDesignationAndOrganization(participant.getName(), participant.getDesignation(),participant.getOrganization()));
+            for (ParticipantEntity participant : participants) {
+                if(!map.containsKey(participant.getOrganization())) {
+                    try {
+                        Long orgId = companiesRepository.findByAccountName(participant.getOrganization());
+                        if (orgId != null) {
+                            map.put(participant.getOrganization(), orgId);
+                        }
+                    } catch (Exception e) {
+                        log.warn("Could not find organization ID for: {}. Error: {}", participant.getOrganization(), e.getMessage());
+                        // Set orgId to null if not found
+                        map.put(participant.getOrganization(), null);
+                    }
+                }
+                participant.setOrgId(map.get(participant.getOrganization()));
+                participant.setClientId(clientId);
+            }
             participantRepository.saveAll(participants);
         }
         // Save all interaction histories to database
@@ -96,13 +116,13 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     private InteractionHistoryEntity parseRowToInteractions(Row row) {
         return InteractionHistoryEntity.builder()
-                .participantName(getCellValueAsString(row.getCell(headerMappings.get("name"))))
-                .designation(getCellValueAsString(row.getCell(headerMappings.get("designation"))))
-                .organization(getCellValueAsString(row.getCell(headerMappings.get("organization"))))
-                .eventName(getCellValueAsString(row.getCell(headerMappings.get("Event Name"))))
-                .eventDate(getCellValueAsString(row.getCell(headerMappings.get("Date"))) != null ? OffsetDateTime.parse(getCellValueAsString(row.getCell(headerMappings.get("Date")))) : null)
+                .participantName(getCellValueAsString(getCell(row, "name")))
+                .designation(getCellValueAsString(getCell(row, "designation")))
+                .organization(getCellValueAsString(getCell(row, "Company Name")))
+                .eventName(getCellValueAsString(getCell(row, "Event Name")))
+                .eventDate(parseOffsetDateTime(getCellValueAsString(getCell(row, "Date"))))
                 .description("")
-                .meetingDone(getCellValueAsString(row.getCell(headerMappings.get("Meeting Done"))) != null && getCellValueAsString(row.getCell(headerMappings.get("Meeting Done"))).equalsIgnoreCase("yes"))
+                .meetingDone(getCellValueAsString(getCell(row, "Meeting Done")) != null && getCellValueAsString(getCell(row, "Meeting Done")).equalsIgnoreCase("yes"))
                 .build();
     }
 
@@ -138,7 +158,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                     .designation(participant.getDesignation())
                     .organization(participant.getOrganization())
                     .assignedUnassigned(participant.getAssignedUnassigned())
-                            .eventName(participant.getEventName())
+                    .eventName(participant.getEventName())
                     .coolDownTime(cooldownTime)
                     .isFocused(existingAccounts.contains(participant.getOrganization()))
                     .build());
@@ -160,7 +180,7 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     @Override
     public Boolean updateParticipantById(Participant participant) {
-        
+
         try {
             ParticipantEntity existingParticipant = participantRepository.findById(participant.getId())
                     .orElseThrow(() -> new IllegalArgumentException("Participant not found with ID: " + participant.getId()));
@@ -201,17 +221,77 @@ public class ParticipantServiceImpl implements ParticipantService {
         ParticipantEntity participant = ParticipantEntity.builder()
                 .sheetName(sheetName)
                 .clientId(clientId)
-                .name(getCellValueAsString(row.getCell(headerMappings.get("name"))))
-                .designation(getCellValueAsString(row.getCell(headerMappings.get("designation"))))
-                .organization(getCellValueAsString(row.getCell(headerMappings.get("organization"))))
-                .email(getCellValueAsString(row.getCell(headerMappings.get("email"))))
-                .mobile(getCellValueAsString(row.getCell(headerMappings.get("mobile"))))
-                .attended(getCellValueAsString(row.getCell(headerMappings.get("attended"))))
-                .assignedUnassigned(getCellValueAsString(row.getCell(headerMappings.get("assigned/unassigned"))))
-                .eventName(getCellValueAsString(row.getCell(headerMappings.get("Event Name"))))
+                .name(getCellValueAsString(getCell(row, "name")))
+                .designation(getCellValueAsString(getCell(row, "designation")))
+                .organization(getCellValueAsString(getCell(row, "Company Name")))
+                .email(getCellValueAsString(getCell(row, "email Id")))
+                .mobile(getCellValueAsString(getCell(row, "mobile no")))
+                .eventName(getCellValueAsString(getCell(row, "Event Name")))
+                .city(getCellValueAsString(getCell(row, "City")))
+                .assignedUnassigned(getCellValueAsString(getCell(row, "assigned/unassigned")))
+                .eventDate(parseOffsetDateTime(getCellValueAsString(getCell(row, "Date"))))
                 .build();
         log.info("Parsed participant from row {}: {}", row.getRowNum(), participant);
         return participant;
+    }
+
+    /**
+     * Safely get a cell from a row using header mapping, with null checking
+     */
+    private Cell getCell(Row row, String headerName) {
+        Integer columnIndex = headerMappings.get(headerName);
+        if (columnIndex == null) {
+            log.debug("Header '{}' not found in mapping, returning null cell", headerName);
+            return null;
+        }
+        return row.getCell(columnIndex);
+    }
+
+    /**
+     * Parse date string to OffsetDateTime with proper error handling
+     */
+    private OffsetDateTime parseOffsetDateTime(String dateString) {
+        if (dateString == null || dateString.trim().isEmpty()) {
+            return null;
+        }
+
+        try {
+            // First, try to parse as ISO-8601 format (if it's already in the correct format)
+            return OffsetDateTime.parse(dateString);
+        } catch (DateTimeParseException e1) {
+            try {
+                // Try to parse the Java Date.toString() format: "Wed Mar 12 00:00:00 IST 2025"
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH);
+                return OffsetDateTime.parse(dateString, formatter);
+            } catch (DateTimeParseException e2) {
+                try {
+                    // Try to parse common date formats
+                    DateTimeFormatter[] commonFormats = {
+                            DateTimeFormatter.ofPattern("yyyy-MM-dd"),
+                            DateTimeFormatter.ofPattern("dd/MM/yyyy"),
+                            DateTimeFormatter.ofPattern("MM/dd/yyyy"),
+                            DateTimeFormatter.ofPattern("dd-MM-yyyy"),
+                            DateTimeFormatter.ofPattern("MM-dd-yyyy"),
+                            DateTimeFormatter.ofPattern("yyyy/MM/dd")
+                    };
+
+                    for (DateTimeFormatter format : commonFormats) {
+                        try {
+                            return OffsetDateTime.parse(dateString + "T00:00:00Z",
+                                    DateTimeFormatter.ofPattern(format.toString() + "'T'HH:mm:ss'Z'"));
+                        } catch (DateTimeParseException ignored) {
+                            // Continue to next format
+                        }
+                    }
+
+                    log.warn("Could not parse date string: '{}'. Setting date to null.", dateString);
+                    return null;
+                } catch (Exception e3) {
+                    log.warn("Could not parse date string: '{}'. Setting date to null.", dateString);
+                    return null;
+                }
+            }
+        }
     }
 
     private String getCellValueAsString(Cell cell) {
@@ -223,7 +303,9 @@ public class ParticipantServiceImpl implements ParticipantService {
                 return value.isEmpty() ? null : value;
             case NUMERIC:
                 if (DateUtil.isCellDateFormatted(cell)) {
-                    return cell.getDateCellValue().toString();
+                    // For date cells, get the Date object and convert to OffsetDateTime
+                    Date dateValue = cell.getDateCellValue();
+                    return dateValue.toInstant().atOffset(ZoneOffset.UTC).toString();
                 } else {
                     // Handle phone numbers and other numeric data as strings
                     double numValue = cell.getNumericCellValue();
@@ -242,11 +324,16 @@ public class ParticipantServiceImpl implements ParticipantService {
                         case STRING:
                             return cell.getStringCellValue().trim();
                         case NUMERIC:
-                            double numValue = cell.getNumericCellValue();
-                            if (numValue == (long) numValue) {
-                                return String.valueOf((long) numValue);
+                            if (DateUtil.isCellDateFormatted(cell)) {
+                                Date dateValue = cell.getDateCellValue();
+                                return dateValue.toInstant().atOffset(ZoneOffset.UTC).toString();
                             } else {
-                                return String.valueOf(numValue);
+                                double numValue = cell.getNumericCellValue();
+                                if (numValue == (long) numValue) {
+                                    return String.valueOf((long) numValue);
+                                } else {
+                                    return String.valueOf(numValue);
+                                }
                             }
                         case BOOLEAN:
                             return String.valueOf(cell.getBooleanCellValue());
@@ -262,8 +349,8 @@ public class ParticipantServiceImpl implements ParticipantService {
     }
 
     private boolean isRowEmpty(Row row) {
-        for (int i = 0; i < headerMappings.size(); i++) {
-            Cell cell = row.getCell(i);
+        for (String headerName : headerMappings.keySet()) {
+            Cell cell = getCell(row, headerName);
             if (cell != null && cell.getCellType() != CellType.BLANK) {
                 String value = getCellValueAsString(cell);
                 if (value != null && !value.trim().isEmpty()) {
@@ -283,7 +370,7 @@ public class ParticipantServiceImpl implements ParticipantService {
      * Parse the header row to create dynamic column mappings
      */
     private Map<String, Integer> parseHeaders(Sheet sheet, Map<String, Integer> headerMappings) {
-        Row headerRow = sheet.getRow(1);
+        Row headerRow = sheet.getRow(0);
         if (headerRow == null) {
             log.warn("No header row found in sheet: {}", sheet.getSheetName());
             return headerMappings;

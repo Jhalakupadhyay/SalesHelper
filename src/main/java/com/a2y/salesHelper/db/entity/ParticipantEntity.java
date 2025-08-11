@@ -33,6 +33,9 @@ public class ParticipantEntity {
     @Column(name = "designation", length = 500)
     private String designation;
 
+    @Column(name = "city", length = 500)
+    private String city;
+
     @Column(name = "organization", length = 500)
     private String organization;
 
@@ -59,6 +62,9 @@ public class ParticipantEntity {
 
     @Column(name = "event_name", length = 500)
     private String eventName;
+
+    @Column(name = "org_id")
+    private Long orgId;
 
 
     @PrePersist

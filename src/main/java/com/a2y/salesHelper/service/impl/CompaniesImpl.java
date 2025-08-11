@@ -26,11 +26,7 @@ public class CompaniesImpl implements CompaniesService {
 
     Map<String, Integer> headerMappings = new HashMap<>();
 
-    private static final String[] EXPECTED_HEADERS_PARTICIPANTS = {
-            "Accounts", "Account Owner","Type","Focused/Assigned","ETM Region","Account Tier","Meeting Update","Quarter"
-            ,"Meeting Initiative","SDR Responsible","Sales Team Remarks","SDR Remark","Salespin Remark","Marketing Remark"
-            ,"Customer Name","Designation","Mob. No.","Email ID"
-    };
+    private static final String[] EXPECTED_HEADERS_PARTICIPANTS = {"Account Name","AE Name","Segment","Focus/Assigned","Account Status","PG/Pipeline Status","Account Category","City"};
 
     public CompaniesImpl(CompaniesRepository companiesRepository, ClientRepository clientRepository) {
         this.companiesRepository = companiesRepository;
@@ -70,7 +66,7 @@ public class CompaniesImpl implements CompaniesService {
         if(!companies.isEmpty()) {
             log.info("Saving {} companies to the database", companies.size());
             Set<String> existingAccounts = new HashSet<>(companiesRepository.findAllAccounts(clientId));
-            companies.removeIf(company -> existingAccounts.contains(company.getAccounts()));
+            companies.removeIf(company -> existingAccounts.contains(company.getAccountName()));
             companiesRepository.saveAll(companies);
         } else {
             log.warn("No valid company data found in the file: {}", fileName);
@@ -86,24 +82,13 @@ public class CompaniesImpl implements CompaniesService {
             Companies company = Companies.builder()
                     .id(entity.getId())
                     .clientId(entity.getClientId())
-                    .accounts(entity.getAccounts())
-                    .accountOwner(entity.getAccountOwner())
-                    .type(entity.getType())
+                    .aeNam(entity.getAeNam())
+                    .accountName(entity.getAccountName())
+                    .segment(entity.getSegment())
                     .focusedOrAssigned(entity.getFocusedOrAssigned())
-                    .etmRegion(entity.getEtmRegion())
-                    .accountTier(entity.getAccountTier())
-                    .meetingUpdate(entity.getMeetingUpdate())
-                    .quarter(entity.getQuarter())
-                    .meetingInitiative(entity.getMeetingInitiative())
-                    .sdrResponsible(entity.getSdrResponsible())
-                    .salesTeamRemarks(entity.getSalesTeamRemarks())
-                    .sdrRemark(entity.getSdrRemark())
-                    .salespinRemark(entity.getSalespinRemark())
-                    .marketingRemark(entity.getMarketingRemark())
-                    .customerName(entity.getCustomerName())
-                    .designation(entity.getDesignation())
-                    .mobileNumber(entity.getMobileNumber())
-                    .email(entity.getEmail())
+                    .accountStatus(entity.getAccountStatus())
+                    .pipelineStatus(entity.getPipelineStatus())
+                    .accountCategory(entity.getAccountCategory())
                     .build();
             companiesList.add(company);
         }
@@ -124,27 +109,14 @@ public class CompaniesImpl implements CompaniesService {
 
         return CompanyEntity.builder()
                 .clientId(clientId)
-                .accounts(getCellValue(row, "Accounts"))
-                .accountOwner(getCellValue(row, "Account Owner"))
-                .type(getCellValue(row, "Type"))
-                .focusedOrAssigned(getCellValue(row, "Focused/Assigned"))
-                .etmRegion(getCellValue(row, "ETM Region"))
-                .accountTier(getCellValue(row, "Account Tier"))
-                .meetingUpdate(getCellValue(row, "Meeting Update"))
-                .quarter(getCellValue(row, "Quarter"))
-                .meetingInitiative(getCellValue(row, "Meeting Initiative"))
-                .sdrResponsible(getCellValue(row, "SDR Responsible"))
-                .salesTeamRemarks(getCellValue(row, "Sales Team Remarks"))
-                .sdrRemark(getCellValue(row, "SDR Remark"))
-                .salespinRemark(getCellValue(row, "Salespin Remark"))
-                .marketingRemark(getCellValue(row, "Marketing Remark"))
-                .customerName(getCellValue(row, "Customer Name"))
-                .designation(getCellValue(row, "Designation"))
-                .mobileNumber(
-                        Optional.ofNullable(getCellValue(row, "Mob. No."))
-                                .map(Long::valueOf)
-                                .orElse(null))
-                .email(getCellValue(row, "Email ID"))
+                .accountName(getCellValue(row, "Account Name"))
+                .aeNam(getCellValue(row, "AE Name"))
+                .segment(getCellValue(row, "Segment"))
+                .focusedOrAssigned(getCellValue(row, "Focus/Assigned"))
+                .accountStatus(getCellValue(row, "Account Status"))
+                .pipelineStatus(getCellValue(row, "PG/Pipeline Status"))
+                .accountCategory(getCellValue(row, "Account Category"))
+                .city(getCellValue(row, "City"))
                 .build();
     }
 
@@ -257,24 +229,14 @@ public class CompaniesImpl implements CompaniesService {
             OffsetDateTime cooldownTime = null;
             return Companies.builder()
                     .id(entity.getId())
-                    .accounts(entity.getAccounts())
-                    .accountOwner(entity.getAccountOwner())
-                    .type(entity.getType())
+                    .clientId(entity.getClientId())
+                    .accountName(entity.getAccountName())
+                    .aeNam(entity.getAeNam())
+                    .segment(entity.getSegment())
                     .focusedOrAssigned(entity.getFocusedOrAssigned())
-                    .etmRegion(entity.getEtmRegion())
-                    .accountTier(entity.getAccountTier())
-                    .meetingUpdate(entity.getMeetingUpdate())
-                    .quarter(entity.getQuarter())
-                    .meetingInitiative(entity.getMeetingInitiative())
-                    .sdrResponsible(entity.getSdrResponsible())
-                    .salesTeamRemarks(entity.getSalesTeamRemarks())
-                    .sdrRemark(entity.getSdrRemark())
-                    .salespinRemark(entity.getSalespinRemark())
-                    .marketingRemark(entity.getMarketingRemark())
-                    .customerName(entity.getCustomerName())
-                    .designation(entity.getDesignation())
-                    .mobileNumber(entity.getMobileNumber())
-                    .email(entity.getEmail())
+                    .accountStatus(entity.getAccountStatus())
+                    .pipelineStatus(entity.getPipelineStatus())
+                    .accountCategory(entity.getAccountCategory())
                     .build();
         }
         return null;
@@ -293,24 +255,13 @@ public class CompaniesImpl implements CompaniesService {
                 Companies company = Companies.builder()
                         .id(entity.getId())
                         .clientId(entity.getClientId())
-                        .accounts(entity.getAccounts())
-                        .accountOwner(entity.getAccountOwner())
-                        .type(entity.getType())
+                        .accountName(entity.getAccountName())
+                        .aeNam(entity.getAeNam())
+                        .segment(entity.getSegment())
                         .focusedOrAssigned(entity.getFocusedOrAssigned())
-                        .etmRegion(entity.getEtmRegion())
-                        .accountTier(entity.getAccountTier())
-                        .meetingUpdate(entity.getMeetingUpdate())
-                        .quarter(entity.getQuarter())
-                        .meetingInitiative(entity.getMeetingInitiative())
-                        .sdrResponsible(entity.getSdrResponsible())
-                        .salesTeamRemarks(entity.getSalesTeamRemarks())
-                        .sdrRemark(entity.getSdrRemark())
-                        .salespinRemark(entity.getSalespinRemark())
-                        .marketingRemark(entity.getMarketingRemark())
-                        .customerName(entity.getCustomerName())
-                        .designation(entity.getDesignation())
-                        .mobileNumber(entity.getMobileNumber())
-                        .email(entity.getEmail())
+                        .accountStatus(entity.getAccountStatus())
+                        .pipelineStatus(entity.getPipelineStatus())
+                        .accountCategory(entity.getAccountCategory())
                         .build();
                 filteredCompanies.add(company);
             }
@@ -326,47 +277,26 @@ public class CompaniesImpl implements CompaniesService {
         Optional<CompanyEntity> optionalEntity = companiesRepository.findByIdAndClientId(company.getId(), company.getClientId());
         if (optionalEntity.isPresent()) {
             CompanyEntity entity = optionalEntity.get();
-            entity.setAccounts(company.getAccounts());
-            entity.setAccountOwner(company.getAccountOwner());
-            entity.setType(company.getType());
+            entity.setAccountName(company.getAccountName());
+            entity.setAeNam(company.getAeNam());
+            entity.setSegment(company.getSegment());
             entity.setFocusedOrAssigned(company.getFocusedOrAssigned());
-            entity.setEtmRegion(company.getEtmRegion());
-            entity.setAccountTier(company.getAccountTier());
-            entity.setMeetingUpdate(company.getMeetingUpdate());
-            entity.setQuarter(company.getQuarter());
-            entity.setMeetingInitiative(company.getMeetingInitiative());
-            entity.setSdrResponsible(company.getSdrResponsible());
-            entity.setSalesTeamRemarks(company.getSalesTeamRemarks());
-            entity.setSdrRemark(company.getSdrRemark());
-            entity.setSalespinRemark(company.getSalespinRemark());
-            entity.setMarketingRemark(company.getMarketingRemark());
-            entity.setCustomerName(company.getCustomerName());
-            entity.setDesignation(company.getDesignation());
-            entity.setMobileNumber(company.getMobileNumber());
-            entity.setEmail(company.getEmail());
+            entity.setAccountStatus(company.getAccountStatus());
+            entity.setPipelineStatus(company.getPipelineStatus());
+            entity.setAccountCategory(company.getAccountCategory());
 
 
             CompanyEntity updatedEntity = companiesRepository.save(entity);
             return Companies.builder()
                     .id(updatedEntity.getId())
-                    .accounts(updatedEntity.getAccounts())
-                    .accountOwner(updatedEntity.getAccountOwner())
-                    .type(updatedEntity.getType())
+                    .clientId(updatedEntity.getClientId())
+                    .accountName(updatedEntity.getAccountName())
+                    .aeNam(updatedEntity.getAeNam())
+                    .segment(updatedEntity.getSegment())
                     .focusedOrAssigned(updatedEntity.getFocusedOrAssigned())
-                    .etmRegion(updatedEntity.getEtmRegion())
-                    .accountTier(updatedEntity.getAccountTier())
-                    .meetingUpdate(updatedEntity.getMeetingUpdate())
-                    .quarter(updatedEntity.getQuarter())
-                    .meetingInitiative(updatedEntity.getMeetingInitiative())
-                    .sdrResponsible(updatedEntity.getSdrResponsible())
-                    .salesTeamRemarks(updatedEntity.getSalesTeamRemarks())
-                    .sdrRemark(updatedEntity.getSdrRemark())
-                    .salespinRemark(updatedEntity.getSalespinRemark())
-                    .marketingRemark(updatedEntity.getMarketingRemark())
-                    .customerName(updatedEntity.getCustomerName())
-                    .designation(updatedEntity.getDesignation())
-                    .mobileNumber(updatedEntity.getMobileNumber())
-                    .email(updatedEntity.getEmail())
+                    .accountStatus(updatedEntity.getAccountStatus())
+                    .pipelineStatus(updatedEntity.getPipelineStatus())
+                    .accountCategory(updatedEntity.getAccountCategory())
                     .build();
         }
         throw new NoSuchElementException("Company with ID " + company.getId() + " not found");
@@ -387,14 +317,14 @@ public class CompaniesImpl implements CompaniesService {
 
     private String getFieldValue(CompanyEntity entity, String field) {
         switch (field.toLowerCase()) {
-            case "accounts":
-                return entity.getAccounts();
-            case "accountowner":
-                return entity.getAccountOwner();
-            case "customername":
-                return entity.getCustomerName();
-            case "email":
-                return entity.getEmail();
+            case "accountname":
+                return entity.getAccountName();
+            case "aename":
+                return entity.getAeNam();
+            case "segment":
+                return entity.getSegment();
+            case "focusedorassigned":
+                return entity.getFocusedOrAssigned();
             default:
                 log.warn("Unknown field for filtering: {}", field);
                 return null;
