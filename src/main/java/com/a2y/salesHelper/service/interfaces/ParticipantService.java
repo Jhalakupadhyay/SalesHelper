@@ -1,5 +1,6 @@
 package com.a2y.salesHelper.service.interfaces;
 
+import com.a2y.salesHelper.db.entity.ParticipantEntity;
 import com.a2y.salesHelper.pojo.Participant;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -41,4 +42,6 @@ public interface ParticipantService {
     List<Participant> filterParticipants(String field, String value,Long clientId);
 
     List<Participant> searchParticipant(String name,Long clientId);
+
+    List<ParticipantEntity> getParticipantsForOrganization(Long orgId, Long clientId);
 }

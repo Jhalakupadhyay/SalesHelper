@@ -558,4 +558,9 @@ public class ParticipantServiceImpl implements ParticipantService {
         return false;
     }
 
+    @Override
+    public List<ParticipantEntity> getParticipantsForOrganization(Long orgId, Long clientId) {
+        return participantRepository.findByClientIdAndOrgId(clientId, orgId);
+    }
+
 }

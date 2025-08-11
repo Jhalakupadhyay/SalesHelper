@@ -1,15 +1,17 @@
 package com.a2y.salesHelper.service.impl;
 
-import com.a2y.salesHelper.db.entity.ClientEntity;
 import com.a2y.salesHelper.db.entity.CompanyEntity;
 import com.a2y.salesHelper.db.repository.ClientRepository;
 import com.a2y.salesHelper.db.repository.CompaniesRepository;
+import com.a2y.salesHelper.db.repository.ParticipantRepository;
 import com.a2y.salesHelper.pojo.Companies;
 import com.a2y.salesHelper.service.interfaces.CompaniesService;
+import com.a2y.salesHelper.service.interfaces.ParticipantService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,15 +24,13 @@ import java.util.*;
 @Service
 public class CompaniesImpl implements CompaniesService {
     private final CompaniesRepository companiesRepository;
-    private final ClientRepository clientRepository;
 
     Map<String, Integer> headerMappings = new HashMap<>();
 
     private static final String[] EXPECTED_HEADERS_PARTICIPANTS = {"Account Name","AE Name","Segment","Focus/Assigned","Account Status","PG/Pipeline Status","Account Category","City"};
 
-    public CompaniesImpl(CompaniesRepository companiesRepository, ClientRepository clientRepository) {
+    public CompaniesImpl(CompaniesRepository companiesRepository) {
         this.companiesRepository = companiesRepository;
-        this.clientRepository = clientRepository;
     }
 
 

@@ -41,4 +41,7 @@ public interface CompaniesRepository extends JpaRepository<CompanyEntity, Long> 
 
     @Query("SELECT c FROM CompanyEntity c WHERE c.clientId = :clientId")
     List<CompanyEntity> findAllByClientId(Long clientId);
+
+    @Query("SELECT c FROM CompanyEntity c WHERE c.clientId = :clientId AND c.accountName = :accountName")
+    List<CompanyEntity> findByClientIdAndAccountName(Long clientId);
 }

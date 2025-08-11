@@ -1,6 +1,7 @@
 package com.a2y.salesHelper.controller;
 
 
+import com.a2y.salesHelper.db.entity.ParticipantEntity;
 import com.a2y.salesHelper.pojo.Participant;
 import com.a2y.salesHelper.service.interfaces.ParticipantService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -97,6 +98,19 @@ public class ParticipantController {
     )
     public ResponseEntity<List<Participant>> filterParticipants(@RequestParam String field, @RequestParam String value,@RequestParam Long clientId) {
         List<Participant> response = participantService.filterParticipants(field, value,clientId);
+        if (response.isEmpty()) {
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @Operation(
+            summary = "Get Clients on the basis of companies",
+            description = "getting clients on the basis of orgId."
+    )
+    @GetMapping("/getClientsForOrganization")
+    public ResponseEntity<List<ParticipantEntity>> getClientsForOrganization(@RequestParam Long orgId, @RequestParam Long clientId) {
+        List<ParticipantEntity> response = participantService.getParticipantsForOrganization(orgId, clientId);
         if (response.isEmpty()) {
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         }

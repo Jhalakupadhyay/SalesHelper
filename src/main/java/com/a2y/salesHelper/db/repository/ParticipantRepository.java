@@ -32,4 +32,6 @@ public interface ParticipantRepository extends JpaRepository<ParticipantEntity, 
 
     @Query("SELECT p FROM ParticipantEntity p WHERE p.clientId = :clientId")
     List<ParticipantEntity> getAllByClientId(Long clientId);
+
+    List<ParticipantEntity> findByClientIdAndOrgId(Long orgId, Long clientId);
 }
