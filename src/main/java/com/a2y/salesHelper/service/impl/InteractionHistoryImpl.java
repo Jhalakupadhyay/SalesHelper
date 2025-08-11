@@ -10,6 +10,8 @@ import com.a2y.salesHelper.pojo.InteractionHistory;
 import com.a2y.salesHelper.service.interfaces.InteractionHistoryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -100,25 +102,22 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
 
         //get the latest interaction history for the participant
         InteractionHistoryEntity latestInteraction = interactionHistoryRepository
-                .findTopByParticipantNameAndOrganizationAndClientIdOrderByCreatedAtDesc(interactionHistory.getParticipantName(), interactionHistory.getOrganization(),interactionHistory.getClientId());
+                .findTopByParticipantNameAndOrganizationAndClientIdOrderByCreatedAtDesc(interactionHistory.getParticipantName(), interactionHistory.getOrganization(), interactionHistory.getClientId());
 
-        if(latestInteraction != null){
-            if(latestInteraction.getCooldownCount() == 1)
-            {
-                if(interactionHistory.getEventDate().isBefore(latestInteraction.getCooldownDate())) {
+        if (latestInteraction != null) {
+            if (latestInteraction.getCooldownCount() == 1) {
+                if (interactionHistory.getEventDate().isBefore(latestInteraction.getCooldownDate())) {
                     cooldownDate = interactionHistory.getEventDate().plusDays(cooldown2);
                     cooldownCount = 2;
-                }else {
+                } else {
                     cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
                     cooldownCount = 1;
                 }
-            }
-            else if(latestInteraction.getCooldownCount() == 2)
-            {
-                if(interactionHistory.getEventDate().isBefore(latestInteraction.getCooldownDate())) {
+            } else if (latestInteraction.getCooldownCount() == 2) {
+                if (interactionHistory.getEventDate().isBefore(latestInteraction.getCooldownDate())) {
                     cooldownDate = interactionHistory.getEventDate().plusDays(cooldown3);
                     cooldownCount = 3;
-                }else {
+                } else {
                     cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
                     cooldownCount = 1;
                 }
@@ -126,11 +125,10 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
                 cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
                 cooldownCount = 1;
             }
-        }else {
+        } else {
             cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
             cooldownCount = 1;
         }
-
 
 
         InteractionHistoryEntity interactionHistoryEntity = InteractionHistoryEntity.builder()
@@ -150,7 +148,7 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
 
         //also update the eventDate in participant table
         participantRepository.findByNameAndDesignationAndOrganizationAndClientId(interactionHistory.getParticipantName(),
-                interactionHistory.getDesignation(), interactionHistory.getOrganization(), interactionHistory.getClientId())
+                        interactionHistory.getDesignation(), interactionHistory.getOrganization(), interactionHistory.getClientId())
                 .ifPresent(participant -> {
                     participant.setEventDate(interactionHistory.getEventDate());
                     participantRepository.save(participant);

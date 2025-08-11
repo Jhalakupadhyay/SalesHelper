@@ -66,7 +66,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                     if (row == null || isRowEmpty(row)) continue;
                     try {
                         ParticipantEntity participant = parseRowToParticipant(row, sheetName, clientId);
-                        InteractionHistoryEntity interactionHistory = parseRowToInteractions(row);
+                        InteractionHistoryEntity interactionHistory = parseRowToInteractions(row,clientId);
                         if (participant != null && isValidParticipant(participant)) {
                             participants.add(participant);
                             log.info("Parsed participant: {}", participant);
@@ -90,15 +90,9 @@ public class ParticipantServiceImpl implements ParticipantService {
             participants.removeIf(participant -> participantRepository.existsByNameAndDesignationAndOrganization(participant.getName(), participant.getDesignation(),participant.getOrganization()));
             for (ParticipantEntity participant : participants) {
                 if(!map.containsKey(participant.getOrganization())) {
-                    try {
-                        Long orgId = companiesRepository.findByAccountName(participant.getOrganization());
-                        if (orgId != null) {
-                            map.put(participant.getOrganization(), orgId);
-                        }
-                    } catch (Exception e) {
-                        log.warn("Could not find organization ID for: {}. Error: {}", participant.getOrganization(), e.getMessage());
-                        // Set orgId to null if not found
-                        map.put(participant.getOrganization(), null);
+                    Long orgId = companiesRepository.findByAccountName(participant.getOrganization());
+                    if (orgId != null) {
+                        map.put(participant.getOrganization(), orgId);
                     }
                 }
                 participant.setOrgId(map.get(participant.getOrganization()));
@@ -108,21 +102,23 @@ public class ParticipantServiceImpl implements ParticipantService {
         }
         // Save all interaction histories to database
         if (!interactionHistories.isEmpty()) {
-            interactionHistories.removeIf(interactionHistory -> interactionHistory.getMeetingDone() == Boolean.FALSE || interactionHistory.getEventDate() == null);
-            interactionHistoryRepository.saveAll(interactionHistories);
+            log.info("Saving interaction histories: {}", interactionHistories);
+            interactionHistories.removeIf(interactionHistory -> interactionHistory.getEventDate() == null);
+            addInteractionHistories(interactionHistories);
         }
         return participants.size();
     }
 
-    private InteractionHistoryEntity parseRowToInteractions(Row row) {
+    private InteractionHistoryEntity parseRowToInteractions(Row row,Long clientId) {
         return InteractionHistoryEntity.builder()
+                .clientId(clientId)
                 .participantName(getCellValueAsString(getCell(row, "name")))
                 .designation(getCellValueAsString(getCell(row, "designation")))
                 .organization(getCellValueAsString(getCell(row, "Company Name")))
                 .eventName(getCellValueAsString(getCell(row, "Event Name")))
                 .eventDate(parseOffsetDateTime(getCellValueAsString(getCell(row, "Date"))))
                 .description("")
-                .meetingDone(getCellValueAsString(getCell(row, "Meeting Done")) != null && getCellValueAsString(getCell(row, "Meeting Done")).equalsIgnoreCase("yes"))
+                .meetingDone(getCellValueAsString(getCell(row, "Meeting Status")) != null && getCellValueAsString(getCell(row, "Meeting Status")).equalsIgnoreCase("Done"))
                 .build();
     }
 
@@ -473,4 +469,93 @@ public class ParticipantServiceImpl implements ParticipantService {
                 return null;
         }
     }
+
+    public boolean addInteractionHistories(List<InteractionHistoryEntity> interactionHistories) {
+
+        if (interactionHistories == null || interactionHistories.isEmpty()) {
+            log.warn("No interaction histories provided");
+            return false;
+        }
+
+        List<InteractionHistoryEntity> entitiesToSave = new ArrayList<>();
+
+        for (InteractionHistoryEntity interactionHistory : interactionHistories) {
+
+            ClientEntity client = clientRepository.getReferenceById(interactionHistory.getClientId());
+
+            if (client == null) {
+                log.error("Client with ID {} not found. Skipping this record.", interactionHistory.getClientId());
+                continue; // Skip this record but continue processing others
+            }
+
+            Long cooldown1 = client.getCooldownPeriod1();
+            Long cooldown2 = client.getCooldownPeriod2();
+            Long cooldown3 = client.getCooldownPeriod3();
+
+            OffsetDateTime cooldownDate;
+            int cooldownCount;
+
+            InteractionHistoryEntity latestInteraction = interactionHistoryRepository
+                    .findTopByParticipantNameAndOrganizationAndClientIdOrderByCreatedAtDesc(
+                            interactionHistory.getParticipantName(),
+                            interactionHistory.getOrganization(),
+                            interactionHistory.getClientId()
+                    );
+
+            if (latestInteraction != null) {
+                if (latestInteraction.getCooldownCount() == 1) {
+                    if (interactionHistory.getEventDate().isBefore(latestInteraction.getCooldownDate())) {
+                        cooldownDate = interactionHistory.getEventDate().plusDays(cooldown2);
+                        cooldownCount = 2;
+                    } else {
+                        cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
+                        cooldownCount = 1;
+                    }
+                } else if (latestInteraction.getCooldownCount() == 2) {
+                    if (interactionHistory.getEventDate().isBefore(latestInteraction.getCooldownDate())) {
+                        cooldownDate = interactionHistory.getEventDate().plusDays(cooldown3);
+                        cooldownCount = 3;
+                    } else {
+                        cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
+                        cooldownCount = 1;
+                    }
+                } else {
+                    cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
+                    cooldownCount = 1;
+                }
+            } else {
+                cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
+                cooldownCount = 1;
+            }
+
+            interactionHistory.setCooldownDate(cooldownDate);
+            interactionHistory.setCooldownCount(cooldownCount);
+            interactionHistory.setMeetingDone(Boolean.TRUE);
+
+            log.info("Prepared interaction history for participant: {}", interactionHistory);
+
+            // Update participant event date
+            participantRepository.findByNameAndDesignationAndOrganizationAndClientId(
+                    interactionHistory.getParticipantName(),
+                    interactionHistory.getDesignation(),
+                    interactionHistory.getOrganization(),
+                    interactionHistory.getClientId()
+            ).ifPresent(participant -> {
+                participant.setEventDate(interactionHistory.getEventDate());
+                participantRepository.save(participant);
+            });
+
+            entitiesToSave.add(interactionHistory);
+        }
+
+        if (!entitiesToSave.isEmpty()) {
+            interactionHistoryRepository.saveAll(entitiesToSave);
+            log.info("Saved {} interaction histories", entitiesToSave.size());
+            return true;
+        }
+
+        log.warn("No interaction histories saved");
+        return false;
+    }
+
 }
