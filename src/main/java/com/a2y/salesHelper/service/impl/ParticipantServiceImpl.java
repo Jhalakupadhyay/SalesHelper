@@ -90,7 +90,7 @@ public class ParticipantServiceImpl implements ParticipantService {
             participants.removeIf(participant -> participantRepository.existsByNameAndDesignationAndOrganization(participant.getName(), participant.getDesignation(),participant.getOrganization()));
             for (ParticipantEntity participant : participants) {
                 if(!map.containsKey(participant.getOrganization())) {
-                    Long orgId = companiesRepository.findByAccountName(participant.getOrganization());
+                    Long orgId = companiesRepository.findByAccountName(participant.getOrganization(), clientId);
                     if (orgId != null) {
                         map.put(participant.getOrganization(), orgId);
                     }

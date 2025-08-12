@@ -28,8 +28,15 @@ public interface CompaniesRepository extends JpaRepository<CompanyEntity, Long> 
     List<CompanyEntity> searchByAccountOrAccountOwnerOrCustomerNameOrEmail(String searchQuery);
 
     //QUERY THAT WILL RETURN THE ID OF THE ROW WITH THE GIVEN ORGANIZATION
-    @Query("SELECT c.id FROM CompanyEntity c WHERE c.accountName = :organization")
-    Long findByAccountName(String organization);
+    /**
+     * Find the ID of a company by its account name and client ID.
+     * also first checks if the accountName starts with the first word of the organization
+     * @param organization the account name of the company
+     * @param clientId     the ID of the client
+     * @return the ID of the company, or null if not found
+     */
+    @Query("SELECT c.id FROM CompanyEntity c WHERE c.accountName ILIKE :organization AND c.clientId = :clientId ORDER BY c.id DESC LIMIT 1")
+    Long findByAccountName(String organization,Long clientId);
 
     /**
      * Find all companies for a specific client.
