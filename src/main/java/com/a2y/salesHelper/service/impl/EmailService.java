@@ -29,10 +29,13 @@ public class EmailService {
         this.userRepository = userRepository;
     }
 
-    public void sendCredentialsEmail(String toEmail, String username, String password, Role role) {
+    public void sendCredentialsEmail(String toEmail, String username, Role role) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            //generate a random password
+            String password = passwordHashingConfig.generateRandomPassword();
 
             helper.setFrom(fromEmail);
             helper.setTo(toEmail);
