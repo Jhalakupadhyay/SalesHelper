@@ -31,4 +31,6 @@ public interface UserAuthService {
 
     List<User> getAllUsersForAdmin(Long adminId);
 
+    Boolean EditUser(User user);
+
 }

@@ -55,6 +55,7 @@ public class UserController {
         }
     }
 
+
     @Operation(
             summary = "Find all user invited by admin",
             description = "api takes user ID"
@@ -62,5 +63,19 @@ public class UserController {
     @GetMapping("/getInvitedUsers")
     public ResponseEntity<List<User>> getAllUsersForAdmin(Long adminId) {
         return new ResponseEntity<>(userAuthService.getAllUsersForAdmin(adminId), HttpStatus.OK);
+    }
+
+    @Operation(
+            summary = "Edit User API",
+            description = "API takes user object and updates the user details."
+    )
+    @PostMapping("/editUser")
+    public ResponseEntity<String> editUser(User user) {
+        Boolean isEdited = userAuthService.EditUser(user);
+        if (isEdited) {
+            return new ResponseEntity<>("User details updated successfully", HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("Failed to update user details", HttpStatus.BAD_REQUEST);
+        }
     }
 }

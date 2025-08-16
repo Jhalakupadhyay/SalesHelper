@@ -101,4 +101,19 @@ public class UserAuthServiceImpl implements UserAuthService {
                 .build()).toList();
     }
 
+    @Override
+    public Boolean EditUser(User user) {
+        try {
+            UserEntity userEntity = userRepository.findById(user.getId()).orElseThrow(() -> new RuntimeException("User not found"));
+            userEntity.setFirstName(user.getFirstName());
+            userEntity.setLastName(user.getLastName());
+            userEntity.setEmail(user.getEmail());
+            userEntity.setRole(user.getRole());
+            userRepository.save(userEntity);
+            return true;
+        } catch (Exception e) {
+            throw new RuntimeException("User update failed: " + e.getMessage(), e);
+        }
+    }
+
 }
