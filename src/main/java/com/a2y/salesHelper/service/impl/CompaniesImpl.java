@@ -317,7 +317,7 @@ public class CompaniesImpl implements CompaniesService {
         switch (field.toLowerCase()) {
             case "company":
                 return companiesRepository.findByClientIdAndAccountName(clientId,value);
-            case "aename":
+                case "aename":
                 return companiesRepository.findByAeNamAndClientIdIgnoreCase(value,clientId);
             case "city":
                 return companiesRepository.findByClientIdAndCityIgnoreCase(value,clientId);

@@ -10,6 +10,7 @@ import com.a2y.salesHelper.db.repository.ParticipantRepository;
 import com.a2y.salesHelper.pojo.Participant;
 import com.a2y.salesHelper.service.interfaces.ParticipantService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.formula.atp.Switch;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -396,34 +397,50 @@ public class ParticipantServiceImpl implements ParticipantService {
     }
 
     @Override
-    public List<Participant> filterParticipants(String field, String value,Long clientId) {
+    public List<Participant> filterParticipants(String field, String value,Long clientId, String startDate, String endDate) {
         // Validate field
-        if (!headerMappings.containsKey(field)) {
+        if (field == null || field.trim().isEmpty()) {
             log.warn("Invalid field for filtering: {}", field);
             return Collections.emptyList();
         }
-
-        // Fetch all participants and filter based on the specified field and value
-        List<ParticipantEntity> allParticipants = participantRepository.getAllByClientId(clientId);
-        List<Participant> filteredParticipants = new ArrayList<>();
-
-        for (ParticipantEntity participant : allParticipants) {
-            String fieldValue = getFieldValue(participant, field);
-            if (fieldValue != null && fieldValue.toLowerCase().contains(value.toLowerCase())) {
-                filteredParticipants.add(Participant.builder()
-                        .id(participant.getId())
-                        .name(participant.getName())
-                        .email(participant.getEmail())
-                        .mobile(participant.getMobile())
-                        .designation(participant.getDesignation())
-                        .organization(participant.getOrganization())
-                        .assignedUnassigned(participant.getAssignedUnassigned())
-                        .attended(participant.getAttended())
-                        .eventDate(participant.getEventDate())
-                        .build());
-            }
+       //switch through all cases and make db call for the fileds
+        List<ParticipantEntity> participants;
+        switch (field.toLowerCase()) {
+            case "name":
+                participants = participantRepository.findByNameAndClientId(value, clientId);
+                break;
+            case "designation":
+                participants = participantRepository.findByDesignationAndClientId(value, clientId);
+                break;
+            case "organization":
+                participants = participantRepository.findByOrganizationAndClientId(value, clientId);
+                break;
+            case "date":
+                participants = participantRepository.findByEventDateBetweenAndClientId(parseOffsetDateTime(startDate),parseOffsetDateTime(endDate),clientId);
+                break;
+            case "assignedorunassigned":
+                participants = participantRepository.findByAssignedUnassignedAndClientId(value, clientId);
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported field for filtering: " + field);
         }
-        return filteredParticipants;
+
+        // Convert to Participant DTOs
+        List<Participant> response = new ArrayList<>();
+        for (ParticipantEntity participant : participants) {
+            response.add(Participant.builder()
+                    .id(participant.getId())
+                    .name(participant.getName())
+                    .email(participant.getEmail())
+                    .mobile(participant.getMobile())
+                    .designation(participant.getDesignation())
+                    .organization(participant.getOrganization())
+                    .assignedUnassigned(participant.getAssignedUnassigned())
+                    .attended(participant.getAttended())
+                    .eventDate(participant.getEventDate())
+                    .build());
+        }
+        return response;
     }
 
     @Override

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -39,7 +40,7 @@ public interface ParticipantService {
      */
     Boolean updateParticipantById(Participant participant);
 
-    List<Participant> filterParticipants(String field, String value,Long clientId);
+    List<Participant> filterParticipants(String field, String value, Long clientId, String startDate, String endDate);
 
     List<Participant> searchParticipant(String name,Long clientId);
 

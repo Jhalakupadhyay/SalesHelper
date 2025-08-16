@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @RestController
@@ -96,8 +97,10 @@ public class ParticipantController {
             summary = "Filter Participants",
             description = "Filters participants based on the provided field and value."
     )
-    public ResponseEntity<List<Participant>> filterParticipants(@RequestParam String field, @RequestParam String value,@RequestParam Long clientId) {
-        List<Participant> response = participantService.filterParticipants(field, value,clientId);
+    public ResponseEntity<List<Participant>> filterParticipants(@RequestParam String field, @RequestParam String value,@RequestParam Long clientId,
+                                                                @RequestParam(required = false) String startDate,
+                                                                @RequestParam(required = false) String endDate) {
+        List<Participant> response = participantService.filterParticipants(field, value,clientId, startDate, endDate);
         if (response.isEmpty()) {
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         }
