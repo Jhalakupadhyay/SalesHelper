@@ -24,10 +24,10 @@ public class EmailController {
     @PostMapping("/send-credentials")
     public String sendCredentials(@RequestParam String email,
                                   @RequestParam String username,
-                                  @RequestParam String password,
+                                  @RequestParam Long inviteId,
                                   @RequestParam Role role) {
         try {
-            emailService.sendCredentialsEmail(email, username,role);
+            emailService.sendCredentialsEmail(email, username,role,inviteId);
             return "Email sent successfully to: " + email;
         } catch (Exception e) {
             return "Failed to send email: " + e.getMessage();

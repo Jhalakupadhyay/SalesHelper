@@ -29,6 +29,8 @@ public class UserEntity {
 
     private Boolean isReset;
 
+    private Long inviteId;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false,columnDefinition = "role_enum")
     private Role role;// Default role

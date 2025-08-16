@@ -23,21 +23,6 @@ public class UserController {
     public UserController(UserAuthService userAuthService) {
         this.userAuthService = userAuthService;
     }
-
-    @Operation(
-            summary = "Register User API",
-            description = "API takes name email and Password and registers the user."
-    )
-    @PostMapping("/signup")
-    public ResponseEntity<String> registerUser(String userName, String email, String password, Role role) {
-        boolean isRegistered = userAuthService.registerUser(userName, email, password,role);
-        if (isRegistered) {
-            return new ResponseEntity<>("Registration successful", HttpStatus.CREATED);
-        } else {
-            return new ResponseEntity<>("Registration failed", HttpStatus.BAD_REQUEST);
-        }
-    }
-
     @Operation(
             summary = "SignIn API",
             description = "API takes email and password and signIn the user accordingly."
