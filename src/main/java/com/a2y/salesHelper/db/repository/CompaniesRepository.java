@@ -36,7 +36,7 @@ public interface CompaniesRepository extends JpaRepository<CompanyEntity, Long> 
      * @return the ID of the company, or null if not found
      */
     @Query("SELECT c.id FROM CompanyEntity c WHERE c.accountName ILIKE :organization AND c.clientId = :clientId ORDER BY c.id DESC LIMIT 1")
-    Long findByAccountName(String organization,Long clientId);
+    Long findByOrganizationAndClientId(String organization,Long clientId);
 
     /**
      * Find all companies for a specific client.
@@ -50,5 +50,14 @@ public interface CompaniesRepository extends JpaRepository<CompanyEntity, Long> 
     List<CompanyEntity> findAllByClientId(Long clientId);
 
     @Query("SELECT c FROM CompanyEntity c WHERE c.clientId = :clientId AND c.accountName = :accountName")
-    List<CompanyEntity> findByClientIdAndAccountName(Long clientId);
+    List<CompanyEntity> findByClientIdAndAccountName(Long clientId, String accountName);
+
+    @Query("SELECT c FROM CompanyEntity c WHERE c.clientId = :clientId AND LOWER(c.aeNam) LIKE LOWER(:aeName)")
+    List<CompanyEntity> findByAeNamAndClientIdIgnoreCase(String aeName, Long clientId);
+
+    @Query("SELECT c FROM CompanyEntity c WHERE c.clientId = :clientId AND LOWER(c.city) LIKE LOWER(:city) ")
+    List<CompanyEntity> findByClientIdAndCityIgnoreCase(String city, Long clientId);
+
+    @Query("SELECT c FROM CompanyEntity c WHERE c.clientId = :clientId AND c.focusedOrAssigned = :focusedOrAssigned")
+    List<CompanyEntity> findByClientIdAndFocusedOrAssigned(Long clientId,String focusedOrAssigned);
 }

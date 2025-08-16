@@ -247,26 +247,24 @@ public class CompaniesImpl implements CompaniesService {
         if (field == null || value == null || field.trim().isEmpty() || value.trim().isEmpty()) {
             return Collections.emptyList();
         }
-        List<CompanyEntity> companyEntities = companiesRepository.findAllByClientId(clientId);
-        List<Companies> filteredCompanies = new ArrayList<>();
+        List<CompanyEntity> companyEntities = getFieldValue(field, value, clientId);
+
+        List<Companies> companiesList = new ArrayList<>();
         for (CompanyEntity entity : companyEntities) {
-            String fieldValue = getFieldValue(entity, field);
-            if (fieldValue != null && fieldValue.equalsIgnoreCase(value)) {
-                Companies company = Companies.builder()
-                        .id(entity.getId())
-                        .clientId(entity.getClientId())
-                        .accountName(entity.getAccountName())
-                        .aeNam(entity.getAeNam())
-                        .segment(entity.getSegment())
-                        .focusedOrAssigned(entity.getFocusedOrAssigned())
-                        .accountStatus(entity.getAccountStatus())
-                        .pipelineStatus(entity.getPipelineStatus())
-                        .accountCategory(entity.getAccountCategory())
-                        .build();
-                filteredCompanies.add(company);
-            }
+            Companies company = Companies.builder()
+                    .id(entity.getId())
+                    .clientId(entity.getClientId())
+                    .aeNam(entity.getAeNam())
+                    .accountName(entity.getAccountName())
+                    .segment(entity.getSegment())
+                    .focusedOrAssigned(entity.getFocusedOrAssigned())
+                    .accountStatus(entity.getAccountStatus())
+                    .pipelineStatus(entity.getPipelineStatus())
+                    .accountCategory(entity.getAccountCategory())
+                    .build();
+            companiesList.add(company);
         }
-        return filteredCompanies;
+        return companiesList;
     }
 
     @Override
@@ -315,19 +313,18 @@ public class CompaniesImpl implements CompaniesService {
         return false; // Return false if the company with the given ID does not exist
     }
 
-    private String getFieldValue(CompanyEntity entity, String field) {
+    private List<CompanyEntity> getFieldValue(String field,String value,Long clientId) {
         switch (field.toLowerCase()) {
-            case "accountname":
-                return entity.getAccountName();
+            case "company":
+                return companiesRepository.findByClientIdAndAccountName(clientId,value);
             case "aename":
-                return entity.getAeNam();
-            case "segment":
-                return entity.getSegment();
+                return companiesRepository.findByAeNamAndClientIdIgnoreCase(value,clientId);
+            case "city":
+                return companiesRepository.findByClientIdAndCityIgnoreCase(value,clientId);
             case "focusedorassigned":
-                return entity.getFocusedOrAssigned();
+                return companiesRepository.findByClientIdAndFocusedOrAssigned(clientId,value);
             default:
-                log.warn("Unknown field for filtering: {}", field);
-                return null;
+                throw new RuntimeException("\"Unknown field for filtering: {}\", field");
         }
     }
 }

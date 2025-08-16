@@ -90,7 +90,7 @@ public class PersonaServiceImpl implements PersonaService {
                     if(existingCompanies.containsKey(contact.getCompany())) {
                         contact.setCompanyId(existingCompanies.get(contact.getCompany()));
                     }else {
-                        Long id =  companiesRepository.findByAccountName(contact.getCompany(),clientId);
+                        Long id =  companiesRepository.findByOrganizationAndClientId(contact.getCompany(),clientId);
                         if(id != null) {
                             contact.setCompanyId(id);
                             existingCompanies.put(contact.getCompany(), id);
