@@ -3,6 +3,8 @@ package com.a2y.salesHelper.service.interfaces;
 import com.a2y.salesHelper.enums.Role;
 import com.a2y.salesHelper.pojo.User;
 
+import java.util.List;
+
 public interface UserAuthService {
 
     /**
@@ -26,5 +28,7 @@ public interface UserAuthService {
 
     //Reset Password service
     Boolean resetPassword(String email, String newPassword, String oldPassword);
+
+    List<User> getAllUsersForAdmin(Long adminId);
 
 }

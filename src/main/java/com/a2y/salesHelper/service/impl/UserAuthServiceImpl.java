@@ -8,6 +8,8 @@ import com.a2y.salesHelper.pojo.User;
 import com.a2y.salesHelper.service.interfaces.UserAuthService;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class UserAuthServiceImpl implements UserAuthService {
 
@@ -83,6 +85,20 @@ public class UserAuthServiceImpl implements UserAuthService {
         } catch (Exception e) {
             throw new RuntimeException("Password reset failed: " + e.getMessage(), e);
         }
+    }
+
+    @Override
+    public List<User> getAllUsersForAdmin(Long adminId) {
+       List<UserEntity> userEntities = userRepository.findAllById(adminId);
+
+        return userEntities.stream().map(userEntity -> User.builder()
+                .id(userEntity.getId())
+                .firstName(userEntity.getFirstName())
+                .lastName(userEntity.getLastName())
+                .email(userEntity.getEmail())
+                .role(userEntity.getRole())
+                .isReset(userEntity.getIsReset())
+                .build()).toList();
     }
 
 }
