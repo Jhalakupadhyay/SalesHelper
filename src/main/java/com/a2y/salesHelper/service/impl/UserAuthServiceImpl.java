@@ -116,4 +116,17 @@ public class UserAuthServiceImpl implements UserAuthService {
         }
     }
 
+    @Override
+    public User getUserById(Long userId) {
+        UserEntity userEntity = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        return User.builder()
+                .id(userEntity.getId())
+                .firstName(userEntity.getFirstName())
+                .lastName(userEntity.getLastName())
+                .email(userEntity.getEmail())
+                .role(userEntity.getRole())
+                .isReset(userEntity.getIsReset())
+                .build();
+    }
+
 }

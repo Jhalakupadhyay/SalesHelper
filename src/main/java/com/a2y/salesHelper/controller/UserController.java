@@ -78,4 +78,18 @@ public class UserController {
             return new ResponseEntity<>("Failed to update user details", HttpStatus.BAD_REQUEST);
         }
     }
+
+    @Operation(
+            summary = "Get User by ID API",
+            description = "API takes user ID and returns the user details."
+    )
+    @GetMapping("/getUserById")
+    public ResponseEntity<User> getUserById(Long userId) {
+        User user = userAuthService.getUserById(userId);
+        if (user != null) {
+            return new ResponseEntity<>(user, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
 }

@@ -33,4 +33,7 @@ public interface UserAuthService {
 
     Boolean EditUser(User user);
 
+    //get the user by user id
+    User getUserById(Long userId);
+
 }

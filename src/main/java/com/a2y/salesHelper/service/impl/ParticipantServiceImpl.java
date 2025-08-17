@@ -125,39 +125,21 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     @Override
     public List<Participant> getAllParticipant(Long clientId) {
-        List<ParticipantEntity> participants =  participantRepository.getAll();
+        List<ParticipantEntity> participantEntities = participantRepository.findByClientId(clientId);
         List<Participant> response = new ArrayList<>();
 
-        //get the orgID for the organization from the companies repository
-
-        Set<String> existingAccounts = new HashSet<>(companiesRepository.findAllAccounts(clientId));
-
-        for(ParticipantEntity participant : participants){
-
-            Long cooldownTime = null;
-            //check the latest interaction history for the participant
-            InteractionHistoryEntity latestInteraction = interactionHistoryRepository
-                    .findTopByParticipantNameAndOrganizationAndClientIdOrderByCreatedAtDesc(participant.getName(), participant.getOrganization(),participant.getClientId());
-            log.info("Latest interaction for participant {}: {}", participant.getName(), latestInteraction);
-
-            if(latestInteraction != null) {
-                //get the difference between current date and the cooldown date in days
-                cooldownTime =  latestInteraction.getCooldownDate() != null ?
-                        (latestInteraction.getCooldownDate().toEpochSecond()) / (24 * 3600) - OffsetDateTime.now().toEpochSecond()/(24 * 3600) : null;
-            }
-
+        for (ParticipantEntity participant : participantEntities) {
             response.add(Participant.builder()
                     .id(participant.getId())
-                    .clientId(participant.getClientId())
                     .name(participant.getName())
                     .email(participant.getEmail())
                     .mobile(participant.getMobile())
                     .designation(participant.getDesignation())
                     .organization(participant.getOrganization())
                     .assignedUnassigned(participant.getAssignedUnassigned())
-                    .eventName(participant.getEventName())
-                    .coolDownTime(cooldownTime)
-                    .isFocused(existingAccounts.contains(participant.getOrganization()))
+                    .attended(participant.getAttended())
+                    .eventDate(participant.getEventDate())
+                    .sheetName(participant.getSheetName())
                     .build());
         }
         return response;
