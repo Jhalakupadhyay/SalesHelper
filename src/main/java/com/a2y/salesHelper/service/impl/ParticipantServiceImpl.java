@@ -487,9 +487,9 @@ public class ParticipantServiceImpl implements ParticipantService {
                 continue; // Skip this record but continue processing others
             }
 
-            Long cooldown1 = client.getCooldownPeriod1();
-            Long cooldown2 = client.getCooldownPeriod2();
-            Long cooldown3 = client.getCooldownPeriod3();
+//            Long cooldown1 = client.getCooldownPeriod1();
+//            Long cooldown2 = client.getCooldownPeriod2();
+//            Long cooldown3 = client.getCooldownPeriod3();
 
             OffsetDateTime cooldownDate = null;
             int cooldownCount = 1;
@@ -546,6 +546,9 @@ public class ParticipantServiceImpl implements ParticipantService {
                     cooldownDate = latestInteraction.getCooldownDate().plusDays(30);
                     cooldownCount = 1;
                 }
+            }else {
+                cooldownDate = interactionHistory.getEventDate().plusDays(30);
+                cooldownCount = 1;
             }
 
             interactionHistory.setCooldownDate(cooldownDate);
