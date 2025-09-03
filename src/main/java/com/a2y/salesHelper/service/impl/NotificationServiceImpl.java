@@ -63,6 +63,7 @@ public class NotificationServiceImpl implements NotificationService {
                 com.a2y.salesHelper.db.entity.NotificationEntity notificationEntity = com.a2y.salesHelper.db.entity.NotificationEntity.builder()
                         .participantIds(participantIds)
                         .userIds(userIds)
+                        .type("WEEKLY")
                         .build();
                 notificationRepository.save(notificationEntity);
             }
@@ -106,6 +107,7 @@ public class NotificationServiceImpl implements NotificationService {
                 com.a2y.salesHelper.db.entity.NotificationEntity notificationEntity = com.a2y.salesHelper.db.entity.NotificationEntity.builder()
                         .participantIds(participantIds)
                         .userIds(userIds)
+                        .type("DAILY")
                         .build();
                 notificationRepository.save(notificationEntity);
             }
@@ -142,6 +144,7 @@ public class NotificationServiceImpl implements NotificationService {
                     Notification notification = Notification.builder()
                             .notificationId(notificationEntity.getId())
                             .participantIds(notificationEntity.getParticipantIds())
+                            .type(notificationEntity.getType())
                             .build();
                     notifications.add(notification);
                 }

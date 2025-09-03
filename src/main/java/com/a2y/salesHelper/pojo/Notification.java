@@ -11,4 +11,5 @@ public class Notification {
 
     List<Long> participantIds;
     Long notificationId;
+    String type;
 }
