@@ -207,7 +207,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                 .mobile(getCellValueAsString(getCell(row, "mobile no")))
                 .eventName(getCellValueAsString(getCell(row, "Event Name")))
                 .city(getCellValueAsString(getCell(row, "City")))
-                .isGoodLead(false)
+                .isGoodLead(true)
                 .assignedUnassigned(getCellValueAsString(getCell(row, "assigned/unassigned")))
                 .eventDate(parseOffsetDateTime(getCellValueAsString(getCell(row, "Date"))))
                 .build();
