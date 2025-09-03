@@ -28,5 +28,6 @@ public class Participant {
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
     private Boolean isFocused;
+    private Boolean isGoodLead;
     private Long coolDownTime;
 }

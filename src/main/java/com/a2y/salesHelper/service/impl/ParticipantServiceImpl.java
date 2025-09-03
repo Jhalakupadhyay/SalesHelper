@@ -139,6 +139,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                     .assignedUnassigned(participant.getAssignedUnassigned())
                     .attended(participant.getAttended())
                     .eventDate(participant.getEventDate())
+                    .isGoodLead(participant.getIsGoodLead())
                     .sheetName(participant.getSheetName())
                     .build());
         }
