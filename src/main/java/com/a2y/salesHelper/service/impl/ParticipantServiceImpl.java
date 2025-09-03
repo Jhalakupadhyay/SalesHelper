@@ -491,8 +491,8 @@ public class ParticipantServiceImpl implements ParticipantService {
             Long cooldown2 = client.getCooldownPeriod2();
             Long cooldown3 = client.getCooldownPeriod3();
 
-            OffsetDateTime cooldownDate;
-            int cooldownCount;
+            OffsetDateTime cooldownDate = null;
+            int cooldownCount = 1;
 
             InteractionHistoryEntity latestInteraction = interactionHistoryRepository
                     .findTopByParticipantNameAndOrganizationAndClientIdOrderByCreatedAtDesc(
@@ -501,30 +501,51 @@ public class ParticipantServiceImpl implements ParticipantService {
                             interactionHistory.getClientId()
                     );
 
-            if (latestInteraction != null) {
-                if (latestInteraction.getCooldownCount() == 1) {
-                    if (interactionHistory.getEventDate().isBefore(latestInteraction.getCooldownDate())) {
-                        cooldownDate = interactionHistory.getEventDate().plusDays(cooldown2);
-                        cooldownCount = 2;
-                    } else {
-                        cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
-                        cooldownCount = 1;
-                    }
-                } else if (latestInteraction.getCooldownCount() == 2) {
-                    if (interactionHistory.getEventDate().isBefore(latestInteraction.getCooldownDate())) {
-                        cooldownDate = interactionHistory.getEventDate().plusDays(cooldown3);
-                        cooldownCount = 3;
-                    } else {
-                        cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
-                        cooldownCount = 1;
-                    }
-                } else {
-                    cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
+//            if (latestInteraction != null) {
+//                if (latestInteraction.getCooldownCount() == 1) {
+//                    if (interactionHistory.getEventDate().isBefore(latestInteraction.getCooldownDate())) {
+//                        cooldownDate = interactionHistory.getEventDate().plusDays(cooldown2);
+//                        cooldownCount = 2;
+//                    } else {
+//                        cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
+//                        cooldownCount = 1;
+//                    }
+//                } else if (latestInteraction.getCooldownCount() == 2) {
+//                    if (interactionHistory.getEventDate().isBefore(latestInteraction.getCooldownDate())) {
+//                        cooldownDate = interactionHistory.getEventDate().plusDays(cooldown3);
+//                        cooldownCount = 3;
+//                    } else {
+//                        cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
+//                        cooldownCount = 1;
+//                    }
+//                } else {
+//                    cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
+//                    cooldownCount = 1;
+//                }
+//            } else {
+//                cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
+//                cooldownCount = 1;
+//            }
+
+            if(latestInteraction!=null)
+            {
+                if(latestInteraction.getCooldownDate().isEqual(interactionHistory.getEventDate()) || latestInteraction.getCooldownDate().isAfter(interactionHistory.getEventDate())) {
+                    //update the pariticpant in db with isGoodLead false
+                    Optional<ParticipantEntity> participantOpt = participantRepository.findByNameAndDesignationAndOrganizationAndClientId(
+                            interactionHistory.getParticipantName(),
+                            interactionHistory.getDesignation(),
+                            interactionHistory.getOrganization(),
+                            interactionHistory.getClientId()
+                    );
+                    participantOpt.ifPresent(participant -> {
+                        participant.setIsGoodLead(Boolean.FALSE);
+                        participantRepository.save(participant);
+                    });
+                    cooldownDate = latestInteraction.getCooldownDate();
+                }else {
+                    cooldownDate = latestInteraction.getCooldownDate().plusDays(30);
                     cooldownCount = 1;
                 }
-            } else {
-                cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
-                cooldownCount = 1;
             }
 
             interactionHistory.setCooldownDate(cooldownDate);

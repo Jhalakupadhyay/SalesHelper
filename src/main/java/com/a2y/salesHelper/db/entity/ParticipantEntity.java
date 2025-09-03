@@ -66,6 +66,9 @@ public class ParticipantEntity {
     @Column(name = "org_id")
     private Long orgId;
 
+    @Column(name = "is_good_lead")
+    private Boolean isGoodLead;
+
 
     @PrePersist
     protected void onCreate() {
