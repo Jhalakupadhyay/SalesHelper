@@ -38,8 +38,8 @@ public class NotificationServiceImpl implements NotificationService {
     public void addNotificationForWeek()
     {
         //get all the interactions whose cooldown_date is 7 days from now
-        List<InteractionHistoryEntity> interactionHistories = interactionHistoryRepository.findAllByCooldownDateIsBefore(
-                java.time.OffsetDateTime.now().plusDays(7)
+        List<InteractionHistoryEntity> interactionHistories = interactionHistoryRepository.findAllByCooldownDateIsAfter(
+                java.time.OffsetDateTime.now().plusDays(6)
         );
 
         if(interactionHistories.size() >= 10)
@@ -151,7 +151,7 @@ public class NotificationServiceImpl implements NotificationService {
             }
             return notifications;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            return notifications;
         }
 
     }
