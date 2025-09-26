@@ -52,6 +52,34 @@ public class CooldownServiceImpl implements CooldownService {
                 .toList();
     }
 
+    @Override
+    public ClientResponse editCooldownPeriods(Long clientId, Long cooldownPeriod1, Long cooldownPeriod2, Long cooldownPeriod3) {
+        ClientEntity clientEntity = clientRepository.findById(clientId).orElse(null);
+        if (clientEntity == null) {
+            return null;
+        }
+        if (cooldownPeriod1 != null) {
+            clientEntity.setCooldownPeriod1(cooldownPeriod1);
+        }
+        if (cooldownPeriod2 != null) {
+            clientEntity.setCooldownPeriod2(cooldownPeriod2);
+        }
+        if (cooldownPeriod3 != null) {
+            clientEntity.setCooldownPeriod3(cooldownPeriod3);
+        }
+        clientRepository.save(clientEntity);
+        return ClientResponse.builder()
+                .clientId(clientEntity.getOrgId())
+                .orgName(clientEntity.getOrgName())
+                .cooldownPeriod1(clientEntity.getCooldownPeriod1())
+                .cooldownPeriod2(clientEntity.getCooldownPeriod2())
+                .cooldownPeriod3(clientEntity.getCooldownPeriod3())
+                .build();
+    }
+
+    //edit cooldown periods for a client
+
+
 //    @Scheduled(fixedRate = 86400000) // Runs every 24 hours
 //    public void mailCooldownWhenLessThan7Days() {
 //        cooldownRepository.findAll().forEach(cooldownEntity -> {

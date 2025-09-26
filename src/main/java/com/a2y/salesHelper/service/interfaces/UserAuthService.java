@@ -15,7 +15,7 @@ public interface UserAuthService {
      * @param password the password for the new user
      * @return true if registration is successful, false otherwise
      */
-    boolean registerUser(String userName, String email, String password, Role role);
+    boolean registerUser(String firstName, String lastName, String email, String password, Role role, Long inviteId);
 
     /**
      * Authenticates a user with the provided credentials.

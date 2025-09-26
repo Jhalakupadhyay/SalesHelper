@@ -23,15 +23,16 @@ public class UserAuthServiceImpl implements UserAuthService {
 
 
     @Override
-    public boolean registerUser(String userName, String email, String password, Role role) {
+    public boolean registerUser(String firstName, String lastName, String email, String password, Role role,Long inviteId) {
 
         try{
             UserEntity userEntity = UserEntity.builder()
-                    .firstName(userName.split(" ")[0])
-                    .lastName(userName.split(" ").length > 1 ? userName.split(" ")[1] : "")
+                    .firstName(firstName)
+                    .lastName(lastName)
                     .email(email)
                     .password(passwordHashingConfig.passwordEncoder().encode(password)) // Hash the password
-                    .role(role)// Password should be hashed before saving
+                    .role(role)
+                    .inviteId(inviteId)// Password should be hashed before saving
                     .build();
             userRepository.save(userEntity);
             return true;

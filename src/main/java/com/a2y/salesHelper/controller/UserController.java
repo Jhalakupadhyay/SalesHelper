@@ -79,6 +79,16 @@ public class UserController {
         }
     }
 
+    @PostMapping("/register")
+    public ResponseEntity<String> registerUser(String firstName, String lastName, String email, String password, Role role, Long adminId) {
+        Boolean isRegistered = userAuthService.registerUser(firstName, lastName, email, password, role, adminId);
+        if (isRegistered) {
+            return new ResponseEntity<>("User registered successfully", HttpStatus.CREATED);
+        } else {
+            return new ResponseEntity<>("User registration failed", HttpStatus.BAD_REQUEST);
+        }
+    }
+
     @Operation(
             summary = "Get User by ID API",
             description = "API takes user ID and returns the user details."

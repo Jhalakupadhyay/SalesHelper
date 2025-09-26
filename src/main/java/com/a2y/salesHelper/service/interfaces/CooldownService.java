@@ -12,4 +12,5 @@ public interface CooldownService {
 
     Boolean addCooldown(ClientPojo client);
     List<ClientResponse> getClients();
+    ClientResponse editCooldownPeriods(Long clientId, Long cooldownPeriod1, Long cooldownPeriod2, Long cooldownPeriod3);
 }

@@ -43,4 +43,17 @@ public class ClientController {
         }
         return new ResponseEntity<>(cooldown, HttpStatus.OK);
     }
+
+    @Operation(
+            summary = "Edit Cooldown Periods",
+            description = "Edits the cooldown periods for a specific client."
+    )
+    @PostMapping("/edit")
+    public ResponseEntity<ClientResponse> editCooldownPeriods(Long clientId, Long cooldownPeriod1, Long cooldownPeriod2, Long cooldownPeriod3) {
+        ClientResponse updatedClient = cooldownService.editCooldownPeriods(clientId, cooldownPeriod1, cooldownPeriod2, cooldownPeriod3);
+        if (updatedClient == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(updatedClient, HttpStatus.OK);
+    }
 }
