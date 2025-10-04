@@ -19,7 +19,7 @@ public interface ParticipantService {
      * @return number of participants processed
      * @throws IOException if file processing fails
      */
-    Integer parseExcelFile(MultipartFile file,Long clientId) throws IOException;
+    Integer parseExcelFile(MultipartFile file,Long clientId,Long tenantId) throws IOException;
 
     /**
      * get all the participants from the DB

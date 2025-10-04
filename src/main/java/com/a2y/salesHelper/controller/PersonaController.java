@@ -1,21 +1,30 @@
 package com.a2y.salesHelper.controller;
 
+import java.io.IOException;
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.a2y.salesHelper.pojo.Persona;
 import com.a2y.salesHelper.service.interfaces.PersonaService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/persona")
 @Slf4j
-public class  PersonaController {
+public class PersonaController {
 
     private final PersonaService companyContactService;
 
@@ -29,7 +38,8 @@ public class  PersonaController {
     @PostMapping("/upload")
     public ResponseEntity<?> uploadCompanyContactsFile(
             MultipartFile file,
-            @RequestParam("clientId") Long clientId) {
+            @RequestParam("clientId") Long clientId,
+            @RequestParam("tenantId") Long tenantId) {
 
         try {
             if (file.isEmpty()) {
@@ -37,11 +47,12 @@ public class  PersonaController {
             }
 
             String fileName = file.getOriginalFilename();
-            if (fileName == null || (!fileName.toLowerCase().endsWith(".xlsx") && !fileName.toLowerCase().endsWith(".xls"))) {
+            if (fileName == null
+                    || (!fileName.toLowerCase().endsWith(".xlsx") && !fileName.toLowerCase().endsWith(".xls"))) {
                 return ResponseEntity.badRequest().body("Only Excel files (.xlsx, .xls) are supported");
             }
 
-            Integer parsedCount = companyContactService.parseExcelFile(file, clientId);
+            Integer parsedCount = companyContactService.parseExcelFile(file, clientId, tenantId);
 
             return ResponseEntity.ok().body("Successfully parsed and saved " + parsedCount + " company contacts");
 
@@ -60,9 +71,10 @@ public class  PersonaController {
      * Get all company contacts for a client
      */
     @GetMapping("/{clientId}")
-    public ResponseEntity<List<Persona>> getAllCompanyContacts(@PathVariable Long clientId) {
+    public ResponseEntity<List<Persona>> getAllCompanyContacts(@PathVariable Long clientId,
+            @RequestParam Long tenantId) {
         try {
-            List<Persona> contacts = companyContactService.getAllCompanyContacts(clientId);
+            List<Persona> contacts = companyContactService.getAllCompanyContacts(clientId, tenantId);
             return ResponseEntity.ok(contacts);
         } catch (Exception e) {
             log.error("Error retrieving company contacts: {}", e.getMessage());
@@ -74,9 +86,10 @@ public class  PersonaController {
      * Delete a company contact by ID
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteCompanyContact(@PathVariable Long id) {
+    public ResponseEntity<?> deleteCompanyContact(@PathVariable Long id, @RequestParam Long clientId,
+            @RequestParam Long tenantId) {
         try {
-            Boolean deleted = companyContactService.deleteCompanyContactById(id);
+            Boolean deleted = companyContactService.deleteCompanyContactById(id, clientId, tenantId);
             if (deleted) {
                 return ResponseEntity.ok().body("Company contact deleted successfully");
             } else {
@@ -121,10 +134,11 @@ public class  PersonaController {
     @GetMapping("/{clientId}/search/company")
     public ResponseEntity<List<Persona>> searchByCompany(
             @PathVariable Long clientId,
-            @RequestParam String company) {
+            @RequestParam String company,
+            @RequestParam Long tenantId) {
 
         try {
-            List<Persona> contacts = companyContactService.searchByCompany(company, clientId);
+            List<Persona> contacts = companyContactService.searchByCompany(company, clientId, tenantId);
             return ResponseEntity.ok(contacts);
         } catch (Exception e) {
             log.error("Error searching by company: {}", e.getMessage());
@@ -138,10 +152,11 @@ public class  PersonaController {
     @GetMapping("/{clientId}/search/name")
     public ResponseEntity<List<Persona>> searchByName(
             @PathVariable Long clientId,
-            @RequestParam String name) {
+            @RequestParam String name,
+            @RequestParam Long tenantId) {
 
         try {
-            List<Persona> contacts = companyContactService.searchByName(name, clientId);
+            List<Persona> contacts = companyContactService.searchByName(name, clientId, tenantId);
             return ResponseEntity.ok(contacts);
         } catch (Exception e) {
             log.error("Error searching by name: {}", e.getMessage());

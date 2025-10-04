@@ -1,24 +1,29 @@
 package com.a2y.salesHelper.db.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.OffsetDateTime;
 
 @Builder
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "cooldown", schema = "sales")
+@Table(name = "cooldown", schema = "dev")
 public class ClientEntity {
 
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
     private Long orgId;
+
+    @Column(name = "tenant_id", nullable = false)
+    private Long tenantId;
 
     @Column(name = "org_name", length = 500)
     private String orgName;

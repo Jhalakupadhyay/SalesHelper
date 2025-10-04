@@ -16,6 +16,7 @@ import java.time.OffsetDateTime;
 @Builder
 public class EditRequest {
     private String participantName;
+    private Long tenantId;
     private Long clientId;
     private OffsetDateTime createdAt;
     private String description;

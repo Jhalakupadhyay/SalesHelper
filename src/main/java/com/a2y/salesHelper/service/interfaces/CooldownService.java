@@ -11,6 +11,6 @@ import java.util.List;
 public interface CooldownService {
 
     Boolean addCooldown(ClientPojo client);
-    List<ClientResponse> getClients();
-    ClientResponse editCooldownPeriods(Long clientId, Long cooldownPeriod1, Long cooldownPeriod2, Long cooldownPeriod3);
+    List<ClientResponse> getClients(Long tenantId);
+    ClientResponse editCooldownPeriods(Long clientId, Long tenantId,Long cooldownPeriod1, Long cooldownPeriod2, Long cooldownPeriod3);
 }

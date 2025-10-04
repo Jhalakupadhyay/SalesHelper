@@ -36,8 +36,8 @@ public class InteractionHistoryController {
     )
     @GetMapping("/get")
     public ResponseEntity<List<InteractionHistory>> getInteractionHistory(@RequestParam String participantName,
-                                                                          @RequestParam String organization,@RequestParam Long clientId) {
-        List<InteractionHistory> interactionHistory = interactionHistoryService.getInteractionHistory(participantName, organization,clientId);
+                                                                          @RequestParam String organization,@RequestParam Long clientId, @RequestParam Long tenantId) {
+        List<InteractionHistory> interactionHistory = interactionHistoryService.getInteractionHistory(participantName, organization,clientId,tenantId);
 
         if (interactionHistory.isEmpty()) {
             return new ResponseEntity<>(interactionHistory, HttpStatus.NOT_FOUND);

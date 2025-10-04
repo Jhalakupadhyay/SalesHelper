@@ -47,7 +47,7 @@ public class ParticipantServiceImpl implements ParticipantService {
     }
 
     @Override
-    public Integer parseExcelFile(MultipartFile file,Long clientId) throws IOException {
+    public Integer parseExcelFile(MultipartFile file,Long clientId,Long tenantId) throws IOException {
         List<ParticipantEntity> participants = new ArrayList<>();
         List<InteractionHistoryEntity> interactionHistories = new ArrayList<>();
         String fileName = file.getOriginalFilename();
@@ -91,7 +91,7 @@ public class ParticipantServiceImpl implements ParticipantService {
             participants.removeIf(participant -> participantRepository.existsByNameAndDesignationAndOrganization(participant.getName(), participant.getDesignation(),participant.getOrganization()));
             for (ParticipantEntity participant : participants) {
                 if(!map.containsKey(participant.getOrganization())) {
-                    Long orgId = companiesRepository.findByOrganizationAndClientId(participant.getOrganization(), clientId);
+                    Long orgId = companiesRepository.findByOrganizationAndClientIdAndTenantId(participant.getOrganization(), clientId,tenantId);
                     if (orgId != null) {
                         map.put(participant.getOrganization(), orgId);
                     }
@@ -498,10 +498,11 @@ public class ParticipantServiceImpl implements ParticipantService {
             int cooldownCount = 1;
 
             InteractionHistoryEntity latestInteraction = interactionHistoryRepository
-                    .findTopByParticipantNameAndOrganizationAndClientIdOrderByCreatedAtDesc(
+                    .findTopByParticipantNameAndOrganizationAndClientIdAndTenantIdOrderByCreatedAtDesc(
                             interactionHistory.getParticipantName(),
                             interactionHistory.getOrganization(),
                             interactionHistory.getClientId()
+                            ,interactionHistory.getTenantId()
                     );
 
 //            if (latestInteraction != null) {
