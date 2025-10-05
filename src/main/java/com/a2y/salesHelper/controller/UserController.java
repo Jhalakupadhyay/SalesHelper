@@ -2,14 +2,13 @@ package com.a2y.salesHelper.controller;
 
 import java.util.List;
 
+import com.a2y.salesHelper.config.JwtService;
+import com.a2y.salesHelper.pojo.LoginRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import com.a2y.salesHelper.enums.Role;
 import com.a2y.salesHelper.pojo.User;
@@ -23,23 +22,42 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = "User Auth API", description = "API related ")
 public class UserController {
 
+    private final JwtService jwtService;
     private final UserAuthService userAuthService;
 
     @Autowired
-    public UserController(UserAuthService userAuthService) {
+    public UserController(JwtService jwtService, UserAuthService userAuthService) {
+        this.jwtService = jwtService;
         this.userAuthService = userAuthService;
     }
 
     @Operation(summary = "SignIn API", description = "API takes email and password and signIn the user accordingly.")
     @PostMapping("/login")
-    public ResponseEntity<User> loginUser(@RequestParam String email, @RequestParam String password) {
-        User isAuthenticated = userAuthService.authenticateUser(email, password);
-        if (isAuthenticated != null) {
-            return new ResponseEntity<>(isAuthenticated, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    public ResponseEntity<?> loginUser(@RequestBody LoginRequest request) {
+        User user = userAuthService.authenticateUser(request.getEmail(), request.getPassword());
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
         }
+
+        // If no token provided → issue a new one
+        if (request.getToken() == null) {
+            String jwt = jwtService.generateToken(
+                    user.getId(),
+                    user.getTenantId(),
+                    user.getEmail(),
+                    user.getRole().name());
+            return ResponseEntity.ok(jwt);
+        }
+
+        // If token provided → validate it
+        if (!jwtService.isTokenValid(request.getToken())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
+        }
+
+        return ResponseEntity.ok("User authenticated successfully with existing token");
     }
+
 
     @Operation(summary = "Reset Password API", description = "API takes email, new password and old password and resets the user password.")
     @PostMapping("/reset-password")

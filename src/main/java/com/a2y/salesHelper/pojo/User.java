@@ -1,6 +1,7 @@
 package com.a2y.salesHelper.pojo;
 
 import com.a2y.salesHelper.enums.Role;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,6 +20,8 @@ public class User {
     private String lastName;
 
     private String email;
+
+    private Long tenantId;
 
     private String password;
 

@@ -7,8 +7,8 @@ spring:
     enabled: false
 
   developer:
-    token: ${DEVELOPER_TOKEN:dev-secret-2024}
-    secret: ${DEVELOPER_SECRET:developer-secret-key}
+    token: ${DEVELOPER_TOKEN}
+    secret: ${DEVELOPER_SECRET}
     enabled: true
 
   mail:
@@ -42,3 +42,7 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
+jwt:
+  secret: ${JWT_SECRET}
+  expirationMillis: ${JWT_EXPIRATION_MS}

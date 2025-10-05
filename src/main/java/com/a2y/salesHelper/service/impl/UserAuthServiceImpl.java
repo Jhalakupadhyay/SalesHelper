@@ -1,14 +1,15 @@
 package com.a2y.salesHelper.service.impl;
 
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
 import com.a2y.salesHelper.config.PasswordHashingConfig;
 import com.a2y.salesHelper.db.entity.UserEntity;
 import com.a2y.salesHelper.db.repository.UserRepository;
 import com.a2y.salesHelper.enums.Role;
 import com.a2y.salesHelper.pojo.User;
 import com.a2y.salesHelper.service.interfaces.UserAuthService;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class UserAuthServiceImpl implements UserAuthService {
@@ -21,11 +22,11 @@ public class UserAuthServiceImpl implements UserAuthService {
         this.passwordHashingConfig = passwordHashingConfig;
     }
 
-
     @Override
-    public boolean registerUser(String firstName, String lastName, String email, String password, Role role,Long inviteId) {
+    public boolean registerUser(String firstName, String lastName, String email, String password, Role role,
+            Long inviteId) {
 
-        try{
+        try {
             UserEntity userEntity = UserEntity.builder()
                     .firstName(firstName)
                     .lastName(lastName)
@@ -36,7 +37,7 @@ public class UserAuthServiceImpl implements UserAuthService {
                     .build();
             userRepository.save(userEntity);
             return true;
-        }catch (Exception e) {
+        } catch (Exception e) {
             throw new RuntimeException("User registration failed: " + e.getMessage(), e);
         }
     }
@@ -55,6 +56,7 @@ public class UserAuthServiceImpl implements UserAuthService {
                         .id(userEntity.getId())
                         .firstName(userEntity.getFirstName())
                         .lastName(userEntity.getLastName())
+                        .tenantId(userEntity.getTenantId())
                         .email(userEntity.getEmail())
                         .role(userEntity.getRole())
                         .isReset(userEntity.getIsReset())
@@ -71,17 +73,16 @@ public class UserAuthServiceImpl implements UserAuthService {
     public Boolean resetPassword(String email, String newPassword, String oldPassword) {
         try {
             UserEntity userEntity = userRepository.findByEmail(email);
-            if(userEntity == null) {
+            if (userEntity == null) {
                 throw new RuntimeException("User does not exist"); // User not found
             }
             System.out.println("Old Password: " + passwordHashingConfig.passwordEncoder());
-            if( passwordHashingConfig.passwordEncoder().matches(oldPassword, userEntity.getPassword()))
-            {
+            if (passwordHashingConfig.passwordEncoder().matches(oldPassword, userEntity.getPassword())) {
                 userEntity.setPassword(passwordHashingConfig.passwordEncoder().encode(newPassword));
                 userEntity.setIsReset(Boolean.TRUE); // Set isReset to true
                 userRepository.save(userEntity);
                 return true;
-            }else {
+            } else {
                 throw new RuntimeException("Old password does not match.");
             }
         } catch (Exception e) {
@@ -91,7 +92,7 @@ public class UserAuthServiceImpl implements UserAuthService {
 
     @Override
     public List<User> getAllUsersForAdmin(Long adminId) {
-       List<UserEntity> userEntities = userRepository.findAllById(adminId);
+        List<UserEntity> userEntities = userRepository.findAllById(adminId);
 
         return userEntities.stream().map(userEntity -> User.builder()
                 .id(userEntity.getId())
@@ -106,7 +107,8 @@ public class UserAuthServiceImpl implements UserAuthService {
     @Override
     public Boolean EditUser(User user) {
         try {
-            UserEntity userEntity = userRepository.findById(user.getId()).orElseThrow(() -> new RuntimeException("User not found"));
+            UserEntity userEntity = userRepository.findById(user.getId())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
             userEntity.setFirstName(user.getFirstName());
             userEntity.setLastName(user.getLastName());
             userEntity.setEmail(user.getEmail());
@@ -120,7 +122,8 @@ public class UserAuthServiceImpl implements UserAuthService {
 
     @Override
     public User getUserById(Long userId) {
-        UserEntity userEntity = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        UserEntity userEntity = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
         return User.builder()
                 .id(userEntity.getId())
                 .firstName(userEntity.getFirstName())
