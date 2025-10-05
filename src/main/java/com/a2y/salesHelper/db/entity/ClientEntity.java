@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "cooldown", schema = "dev")
+@Table(name = "cooldown", schema = "sales")
 public class ClientEntity {
 
     @Id

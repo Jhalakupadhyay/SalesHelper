@@ -20,7 +20,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-@Table(name = "interaction_history", schema = "dev")
+@Table(name = "interaction_history", schema = "sales")
 @IdClass(CompositeIdClass.class)
 public class InteractionHistoryEntity {
 

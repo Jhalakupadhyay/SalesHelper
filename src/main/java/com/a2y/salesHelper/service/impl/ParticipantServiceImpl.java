@@ -66,7 +66,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                     Row row = sheet.getRow(rowIndex);
                     if (row == null || isRowEmpty(row)) continue;
                     try {
-                        ParticipantEntity participant = parseRowToParticipant(row, sheetName, clientId);
+                        ParticipantEntity participant = parseRowToParticipant(row, sheetName, clientId,tenantId);
                         InteractionHistoryEntity interactionHistory = parseRowToInteractions(row,clientId);
                         if (participant != null && isValidParticipant(participant)) {
                             participants.add(participant);
@@ -124,8 +124,8 @@ public class ParticipantServiceImpl implements ParticipantService {
     }
 
     @Override
-    public List<Participant> getAllParticipant(Long clientId) {
-        List<ParticipantEntity> participantEntities = participantRepository.findByClientId(clientId);
+    public List<Participant> getAllParticipant(Long clientId,Long tenantId) {
+        List<ParticipantEntity> participantEntities = participantRepository.getAllByTenantIdAndClientId(clientId,tenantId);
         List<Participant> response = new ArrayList<>();
 
         for (ParticipantEntity participant : participantEntities) {
@@ -198,7 +198,7 @@ public class ParticipantServiceImpl implements ParticipantService {
         }
     }
 
-    private ParticipantEntity parseRowToParticipant(Row row, String sheetName, Long clientId) {
+    private ParticipantEntity parseRowToParticipant(Row row, String sheetName, Long clientId,Long tenantId) {
         ParticipantEntity participant = ParticipantEntity.builder()
                 .sheetName(sheetName)
                 .clientId(clientId)
@@ -209,6 +209,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                 .mobile(getCellValueAsString(getCell(row, "mobile no")))
                 .eventName(getCellValueAsString(getCell(row, "Event Name")))
                 .city(getCellValueAsString(getCell(row, "City")))
+                .tenantId(tenantId)
                 .isGoodLead(true)
                 .assignedUnassigned(getCellValueAsString(getCell(row, "assigned/unassigned")))
                 .eventDate(parseOffsetDateTime(getCellValueAsString(getCell(row, "Date"))))
@@ -557,6 +558,7 @@ public class ParticipantServiceImpl implements ParticipantService {
 
             interactionHistory.setCooldownDate(cooldownDate);
             interactionHistory.setCooldownCount(cooldownCount);
+            interactionHistory.setTenantId(client.getTenantId());
             interactionHistory.setMeetingDone(Boolean.TRUE);
 
             log.info("Prepared interaction history for participant: {}", interactionHistory);

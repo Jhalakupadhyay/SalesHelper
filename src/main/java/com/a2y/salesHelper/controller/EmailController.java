@@ -26,7 +26,7 @@ public class EmailController {
             @RequestParam Role role,
             @RequestParam Long tenantId) {
         try {
-            emailService.sendCredentialsEmail(email, username, role, inviteId);
+            emailService.sendCredentialsEmail(email, username, role, inviteId,tenantId);
             return "Email sent successfully to: " + email;
         } catch (Exception e) {
             return "Failed to send email: " + e.getMessage();

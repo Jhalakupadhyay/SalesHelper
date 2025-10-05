@@ -32,8 +32,7 @@ public class UserController {
 
     @Operation(summary = "SignIn API", description = "API takes email and password and signIn the user accordingly.")
     @PostMapping("/login")
-    public ResponseEntity<User> loginUser(@RequestParam String email, @RequestParam String password,
-            @RequestParam Long tenantId) {
+    public ResponseEntity<User> loginUser(@RequestParam String email, @RequestParam String password) {
         User isAuthenticated = userAuthService.authenticateUser(email, password);
         if (isAuthenticated != null) {
             return new ResponseEntity<>(isAuthenticated, HttpStatus.OK);
@@ -45,7 +44,7 @@ public class UserController {
     @Operation(summary = "Reset Password API", description = "API takes email, new password and old password and resets the user password.")
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(@RequestParam String email, @RequestParam String newPassword,
-            @RequestParam String oldPassword, @RequestParam Long tenantId) {
+            @RequestParam String oldPassword) {
         Boolean isReset = userAuthService.resetPassword(email, newPassword, oldPassword);
         if (isReset) {
             return new ResponseEntity<>("Password reset successful", HttpStatus.OK);

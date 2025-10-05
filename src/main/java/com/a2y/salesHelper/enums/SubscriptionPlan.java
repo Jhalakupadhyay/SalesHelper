@@ -18,7 +18,7 @@ public enum SubscriptionPlan {
     /**
      * Professional tier - Advanced features for growing companies
      */
-    PROFESSIONAL("PREMIUM", "Advanced features for growing companies"),
+    PREMIUM("Premium", "Advanced features for growing companies"),
 
     /**
      * Enterprise tier - Full features for large organizations
@@ -71,7 +71,7 @@ public enum SubscriptionPlan {
      * @return true if advanced features are available
      */
     public boolean supportsAdvancedFeatures() {
-        return this == PROFESSIONAL || this == ENTERPRISE || this == CUSTOM;
+        return this == PREMIUM || this == ENTERPRISE || this == CUSTOM;
     }
 
     /**
@@ -83,7 +83,7 @@ public enum SubscriptionPlan {
         return switch (this) {
             case FREE -> 1;
             case BASIC -> 2;
-            case PROFESSIONAL -> 3;
+            case PREMIUM -> 3;
             case ENTERPRISE -> 4;
             case CUSTOM -> 5;
         };

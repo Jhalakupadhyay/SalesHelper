@@ -26,7 +26,7 @@ public interface ParticipantService {
      * @return
      * List of all participants
      */
-    List<Participant> getAllParticipant(Long clientId);
+    List<Participant> getAllParticipant(Long clientId,Long tenantId);
 
     /**
      * Get a map of participant IDs to their names

@@ -52,7 +52,7 @@ public class ParticipantController {
     public ResponseEntity<List<Participant>> getAllParticipants(@RequestParam Long clientId,
             @RequestParam Long tenantId) {
 
-        List<Participant> response = participantService.getAllParticipant(clientId);
+        List<Participant> response = participantService.getAllParticipant(clientId,tenantId);
         if (response.isEmpty()) {
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         }
@@ -61,8 +61,7 @@ public class ParticipantController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete a participant by ID", description = "Deletes a participant from the database using their ID")
-    public ResponseEntity<Boolean> deleteParticipantById(@PathVariable Long id, @RequestParam Long clientId,
-            @RequestParam Long tenantId) {
+    public ResponseEntity<Boolean> deleteParticipantById(@PathVariable Long id) {
         Boolean response = participantService.deleteParticipantById(id);
         return new ResponseEntity<>(response, response ? HttpStatus.OK : HttpStatus.NOT_FOUND);
     }

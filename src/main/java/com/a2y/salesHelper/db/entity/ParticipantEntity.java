@@ -20,7 +20,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name = "participants", schema = "dev")
+@Table(name = "participants", schema = "sales")
 @Data
 @ToString
 @Builder

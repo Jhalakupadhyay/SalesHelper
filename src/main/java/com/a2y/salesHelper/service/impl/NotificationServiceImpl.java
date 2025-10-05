@@ -106,6 +106,7 @@ public class NotificationServiceImpl implements NotificationService {
                 //if not, create a new notification
                 com.a2y.salesHelper.db.entity.NotificationEntity notificationEntity = com.a2y.salesHelper.db.entity.NotificationEntity.builder()
                         .participantIds(participantIds)
+                        .tenantId(interactionHistories.get(0).getTenantId())
                         .userIds(userIds)
                         .type("DAILY")
                         .build();
