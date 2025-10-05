@@ -35,8 +35,8 @@ public class ClientController {
             description = "Retrieves all the clients from the database."
     )
     @GetMapping("/get")
-    public ResponseEntity<List<ClientResponse>> getCooldown() {
-        List<ClientResponse> cooldown = cooldownService.getClients();
+    public ResponseEntity<List<ClientResponse>> getCooldown(@RequestParam Long tenantId) {
+        List<ClientResponse> cooldown = cooldownService.getClients(tenantId);
         if (cooldown == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -48,8 +48,8 @@ public class ClientController {
             description = "Edits the cooldown periods for a specific client."
     )
     @PostMapping("/edit")
-    public ResponseEntity<ClientResponse> editCooldownPeriods(Long clientId, Long cooldownPeriod1, Long cooldownPeriod2, Long cooldownPeriod3) {
-        ClientResponse updatedClient = cooldownService.editCooldownPeriods(clientId, cooldownPeriod1, cooldownPeriod2, cooldownPeriod3);
+    public ResponseEntity<ClientResponse> editCooldownPeriods(Long clientId, Long tenantId, Long cooldownPeriod1, Long cooldownPeriod2, Long cooldownPeriod3) {
+        ClientResponse updatedClient = cooldownService.editCooldownPeriods(clientId,tenantId, cooldownPeriod1, cooldownPeriod2, cooldownPeriod3);
         if (updatedClient == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

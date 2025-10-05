@@ -33,7 +33,7 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
     @Override
     public boolean editInteractionHistory(EditRequest editRequest) {
         InteractionHistoryEntity existingInteraction = interactionHistoryRepository
-                .findByParticipantNameAndCreatedAtAndClientId(editRequest.getParticipantName(), editRequest.getCreatedAt(), editRequest.getClientId());
+                .findByParticipantNameAndCreatedAtAndClientIdAndTenantId(editRequest.getParticipantName(), editRequest.getCreatedAt(), editRequest.getClientId(),editRequest.getTenantId());
         if (existingInteraction == null) {
             return false;
         }
@@ -59,8 +59,8 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
 
 
     @Override
-    public List<InteractionHistory> getInteractionHistory(String participantName, String organization,Long clientId) {
-        List<InteractionHistoryEntity> interaction = interactionHistoryRepository.findByParticipantNameAndOrganizationAndClientId(participantName, organization,clientId);
+    public List<InteractionHistory> getInteractionHistory(String participantName, String organization,Long clientId,Long tenantId) {
+        List<InteractionHistoryEntity> interaction = interactionHistoryRepository.findByTenantIdAndParticipantNameAndOrganizationAndClientId(tenantId,participantName, organization,clientId);
 
         if(interaction == null) {
             return new ArrayList<>();
@@ -102,7 +102,7 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
 
         //get the latest interaction history for the participant
         InteractionHistoryEntity latestInteraction = interactionHistoryRepository
-                .findTopByParticipantNameAndOrganizationAndClientIdOrderByCreatedAtDesc(interactionHistory.getParticipantName(), interactionHistory.getOrganization(), interactionHistory.getClientId());
+                .findTopByParticipantNameAndOrganizationAndClientIdAndTenantIdOrderByCreatedAtDesc(interactionHistory.getParticipantName(), interactionHistory.getOrganization(), interactionHistory.getClientId(),interactionHistory.getTenantId());
 
         if (latestInteraction != null) {
             if (latestInteraction.getCooldownCount() == 1) {

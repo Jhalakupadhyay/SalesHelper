@@ -22,7 +22,7 @@ public interface InteractionHistoryService {
      * @param organization Organization of the participant
      * @return List of InteractionHistory objects
      */
-    List<InteractionHistory> getInteractionHistory(String participantName, String organization,Long clientId);
+    List<InteractionHistory> getInteractionHistory(String participantName, String organization,Long clientId,Long tenantId);
 
     /**
      * Add interaction history for a participant

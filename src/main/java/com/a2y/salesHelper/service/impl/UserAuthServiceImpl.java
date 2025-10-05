@@ -74,6 +74,7 @@ public class UserAuthServiceImpl implements UserAuthService {
             if(userEntity == null) {
                 throw new RuntimeException("User does not exist"); // User not found
             }
+            System.out.println("Old Password: " + passwordHashingConfig.passwordEncoder());
             if( passwordHashingConfig.passwordEncoder().matches(oldPassword, userEntity.getPassword()))
             {
                 userEntity.setPassword(passwordHashingConfig.passwordEncoder().encode(newPassword));

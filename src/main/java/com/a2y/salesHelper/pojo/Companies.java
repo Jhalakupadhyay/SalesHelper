@@ -17,6 +17,7 @@ import java.time.OffsetDateTime;
 public class Companies {
     private Long id;
     private Long clientId;
+    private Long tenantId;
     private String accountName;
     private String aeNam;
     private String segment;

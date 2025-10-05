@@ -29,7 +29,7 @@ public class EmailService {
         this.userRepository = userRepository;
     }
 
-    public void sendCredentialsEmail(String toEmail, String username, Role role,Long inviteId) {
+    public void sendCredentialsEmail(String toEmail, String username, Role role,Long inviteId,Long tenantId) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -51,6 +51,7 @@ public class EmailService {
                     .email(toEmail)
                     .password(passwordHashingConfig.passwordEncoder().encode(password)) // Password should be hashed before saving
                     .role(role)
+                    .tenantId(tenantId)
                     .inviteId(inviteId)
                     .isReset(Boolean.FALSE)
                     .build();

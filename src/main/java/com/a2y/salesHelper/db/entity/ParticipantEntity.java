@@ -1,13 +1,26 @@
 package com.a2y.salesHelper.db.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
-
 import java.sql.Timestamp;
 import java.time.OffsetDateTime;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
 @Entity
-@Table(name = "participants",schema = "sales")
+@Table(name = "participants", schema = "sales")
 @Data
 @ToString
 @Builder
@@ -20,6 +33,9 @@ public class ParticipantEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "tenant_id", nullable = false)
+    private Long tenantId;
 
     @Column(name = "client_id", nullable = false)
     private Long clientId;
@@ -68,7 +84,6 @@ public class ParticipantEntity {
 
     @Column(name = "is_good_lead")
     private Boolean isGoodLead;
-
 
     @PrePersist
     protected void onCreate() {

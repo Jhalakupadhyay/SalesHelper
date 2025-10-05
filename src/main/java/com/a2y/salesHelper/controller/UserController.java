@@ -1,11 +1,7 @@
 package com.a2y.salesHelper.controller;
 
-import com.a2y.salesHelper.enums.Role;
-import com.a2y.salesHelper.pojo.User;
-import com.a2y.salesHelper.service.interfaces.UserAuthService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import org.apache.xmlbeans.impl.xb.xsdschema.Attribute;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,12 +9,18 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.List;
+import com.a2y.salesHelper.enums.Role;
+import com.a2y.salesHelper.pojo.User;
+import com.a2y.salesHelper.service.interfaces.UserAuthService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Controller
 @RequestMapping("/api/auth")
-@Tag(name = "User Auth API",description = "API related ")
+@Tag(name = "User Auth API", description = "API related ")
 public class UserController {
 
     private final UserAuthService userAuthService;
@@ -27,12 +29,10 @@ public class UserController {
     public UserController(UserAuthService userAuthService) {
         this.userAuthService = userAuthService;
     }
-    @Operation(
-            summary = "SignIn API",
-            description = "API takes email and password and signIn the user accordingly."
-    )
+
+    @Operation(summary = "SignIn API", description = "API takes email and password and signIn the user accordingly.")
     @PostMapping("/login")
-    public ResponseEntity<User> loginUser(String email, String password) {
+    public ResponseEntity<User> loginUser(@RequestParam String email, @RequestParam String password) {
         User isAuthenticated = userAuthService.authenticateUser(email, password);
         if (isAuthenticated != null) {
             return new ResponseEntity<>(isAuthenticated, HttpStatus.OK);
@@ -41,12 +41,10 @@ public class UserController {
         }
     }
 
-    @Operation(
-            summary = "Reset Password API",
-            description = "API takes email, new password and old password and resets the user password."
-    )
+    @Operation(summary = "Reset Password API", description = "API takes email, new password and old password and resets the user password.")
     @PostMapping("/reset-password")
-    public ResponseEntity<String> resetPassword(String email, String newPassword, String oldPassword) {
+    public ResponseEntity<String> resetPassword(@RequestParam String email, @RequestParam String newPassword,
+            @RequestParam String oldPassword) {
         Boolean isReset = userAuthService.resetPassword(email, newPassword, oldPassword);
         if (isReset) {
             return new ResponseEntity<>("Password reset successful", HttpStatus.OK);
@@ -55,20 +53,13 @@ public class UserController {
         }
     }
 
-
-    @Operation(
-            summary = "Find all user invited by admin",
-            description = "api takes user ID"
-    )
+    @Operation(summary = "Find all user invited by admin", description = "api takes user ID")
     @GetMapping("/getInvitedUsers")
-    public ResponseEntity<List<User>> getAllUsersForAdmin(Long adminId) {
+    public ResponseEntity<List<User>> getAllUsersForAdmin(@RequestParam Long adminId, @RequestParam Long tenantId) {
         return new ResponseEntity<>(userAuthService.getAllUsersForAdmin(adminId), HttpStatus.OK);
     }
 
-    @Operation(
-            summary = "Edit User API",
-            description = "API takes user object and updates the user details."
-    )
+    @Operation(summary = "Edit User API", description = "API takes user object and updates the user details.")
     @PostMapping("/editUser")
     public ResponseEntity<String> editUser(User user) {
         Boolean isEdited = userAuthService.EditUser(user);
@@ -80,7 +71,9 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> registerUser(String firstName, String lastName, String email, String password, Role role, Long adminId) {
+    public ResponseEntity<String> registerUser(@RequestParam String firstName, @RequestParam String lastName,
+            @RequestParam String email, @RequestParam String password, @RequestParam Role role,
+            @RequestParam Long adminId, @RequestParam Long tenantId) {
         Boolean isRegistered = userAuthService.registerUser(firstName, lastName, email, password, role, adminId);
         if (isRegistered) {
             return new ResponseEntity<>("User registered successfully", HttpStatus.CREATED);
@@ -89,12 +82,9 @@ public class UserController {
         }
     }
 
-    @Operation(
-            summary = "Get User by ID API",
-            description = "API takes user ID and returns the user details."
-    )
+    @Operation(summary = "Get User by ID API", description = "API takes user ID and returns the user details.")
     @GetMapping("/getUserById")
-    public ResponseEntity<User> getUserById(Long userId) {
+    public ResponseEntity<User> getUserById(@RequestParam Long userId, @RequestParam Long tenantId) {
         User user = userAuthService.getUserById(userId);
         if (user != null) {
             return new ResponseEntity<>(user, HttpStatus.OK);

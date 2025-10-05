@@ -6,12 +6,16 @@ spring:
   security:
     enabled: false
 
+  developer:
+    token: ${DEVELOPER_TOKEN:dev-secret-2024}
+    secret: ${DEVELOPER_SECRET:developer-secret-key}
+    enabled: true
+
   mail:
     host: smtp-relay.brevo.com
     port: ${SMTP_PORT}
     username: ${SMTP_USERNAME}
     password: ${SMTP_PASSWORD}
-
 
   datasource:
     url: ${DB_URL}

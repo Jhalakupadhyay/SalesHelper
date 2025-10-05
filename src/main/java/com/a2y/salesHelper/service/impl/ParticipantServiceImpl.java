@@ -47,7 +47,7 @@ public class ParticipantServiceImpl implements ParticipantService {
     }
 
     @Override
-    public Integer parseExcelFile(MultipartFile file,Long clientId) throws IOException {
+    public Integer parseExcelFile(MultipartFile file,Long clientId,Long tenantId) throws IOException {
         List<ParticipantEntity> participants = new ArrayList<>();
         List<InteractionHistoryEntity> interactionHistories = new ArrayList<>();
         String fileName = file.getOriginalFilename();
@@ -66,7 +66,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                     Row row = sheet.getRow(rowIndex);
                     if (row == null || isRowEmpty(row)) continue;
                     try {
-                        ParticipantEntity participant = parseRowToParticipant(row, sheetName, clientId);
+                        ParticipantEntity participant = parseRowToParticipant(row, sheetName, clientId,tenantId);
                         InteractionHistoryEntity interactionHistory = parseRowToInteractions(row,clientId);
                         if (participant != null && isValidParticipant(participant)) {
                             participants.add(participant);
@@ -91,7 +91,7 @@ public class ParticipantServiceImpl implements ParticipantService {
             participants.removeIf(participant -> participantRepository.existsByNameAndDesignationAndOrganization(participant.getName(), participant.getDesignation(),participant.getOrganization()));
             for (ParticipantEntity participant : participants) {
                 if(!map.containsKey(participant.getOrganization())) {
-                    Long orgId = companiesRepository.findByOrganizationAndClientId(participant.getOrganization(), clientId);
+                    Long orgId = companiesRepository.findByOrganizationAndClientIdAndTenantId(participant.getOrganization(), clientId,tenantId);
                     if (orgId != null) {
                         map.put(participant.getOrganization(), orgId);
                     }
@@ -124,8 +124,8 @@ public class ParticipantServiceImpl implements ParticipantService {
     }
 
     @Override
-    public List<Participant> getAllParticipant(Long clientId) {
-        List<ParticipantEntity> participantEntities = participantRepository.findByClientId(clientId);
+    public List<Participant> getAllParticipant(Long clientId,Long tenantId) {
+        List<ParticipantEntity> participantEntities = participantRepository.getAllByTenantIdAndClientId(clientId,tenantId);
         List<Participant> response = new ArrayList<>();
 
         for (ParticipantEntity participant : participantEntities) {
@@ -198,7 +198,7 @@ public class ParticipantServiceImpl implements ParticipantService {
         }
     }
 
-    private ParticipantEntity parseRowToParticipant(Row row, String sheetName, Long clientId) {
+    private ParticipantEntity parseRowToParticipant(Row row, String sheetName, Long clientId,Long tenantId) {
         ParticipantEntity participant = ParticipantEntity.builder()
                 .sheetName(sheetName)
                 .clientId(clientId)
@@ -209,6 +209,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                 .mobile(getCellValueAsString(getCell(row, "mobile no")))
                 .eventName(getCellValueAsString(getCell(row, "Event Name")))
                 .city(getCellValueAsString(getCell(row, "City")))
+                .tenantId(tenantId)
                 .isGoodLead(true)
                 .assignedUnassigned(getCellValueAsString(getCell(row, "assigned/unassigned")))
                 .eventDate(parseOffsetDateTime(getCellValueAsString(getCell(row, "Date"))))
@@ -498,10 +499,11 @@ public class ParticipantServiceImpl implements ParticipantService {
             int cooldownCount = 1;
 
             InteractionHistoryEntity latestInteraction = interactionHistoryRepository
-                    .findTopByParticipantNameAndOrganizationAndClientIdOrderByCreatedAtDesc(
+                    .findTopByParticipantNameAndOrganizationAndClientIdAndTenantIdOrderByCreatedAtDesc(
                             interactionHistory.getParticipantName(),
                             interactionHistory.getOrganization(),
                             interactionHistory.getClientId()
+                            ,interactionHistory.getTenantId()
                     );
 
 //            if (latestInteraction != null) {
@@ -556,6 +558,7 @@ public class ParticipantServiceImpl implements ParticipantService {
 
             interactionHistory.setCooldownDate(cooldownDate);
             interactionHistory.setCooldownCount(cooldownCount);
+            interactionHistory.setTenantId(client.getTenantId());
             interactionHistory.setMeetingDone(Boolean.TRUE);
 
             log.info("Prepared interaction history for participant: {}", interactionHistory);

@@ -29,6 +29,7 @@ public class CooldownServiceImpl implements CooldownService {
         try{
             clientRepository.save(ClientEntity.builder()
                     .orgName(client.getOrgName())
+                    .tenantId(client.getTenantId())
                     .cooldownPeriod1(client.getCooldownPeriod1())
                     .cooldownPeriod2(client.getCooldownPeriod2())
                     .cooldownPeriod3(client.getCooldownPeriod3())
@@ -40,8 +41,8 @@ public class CooldownServiceImpl implements CooldownService {
     }
 
     @Override
-    public List<ClientResponse> getClients() {
-        return clientRepository.findAll().stream()
+    public List<ClientResponse> getClients(Long tenantId) {
+        return clientRepository.findAll().stream().filter(clientEntity -> clientEntity.getTenantId().equals(tenantId))
                 .map(clientEntity -> ClientResponse.builder()
                         .clientId(clientEntity.getOrgId())
                         .orgName(clientEntity.getOrgName())
@@ -53,8 +54,8 @@ public class CooldownServiceImpl implements CooldownService {
     }
 
     @Override
-    public ClientResponse editCooldownPeriods(Long clientId, Long cooldownPeriod1, Long cooldownPeriod2, Long cooldownPeriod3) {
-        ClientEntity clientEntity = clientRepository.findById(clientId).orElse(null);
+    public ClientResponse editCooldownPeriods(Long clientId, Long tenantId, Long cooldownPeriod1, Long cooldownPeriod2, Long cooldownPeriod3) {
+        ClientEntity clientEntity = clientRepository.findByTenantIdAndOrgId(tenantId,clientId).orElse(null);
         if (clientEntity == null) {
             return null;
         }

@@ -1,12 +1,13 @@
 package com.a2y.salesHelper.db.repository;
 
-import com.a2y.salesHelper.db.entity.PersonaEntity;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import com.a2y.salesHelper.db.entity.PersonaEntity;
 
 @Repository
 public interface PersonaRepository extends JpaRepository<PersonaEntity, Long> {
@@ -17,22 +18,27 @@ public interface PersonaRepository extends JpaRepository<PersonaEntity, Long> {
     List<PersonaEntity> findByClientId(Long clientId);
 
     /**
-     * Check if a company contact already exists with the same company, name, designation, and client ID
+     * Check if a company contact already exists with the same company, name,
+     * designation, and client ID
      */
-    boolean existsByCompanyAndNameAndDesignationAndClientId(String company, String name, String designation, Long clientId);
+    boolean existsByCompanyAndNameAndDesignationAndClientId(String company, String name, String designation,
+            Long clientId);
 
     /**
-     * Find company contacts by company name (case-insensitive partial match) and client ID
+     * Find company contacts by company name (case-insensitive partial match) and
+     * client ID
      */
     List<PersonaEntity> findByCompanyContainingIgnoreCaseAndClientId(String company, Long clientId);
 
     /**
-     * Find company contacts by person name (case-insensitive partial match) and client ID
+     * Find company contacts by person name (case-insensitive partial match) and
+     * client ID
      */
     List<PersonaEntity> findByNameContainingIgnoreCaseAndClientId(String name, Long clientId);
 
     /**
-     * Find company contacts by designation (case-insensitive partial match) and client ID
+     * Find company contacts by designation (case-insensitive partial match) and
+     * client ID
      */
     List<PersonaEntity> findByDesignationContainingIgnoreCaseAndClientId(String designation, Long clientId);
 
@@ -63,4 +69,20 @@ public interface PersonaRepository extends JpaRepository<PersonaEntity, Long> {
      */
     @Query("SELECT DISTINCT c.designation FROM PersonaEntity c WHERE c.clientId = :clientId AND c.designation IS NOT NULL ORDER BY c.designation")
     List<String> findDistinctDesignationsByClientId(@Param("clientId") Long clientId);
+
+    // Tenant filtering methods
+    List<PersonaEntity> findByTenantId(Long tenantId);
+
+    @Query("SELECT c FROM PersonaEntity c WHERE c.clientId = :clientId AND c.tenantId = :tenantId")
+    List<PersonaEntity> findByClientIdAndTenantId(@Param("clientId") Long clientId, @Param("tenantId") Long tenantId);
+
+    boolean existsByCompanyAndNameAndDesignationAndClientIdAndTenantId(String company, String name, String designation,
+            Long clientId, Long tenantId);
+
+    @Query("SELECT COUNT(c) FROM PersonaEntity c WHERE c.clientId = :clientId AND c.tenantId = :tenantId")
+    Long countByClientIdAndTenantId(@Param("clientId") Long clientId, @Param("tenantId") Long tenantId);
+
+    @Query("SELECT DISTINCT c.company FROM PersonaEntity c WHERE c.clientId = :clientId AND c.tenantId = :tenantId ORDER BY c.company")
+    List<String> findDistinctCompaniesByClientIdAndTenantId(@Param("clientId") Long clientId,
+            @Param("tenantId") Long tenantId);
 }

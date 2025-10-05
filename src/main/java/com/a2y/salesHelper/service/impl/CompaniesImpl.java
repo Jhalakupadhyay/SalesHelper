@@ -1,24 +1,35 @@
 package com.a2y.salesHelper.service.impl;
 
-import com.a2y.salesHelper.db.entity.CompanyEntity;
-import com.a2y.salesHelper.db.repository.ClientRepository;
-import com.a2y.salesHelper.db.repository.CompaniesRepository;
-import com.a2y.salesHelper.db.repository.ParticipantRepository;
-import com.a2y.salesHelper.pojo.Companies;
-import com.a2y.salesHelper.service.interfaces.CompaniesService;
-import com.a2y.salesHelper.service.interfaces.ParticipantService;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.OffsetDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.Set;
+
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.DateUtil;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.a2y.salesHelper.db.entity.CompanyEntity;
+import com.a2y.salesHelper.db.repository.CompaniesRepository;
+import com.a2y.salesHelper.pojo.Companies;
+import com.a2y.salesHelper.service.interfaces.CompaniesService;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -27,15 +38,15 @@ public class CompaniesImpl implements CompaniesService {
 
     Map<String, Integer> headerMappings = new HashMap<>();
 
-    private static final String[] EXPECTED_HEADERS_PARTICIPANTS = {"Account Name","AE Name","Segment","Focus/Assigned","Account Status","PG/Pipeline Status","Account Category","City"};
+    private static final String[] EXPECTED_HEADERS_PARTICIPANTS = { "Account Name", "AE Name", "Segment",
+            "Focus/Assigned", "Account Status", "PG/Pipeline Status", "Account Category", "City" };
 
     public CompaniesImpl(CompaniesRepository companiesRepository) {
         this.companiesRepository = companiesRepository;
     }
 
-
     @Override
-    public Integer parseExcelFile(MultipartFile file,Long clientId) throws IOException {
+    public Integer parseExcelFile(MultipartFile file, Long clientId, Long tenantId) throws IOException {
         List<CompanyEntity> companies = new ArrayList<>();
         String fileName = file.getOriginalFilename();
 
@@ -43,29 +54,31 @@ public class CompaniesImpl implements CompaniesService {
             Workbook workbook = createWorkbook(fileName, inputStream);
 
             // Process all sheets in the workbook
-                Sheet sheet = workbook.getSheetAt(0);
-                String sheetName = sheet.getSheetName();
-                parseHeaders(sheet, headerMappings);
-                log.info("Headers Parsed for sheet '{}': {}", sheetName, headerMappings);
-                // Skip header row and process data rows
-                for (int rowIndex = 1; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
-                    Row row = sheet.getRow(rowIndex);
-                    if (row == null || isRowEmpty(row)) continue;
-                    try {
-                        CompanyEntity company = parseRowToCompany(row,clientId);
-                        if (company != null) {
-                            companies.add(company);
-                        }
-                    } catch (Exception e) {
-                        log.error("Error parsing row " + rowIndex + " in sheet " + sheetName +
-                                " of file " + fileName + ": " + e.getMessage());
+            Sheet sheet = workbook.getSheetAt(0);
+            String sheetName = sheet.getSheetName();
+            parseHeaders(sheet, headerMappings);
+            log.info("Headers Parsed for sheet '{}': {}", sheetName, headerMappings);
+            // Skip header row and process data rows
+            for (int rowIndex = 1; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
+                Row row = sheet.getRow(rowIndex);
+                if (row == null || isRowEmpty(row))
+                    continue;
+                try {
+                    CompanyEntity company = parseRowToCompany(row, clientId, tenantId);
+                    if (company != null) {
+                        companies.add(company);
                     }
+                } catch (Exception e) {
+                    log.error("Error parsing row " + rowIndex + " in sheet " + sheetName +
+                            " of file " + fileName + ": " + e.getMessage());
                 }
+            }
             workbook.close();
         }
-        if(!companies.isEmpty()) {
+        if (!companies.isEmpty()) {
             log.info("Saving {} companies to the database", companies.size());
-            Set<String> existingAccounts = new HashSet<>(companiesRepository.findAllAccounts(clientId));
+            Set<String> existingAccounts = new HashSet<>(
+                    companiesRepository.findAllAccountsByTenantIdAndClientId(clientId, tenantId));
             companies.removeIf(company -> existingAccounts.contains(company.getAccountName()));
             companiesRepository.saveAll(companies);
         } else {
@@ -75,8 +88,8 @@ public class CompaniesImpl implements CompaniesService {
     }
 
     @Override
-    public List<Companies> getAllCompanies(Long clientId) {
-        List<CompanyEntity> companyEntities = companiesRepository.findAllByClientId(clientId);
+    public List<Companies> getAllCompanies(Long clientId, Long tenantId) {
+        List<CompanyEntity> companyEntities = companiesRepository.findAllByTenantIdAndClientId(tenantId, clientId);
         List<Companies> companiesList = new ArrayList<>();
         for (CompanyEntity entity : companyEntities) {
             Companies company = Companies.builder()
@@ -105,10 +118,11 @@ public class CompaniesImpl implements CompaniesService {
         }
     }
 
-    private CompanyEntity parseRowToCompany(Row row,Long clientId) {
+    private CompanyEntity parseRowToCompany(Row row, Long clientId, Long tenantId) {
 
         return CompanyEntity.builder()
                 .clientId(clientId)
+                .tenantId(tenantId)
                 .accountName(getCellValue(row, "Account Name"))
                 .aeNam(getCellValue(row, "AE Name"))
                 .segment(getCellValue(row, "Segment"))
@@ -122,13 +136,15 @@ public class CompaniesImpl implements CompaniesService {
 
     private String getCellValue(Row row, String headerName) {
         Integer index = headerMappings.get(headerName);
-        if (index == null) return null;
+        if (index == null)
+            return null;
         Cell cell = row.getCell(index);
         return getCellValueAsString(cell);
     }
 
     private String getCellValueAsString(Cell cell) {
-        if (cell == null) return null;
+        if (cell == null)
+            return null;
 
         switch (cell.getCellType()) {
             case STRING:
@@ -218,12 +234,13 @@ public class CompaniesImpl implements CompaniesService {
     }
 
     @Override
-    public Companies getCompanyById(Long id,Long clientId) {
+    public Companies getCompanyById(Long id, Long clientId, Long tenantId) {
 
         if (id == null) {
             return null;
         }
-        Optional<CompanyEntity> optionalEntity = companiesRepository.findByIdAndClientId(id,clientId);
+        Optional<CompanyEntity> optionalEntity = companiesRepository.findByIdAndClientIdAndTenantId(id, clientId,
+                tenantId);
         if (optionalEntity.isPresent()) {
             CompanyEntity entity = optionalEntity.get();
             OffsetDateTime cooldownTime = null;
@@ -243,11 +260,11 @@ public class CompaniesImpl implements CompaniesService {
     }
 
     @Override
-    public List<Companies> filterCompanies(String field, String value,Long clientId) {
+    public List<Companies> filterCompanies(String field, String value, Long clientId, Long tenantId) {
         if (field == null || value == null || field.trim().isEmpty() || value.trim().isEmpty()) {
             return Collections.emptyList();
         }
-        List<CompanyEntity> companyEntities = getFieldValue(field, value, clientId);
+        List<CompanyEntity> companyEntities = getFieldValue(field, value, clientId, tenantId);
 
         List<Companies> companiesList = new ArrayList<>();
         for (CompanyEntity entity : companyEntities) {
@@ -272,7 +289,8 @@ public class CompaniesImpl implements CompaniesService {
         if (company == null || company.getId() == null) {
             throw new IllegalArgumentException("Company or Company ID cannot be null");
         }
-        Optional<CompanyEntity> optionalEntity = companiesRepository.findByIdAndClientId(company.getId(), company.getClientId());
+        Optional<CompanyEntity> optionalEntity = companiesRepository.findByIdAndClientIdAndTenantId(company.getId(),
+                company.getClientId(), company.getTenantId());
         if (optionalEntity.isPresent()) {
             CompanyEntity entity = optionalEntity.get();
             entity.setAccountName(company.getAccountName());
@@ -282,7 +300,6 @@ public class CompaniesImpl implements CompaniesService {
             entity.setAccountStatus(company.getAccountStatus());
             entity.setPipelineStatus(company.getPipelineStatus());
             entity.setAccountCategory(company.getAccountCategory());
-
 
             CompanyEntity updatedEntity = companiesRepository.save(entity);
             return Companies.builder()
@@ -301,11 +318,12 @@ public class CompaniesImpl implements CompaniesService {
     }
 
     @Override
-    public Boolean deleteCompanyById(Long id) {
+    public Boolean deleteCompanyById(Long id, Long clientId, Long tenantId) {
         if (id == null) {
             throw new IllegalArgumentException("Company ID cannot be null");
         }
-        Optional<CompanyEntity> optionalEntity = companiesRepository.findById(id);
+        Optional<CompanyEntity> optionalEntity = companiesRepository.findByIdAndClientIdAndTenantId(id, clientId,
+                tenantId);
         if (optionalEntity.isPresent()) {
             companiesRepository.deleteById(id);
             return true;
@@ -313,16 +331,16 @@ public class CompaniesImpl implements CompaniesService {
         return false; // Return false if the company with the given ID does not exist
     }
 
-    private List<CompanyEntity> getFieldValue(String field,String value,Long clientId) {
+    private List<CompanyEntity> getFieldValue(String field, String value, Long clientId, Long tennatId) {
         switch (field.toLowerCase()) {
             case "company":
-                return companiesRepository.findByClientIdAndAccountName(clientId,value);
-                case "aename":
-                return companiesRepository.findByAeNamAndClientIdIgnoreCase(value,clientId);
+                return companiesRepository.findByClientIdAndAccountNameAndTenantId(clientId, value, tennatId);
+            case "aename":
+                return companiesRepository.findByAeNamAndTenantIdAndClientIdIgnoreCase(value, tennatId, clientId);
             case "city":
-                return companiesRepository.findByClientIdAndCityIgnoreCase(value,clientId);
+                return companiesRepository.findByClientIdAndTenantIdAndCityIgnoreCase(value, tennatId, clientId);
             case "focusedorassigned":
-                return companiesRepository.findByClientIdAndFocusedOrAssigned(clientId,value);
+                return companiesRepository.findByClientIdAndTenantIdAndFocusedOrAssigned(clientId, tennatId, value);
             default:
                 throw new RuntimeException("\"Unknown field for filtering: {}\", field");
         }

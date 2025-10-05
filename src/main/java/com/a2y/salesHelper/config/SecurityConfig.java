@@ -14,8 +14,8 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authz -> authz
-                        .anyRequest().permitAll()
-                )
+                        // All endpoints are public - authentication handled manually in controllers
+                        .anyRequest().permitAll())
                 .csrf(csrf -> csrf.disable()); // Updated syntax
         return http.build();
     }

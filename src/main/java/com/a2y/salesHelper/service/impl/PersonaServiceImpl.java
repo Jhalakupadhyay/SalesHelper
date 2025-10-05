@@ -1,20 +1,30 @@
 package com.a2y.salesHelper.service.impl;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.a2y.salesHelper.db.entity.PersonaEntity;
 import com.a2y.salesHelper.db.repository.CompaniesRepository;
 import com.a2y.salesHelper.db.repository.PersonaRepository;
 import com.a2y.salesHelper.pojo.Persona;
 import com.a2y.salesHelper.service.interfaces.PersonaService;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
@@ -35,7 +45,7 @@ public class PersonaServiceImpl implements PersonaService {
     }
 
     @Override
-    public Integer parseExcelFile(MultipartFile file, Long clientId) throws IOException {
+    public Integer parseExcelFile(MultipartFile file, Long clientId, Long tenantId) throws IOException {
         List<PersonaEntity> companyContacts = new ArrayList<>();
         String fileName = file.getOriginalFilename();
 
@@ -55,10 +65,11 @@ public class PersonaServiceImpl implements PersonaService {
                 // Skip header row and process data rows
                 for (int rowIndex = 1; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
                     Row row = sheet.getRow(rowIndex);
-                    if (row == null || isRowEmpty(row)) continue;
+                    if (row == null || isRowEmpty(row))
+                        continue;
 
                     try {
-                        PersonaEntity companyContact = parseRowToCompanyContact(row, sheetName, clientId);
+                        PersonaEntity companyContact = parseRowToCompanyContact(row, sheetName, clientId, tenantId);
                         if (companyContact != null && isValidCompanyContact(companyContact)) {
                             companyContacts.add(companyContact);
                             log.info("Parsed company contact: {}", companyContact);
@@ -74,24 +85,24 @@ public class PersonaServiceImpl implements PersonaService {
 
         // Save all company contacts to database
         if (!companyContacts.isEmpty()) {
-            // Remove duplicates based on company, name, and designation
-            companyContacts.removeIf(contact ->
-                    companyContactRepository.existsByCompanyAndNameAndDesignationAndClientId(
+            // Remove duplicates based on company, name, and designation (tenant-scoped)
+            companyContacts.removeIf(
+                    contact -> companyContactRepository.existsByCompanyAndNameAndDesignationAndClientIdAndTenantId(
                             contact.getCompany(),
                             contact.getName(),
                             contact.getDesignation(),
-                            contact.getClientId()
-                    )
-            );
+                            contact.getClientId(),
+                            contact.getTenantId()));
 
             if (!companyContacts.isEmpty()) {
                 Map<String, Long> existingCompanies = new HashMap<>();
-                for( PersonaEntity contact : companyContacts) {
-                    if(existingCompanies.containsKey(contact.getCompany())) {
+                for (PersonaEntity contact : companyContacts) {
+                    if (existingCompanies.containsKey(contact.getCompany())) {
                         contact.setCompanyId(existingCompanies.get(contact.getCompany()));
-                    }else {
-                        Long id =  companiesRepository.findByOrganizationAndClientId(contact.getCompany(),clientId);
-                        if(id != null) {
+                    } else {
+                        Long id = companiesRepository.findByOrganizationAndClientIdAndTenantId(contact.getCompany(),
+                                clientId, tenantId);
+                        if (id != null) {
                             contact.setCompanyId(id);
                             existingCompanies.put(contact.getCompany(), id);
                         }
@@ -108,8 +119,8 @@ public class PersonaServiceImpl implements PersonaService {
     }
 
     @Override
-    public List<Persona> getAllCompanyContacts(Long clientId) {
-        List<PersonaEntity> entities = companyContactRepository.findByClientId(clientId);
+    public List<Persona> getAllCompanyContacts(Long clientId, Long tenantId) {
+        List<PersonaEntity> entities = companyContactRepository.findByClientIdAndTenantId(clientId, tenantId);
         List<Persona> response = new ArrayList<>();
 
         for (PersonaEntity entity : entities) {
@@ -127,11 +138,21 @@ public class PersonaServiceImpl implements PersonaService {
     }
 
     @Override
-    public Boolean deleteCompanyContactById(Long id) {
+    public Boolean deleteCompanyContactById(Long id, Long clientId, Long tenantId) {
         try {
-            companyContactRepository.deleteById(id);
-            log.info("Deleted company contact with ID: {}", id);
-            return Boolean.TRUE;
+            // First check if the contact exists for this tenant and client
+            Optional<PersonaEntity> contactOpt = companyContactRepository.findById(id);
+            if (contactOpt.isPresent()) {
+                PersonaEntity contact = contactOpt.get();
+                if (!contact.getTenantId().equals(tenantId) || !contact.getClientId().equals(clientId)) {
+                    log.warn("Attempted to delete contact {} for different tenant/client", id);
+                    return Boolean.FALSE;
+                }
+                companyContactRepository.deleteById(id);
+                log.info("Deleted company contact with ID: {}", id);
+                return Boolean.TRUE;
+            }
+            return Boolean.FALSE;
         } catch (Exception e) {
             log.error("Error deleting company contact with ID {}: {}", id, e.getMessage());
             return Boolean.FALSE;
@@ -142,7 +163,8 @@ public class PersonaServiceImpl implements PersonaService {
     public Boolean updateCompanyContactById(Persona companyContact) {
         try {
             PersonaEntity existingContact = companyContactRepository.findById(companyContact.getId())
-                    .orElseThrow(() -> new IllegalArgumentException("Company contact not found with ID: " + companyContact.getId()));
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Company contact not found with ID: " + companyContact.getId()));
 
             // Update fields
             PersonaEntity updatedContact = PersonaEntity.builder()
@@ -164,38 +186,46 @@ public class PersonaServiceImpl implements PersonaService {
     }
 
     @Override
-    public List<Persona> searchByCompany(String company, Long clientId) {
-        List<PersonaEntity> entities = companyContactRepository.findByCompanyContainingIgnoreCaseAndClientId(company, clientId);
+    public List<Persona> searchByCompany(String company, Long clientId, Long tenantId) {
+        List<PersonaEntity> entities = companyContactRepository.findByCompanyContainingIgnoreCaseAndClientId(company,
+                clientId);
         List<Persona> response = new ArrayList<>();
 
+        // Filter by tenant ID
         for (PersonaEntity entity : entities) {
-            response.add(Persona.builder()
-                    .id(entity.getId())
-                    .clientId(entity.getClientId())
-                    .company(entity.getCompany())
-                    .name(entity.getName())
-                    .designation(entity.getDesignation())
-                    .sheetName(entity.getSheetName())
-                    .build());
+            if (entity.getTenantId().equals(tenantId)) {
+                response.add(Persona.builder()
+                        .id(entity.getId())
+                        .clientId(entity.getClientId())
+                        .company(entity.getCompany())
+                        .name(entity.getName())
+                        .designation(entity.getDesignation())
+                        .sheetName(entity.getSheetName())
+                        .build());
+            }
         }
 
         return response;
     }
 
     @Override
-    public List<Persona> searchByName(String name, Long clientId) {
-        List<PersonaEntity> entities = companyContactRepository.findByNameContainingIgnoreCaseAndClientId(name, clientId);
+    public List<Persona> searchByName(String name, Long clientId, Long tenantId) {
+        List<PersonaEntity> entities = companyContactRepository.findByNameContainingIgnoreCaseAndClientId(name,
+                clientId);
         List<Persona> response = new ArrayList<>();
 
+        // Filter by tenant ID
         for (PersonaEntity entity : entities) {
-            response.add(Persona.builder()
-                    .id(entity.getId())
-                    .clientId(entity.getClientId())
-                    .company(entity.getCompany())
-                    .name(entity.getName())
-                    .designation(entity.getDesignation())
-                    .sheetName(entity.getSheetName())
-                    .build());
+            if (entity.getTenantId().equals(tenantId)) {
+                response.add(Persona.builder()
+                        .id(entity.getId())
+                        .clientId(entity.getClientId())
+                        .company(entity.getCompany())
+                        .name(entity.getName())
+                        .designation(entity.getDesignation())
+                        .sheetName(entity.getSheetName())
+                        .build());
+            }
         }
 
         return response;
@@ -211,10 +241,11 @@ public class PersonaServiceImpl implements PersonaService {
         }
     }
 
-    private PersonaEntity parseRowToCompanyContact(Row row, String sheetName, Long clientId) {
+    private PersonaEntity parseRowToCompanyContact(Row row, String sheetName, Long clientId, Long tenantId) {
         PersonaEntity companyContact = PersonaEntity.builder()
                 .sheetName(sheetName)
                 .clientId(clientId)
+                .tenantId(tenantId)
                 .company(getCellValueAsString(getCell(row, "company")))
                 .name(getCellValueAsString(getCell(row, "name")))
                 .designation(getCellValueAsString(getCell(row, "designation")))
@@ -237,7 +268,8 @@ public class PersonaServiceImpl implements PersonaService {
     }
 
     private String getCellValueAsString(Cell cell) {
-        if (cell == null) return null;
+        if (cell == null)
+            return null;
 
         switch (cell.getCellType()) {
             case STRING:

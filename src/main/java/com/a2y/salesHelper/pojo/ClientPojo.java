@@ -16,6 +16,7 @@ import java.time.OffsetDateTime;
 public class ClientPojo {
 
     private String orgName;
+    private Long tenantId;
     private Long cooldownPeriod1;
     private Long cooldownPeriod2;
     private Long cooldownPeriod3;
