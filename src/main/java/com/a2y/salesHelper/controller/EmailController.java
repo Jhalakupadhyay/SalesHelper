@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.a2y.salesHelper.config.CurrentUser;
 import com.a2y.salesHelper.enums.Role;
 import com.a2y.salesHelper.service.impl.EmailService;
 
@@ -23,10 +24,10 @@ public class EmailController {
     public String sendCredentials(@RequestParam String email,
             @RequestParam String username,
             @RequestParam Long inviteId,
-            @RequestParam Role role,
-            @RequestParam Long tenantId) {
+            @RequestParam Role role) {
         try {
-            emailService.sendCredentialsEmail(email, username, role, inviteId,tenantId);
+            Long tenantId = CurrentUser.getTenantId();
+            emailService.sendCredentialsEmail(email, username, role, inviteId, tenantId);
             return "Email sent successfully to: " + email;
         } catch (Exception e) {
             return "Failed to send email: " + e.getMessage();

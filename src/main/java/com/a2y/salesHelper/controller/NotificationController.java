@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.a2y.salesHelper.config.CurrentUser;
 import com.a2y.salesHelper.pojo.Notification;
 import com.a2y.salesHelper.service.interfaces.NotificationService;
 
@@ -28,16 +29,16 @@ public class NotificationController {
 
     @Operation(summary = "Get Notifications for a User", description = "Fetches all notifications for a given user ID")
     @GetMapping
-    public ResponseEntity<List<Notification>> getNotificationsForUser(@RequestParam Long userId,
-            @RequestParam Long tenantId) {
+    public ResponseEntity<List<Notification>> getNotificationsForUser() {
+        Long userId = CurrentUser.getUserId();
         List<Notification> notifications = notificationService.getNotificationsForUserId(userId);
         return ResponseEntity.ok(notifications);
     }
 
     @Operation(summary = "Mark Notification as Seen", description = "Marks a notification as seen by a specific user")
     @PostMapping
-    public ResponseEntity<Boolean> addSeenByUserId(@RequestParam Long userId, @RequestParam Long notificationId,
-            @RequestParam Long tenantId) {
+    public ResponseEntity<Boolean> addSeenByUserId(@RequestParam Long notificationId) {
+        Long userId = CurrentUser.getUserId();
         Boolean result = notificationService.addSeenByUserId(userId, notificationId);
         return ResponseEntity.ok(result);
     }

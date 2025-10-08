@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.a2y.salesHelper.config.CurrentUser;
 import com.a2y.salesHelper.db.entity.ParticipantEntity;
 import com.a2y.salesHelper.pojo.Participant;
 import com.a2y.salesHelper.service.interfaces.ParticipantService;
@@ -36,9 +37,9 @@ public class ParticipantController {
 
     @PostMapping("/upload")
     @Operation(summary = "Upload the Excel Sheets", description = "Accepts Multipart file and Parses it to save data in DB")
-    public ResponseEntity<String> uploadExcelFile(MultipartFile file, @RequestParam Long clientId,
-            @RequestParam Long tenantId) {
+    public ResponseEntity<String> uploadExcelFile(MultipartFile file, @RequestParam Long clientId) {
         try {
+            Long tenantId = CurrentUser.getTenantId();
             int processedCount = participantService.parseExcelFile(file, clientId, tenantId);
             return new ResponseEntity<>("Successfully processed " + processedCount + " participants.", HttpStatus.OK);
         } catch (IOException e) {
@@ -49,10 +50,10 @@ public class ParticipantController {
 
     @Operation(summary = "Gives all The participant stored in the DB", description = "Returns all the Participants stored in DB")
     @GetMapping()
-    public ResponseEntity<List<Participant>> getAllParticipants(@RequestParam Long clientId,
-            @RequestParam Long tenantId) {
+    public ResponseEntity<List<Participant>> getAllParticipants(@RequestParam Long clientId) {
 
-        List<Participant> response = participantService.getAllParticipant(clientId,tenantId);
+        Long tenantId = CurrentUser.getTenantId();
+        List<Participant> response = participantService.getAllParticipant(clientId, tenantId);
         if (response.isEmpty()) {
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         }
@@ -76,7 +77,7 @@ public class ParticipantController {
     @GetMapping("/search")
     @Operation(summary = "Search participants by name", description = "Returns a list of participants whose names contain the specified search term")
     public ResponseEntity<List<Participant>> searchParticipantsByName(@RequestParam String name,
-            @RequestParam Long clientId, @RequestParam Long tenantId) {
+            @RequestParam Long clientId) {
         List<Participant> participants = participantService.searchParticipant(name, clientId);
         List<Participant> filteredParticipants = participants.stream()
                 .filter(participant -> participant.getName().toLowerCase().contains(name.toLowerCase()))
@@ -92,7 +93,7 @@ public class ParticipantController {
     @PostMapping("/filter")
     @Operation(summary = "Filter Participants", description = "Filters participants based on the provided field and value.")
     public ResponseEntity<List<Participant>> filterParticipants(@RequestParam String field, @RequestParam String value,
-            @RequestParam Long clientId, @RequestParam Long tenantId,
+            @RequestParam Long clientId,
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate) {
         List<Participant> response = participantService.filterParticipants(field, value, clientId, startDate, endDate);
@@ -105,7 +106,7 @@ public class ParticipantController {
     @Operation(summary = "Get Clients on the basis of companies", description = "getting clients on the basis of orgId.")
     @GetMapping("/getClientsForOrganization")
     public ResponseEntity<List<ParticipantEntity>> getClientsForOrganization(@RequestParam Long orgId,
-            @RequestParam Long clientId, @RequestParam Long tenantId) {
+            @RequestParam Long clientId) {
         List<ParticipantEntity> response = participantService.getParticipantsForOrganization(orgId, clientId);
         if (response.isEmpty()) {
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);

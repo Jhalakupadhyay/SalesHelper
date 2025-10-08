@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.a2y.salesHelper.config.CurrentUser;
 import com.a2y.salesHelper.pojo.Persona;
 import com.a2y.salesHelper.service.interfaces.PersonaService;
 
@@ -38,8 +39,7 @@ public class PersonaController {
     @PostMapping("/upload")
     public ResponseEntity<?> uploadCompanyContactsFile(
             MultipartFile file,
-            @RequestParam("clientId") Long clientId,
-            @RequestParam("tenantId") Long tenantId) {
+            @RequestParam("clientId") Long clientId) {
 
         try {
             if (file.isEmpty()) {
@@ -52,6 +52,7 @@ public class PersonaController {
                 return ResponseEntity.badRequest().body("Only Excel files (.xlsx, .xls) are supported");
             }
 
+            Long tenantId = CurrentUser.getTenantId();
             Integer parsedCount = companyContactService.parseExcelFile(file, clientId, tenantId);
 
             return ResponseEntity.ok().body("Successfully parsed and saved " + parsedCount + " company contacts");
@@ -71,9 +72,9 @@ public class PersonaController {
      * Get all company contacts for a client
      */
     @GetMapping("/{clientId}")
-    public ResponseEntity<List<Persona>> getAllCompanyContacts(@PathVariable Long clientId,
-            @RequestParam Long tenantId) {
+    public ResponseEntity<List<Persona>> getAllCompanyContacts(@PathVariable Long clientId) {
         try {
+            Long tenantId = CurrentUser.getTenantId();
             List<Persona> contacts = companyContactService.getAllCompanyContacts(clientId, tenantId);
             return ResponseEntity.ok(contacts);
         } catch (Exception e) {
@@ -86,9 +87,9 @@ public class PersonaController {
      * Delete a company contact by ID
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteCompanyContact(@PathVariable Long id, @RequestParam Long clientId,
-            @RequestParam Long tenantId) {
+    public ResponseEntity<?> deleteCompanyContact(@PathVariable Long id, @RequestParam Long clientId) {
         try {
+            Long tenantId = CurrentUser.getTenantId();
             Boolean deleted = companyContactService.deleteCompanyContactById(id, clientId, tenantId);
             if (deleted) {
                 return ResponseEntity.ok().body("Company contact deleted successfully");
@@ -134,10 +135,10 @@ public class PersonaController {
     @GetMapping("/{clientId}/search/company")
     public ResponseEntity<List<Persona>> searchByCompany(
             @PathVariable Long clientId,
-            @RequestParam String company,
-            @RequestParam Long tenantId) {
+            @RequestParam String company) {
 
         try {
+            Long tenantId = CurrentUser.getTenantId();
             List<Persona> contacts = companyContactService.searchByCompany(company, clientId, tenantId);
             return ResponseEntity.ok(contacts);
         } catch (Exception e) {
@@ -152,10 +153,10 @@ public class PersonaController {
     @GetMapping("/{clientId}/search/name")
     public ResponseEntity<List<Persona>> searchByName(
             @PathVariable Long clientId,
-            @RequestParam String name,
-            @RequestParam Long tenantId) {
+            @RequestParam String name) {
 
         try {
+            Long tenantId = CurrentUser.getTenantId();
             List<Persona> contacts = companyContactService.searchByName(name, clientId, tenantId);
             return ResponseEntity.ok(contacts);
         } catch (Exception e) {

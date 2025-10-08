@@ -1,13 +1,22 @@
 package com.a2y.salesHelper.controller;
 
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.a2y.salesHelper.config.CurrentUser;
 import com.a2y.salesHelper.pojo.EditRequest;
 import com.a2y.salesHelper.pojo.InteractionHistory;
 import com.a2y.salesHelper.service.interfaces.InteractionHistoryService;
+
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import java.util.List;
 
 @RestController()
 @RequestMapping("/api/history")
@@ -19,25 +28,22 @@ public class InteractionHistoryController {
         this.interactionHistoryService = interactionHistoryService;
     }
 
-    @Operation(
-            summary = "Add Interaction History",
-            description = "Adds an interaction history entry for a participant with the specified date and details."
-    )
+    @Operation(summary = "Add Interaction History", description = "Adds an interaction history entry for a participant with the specified date and details.")
     @PostMapping("/edit")
     public ResponseEntity<Boolean> editInteractionHistory(@RequestBody EditRequest editRequest) {
-        Boolean isAdded =  interactionHistoryService.editInteractionHistory(editRequest);
+        Boolean isAdded = interactionHistoryService.editInteractionHistory(editRequest);
 
-        return new ResponseEntity<>(isAdded, Boolean.TRUE.equals(isAdded) ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(isAdded,
+                Boolean.TRUE.equals(isAdded) ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST);
     }
 
-    @Operation(
-            summary = "Get Interaction History",
-            description = "Retrieves the interaction history for a participant by their ID."
-    )
+    @Operation(summary = "Get Interaction History", description = "Retrieves the interaction history for a participant by their ID.")
     @GetMapping("/get")
     public ResponseEntity<List<InteractionHistory>> getInteractionHistory(@RequestParam String participantName,
-                                                                          @RequestParam String organization,@RequestParam Long clientId, @RequestParam Long tenantId) {
-        List<InteractionHistory> interactionHistory = interactionHistoryService.getInteractionHistory(participantName, organization,clientId,tenantId);
+            @RequestParam String organization, @RequestParam Long clientId) {
+        Long tenantId = CurrentUser.getTenantId();
+        List<InteractionHistory> interactionHistory = interactionHistoryService.getInteractionHistory(participantName,
+                organization, clientId, tenantId);
 
         if (interactionHistory.isEmpty()) {
             return new ResponseEntity<>(interactionHistory, HttpStatus.NOT_FOUND);
@@ -45,15 +51,13 @@ public class InteractionHistoryController {
         return new ResponseEntity<>(interactionHistory, HttpStatus.OK);
     }
 
-    @Operation(
-            summary = "Add Interaction History",
-            description = "ADDS an interaction history entry for a participant."
-    )
+    @Operation(summary = "Add Interaction History", description = "ADDS an interaction history entry for a participant.")
     @PostMapping("/add")
     public ResponseEntity<Boolean> addInteractionHistory(@RequestBody InteractionHistory interactionHistory) {
         Boolean isAdded = interactionHistoryService.addInteractionHistory(interactionHistory);
 
-        return new ResponseEntity<>(isAdded, Boolean.TRUE.equals(isAdded) ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(isAdded,
+                Boolean.TRUE.equals(isAdded) ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST);
     }
 
 }

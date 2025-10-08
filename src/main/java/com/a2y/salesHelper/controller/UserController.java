@@ -2,15 +2,20 @@ package com.a2y.salesHelper.controller;
 
 import java.util.List;
 
-import com.a2y.salesHelper.config.JwtService;
-import com.a2y.salesHelper.pojo.LoginRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
+import com.a2y.salesHelper.config.JwtService;
 import com.a2y.salesHelper.enums.Role;
+import com.a2y.salesHelper.pojo.AuthResponse;
+import com.a2y.salesHelper.pojo.LoginRequest;
 import com.a2y.salesHelper.pojo.User;
 import com.a2y.salesHelper.service.interfaces.UserAuthService;
 
@@ -33,11 +38,11 @@ public class UserController {
 
     @Operation(summary = "SignIn API", description = "API takes email and password and signIn the user accordingly.")
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestBody LoginRequest request) {
+    public ResponseEntity<AuthResponse> loginUser(@RequestBody LoginRequest request) {
         User user = userAuthService.authenticateUser(request.getEmail(), request.getPassword());
 
         if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new AuthResponse());
         }
 
         // If no token provided → issue a new one
@@ -47,17 +52,28 @@ public class UserController {
                     user.getTenantId(),
                     user.getEmail(),
                     user.getRole().name());
-            return ResponseEntity.ok(jwt);
+            return ResponseEntity.ok(AuthResponse.builder()
+                    .token(jwt)
+                    .tenantId(user.getTenantId())
+                    .role(user.getRole().name())
+                    .userId(user.getId())
+                    .email(user.getEmail())
+                    .build());
         }
 
         // If token provided → validate it
         if (!jwtService.isTokenValid(request.getToken())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new AuthResponse());
         }
 
-        return ResponseEntity.ok("User authenticated successfully with existing token");
+        return ResponseEntity.ok(AuthResponse.builder()
+                .token(request.getToken())
+                .tenantId(user.getTenantId())
+                .role(user.getRole().name())
+                .userId(user.getId())
+                .email(user.getEmail())
+                .build());
     }
-
 
     @Operation(summary = "Reset Password API", description = "API takes email, new password and old password and resets the user password.")
     @PostMapping("/reset-password")
@@ -73,7 +89,7 @@ public class UserController {
 
     @Operation(summary = "Find all user invited by admin", description = "api takes user ID")
     @GetMapping("/getInvitedUsers")
-    public ResponseEntity<List<User>> getAllUsersForAdmin(@RequestParam Long adminId, @RequestParam Long tenantId) {
+    public ResponseEntity<List<User>> getAllUsersForAdmin(@RequestParam Long adminId) {
         return new ResponseEntity<>(userAuthService.getAllUsersForAdmin(adminId), HttpStatus.OK);
     }
 
@@ -91,7 +107,7 @@ public class UserController {
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@RequestParam String firstName, @RequestParam String lastName,
             @RequestParam String email, @RequestParam String password, @RequestParam Role role,
-            @RequestParam Long adminId, @RequestParam Long tenantId) {
+            @RequestParam Long adminId) {
         Boolean isRegistered = userAuthService.registerUser(firstName, lastName, email, password, role, adminId);
         if (isRegistered) {
             return new ResponseEntity<>("User registered successfully", HttpStatus.CREATED);
@@ -102,7 +118,7 @@ public class UserController {
 
     @Operation(summary = "Get User by ID API", description = "API takes user ID and returns the user details.")
     @GetMapping("/getUserById")
-    public ResponseEntity<User> getUserById(@RequestParam Long userId, @RequestParam Long tenantId) {
+    public ResponseEntity<User> getUserById(@RequestParam Long userId) {
         User user = userAuthService.getUserById(userId);
         if (user != null) {
             return new ResponseEntity<>(user, HttpStatus.OK);

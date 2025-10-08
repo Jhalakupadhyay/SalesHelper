@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.a2y.salesHelper.config.CurrentUser;
 import com.a2y.salesHelper.pojo.Companies;
 import com.a2y.salesHelper.service.interfaces.CompaniesService;
 
@@ -40,8 +41,8 @@ public class CompaniesController {
      */
     @PostMapping("/upload")
     @Operation(summary = "Upload the Excel Sheets", description = "Accepts Multipart file and Parses it to save data in DB")
-    public ResponseEntity<Integer> uploadExcelFile(MultipartFile file, @RequestParam Long clientId,
-            @RequestParam Long tenantId) throws IOException {
+    public ResponseEntity<Integer> uploadExcelFile(MultipartFile file, @RequestParam Long clientId) throws IOException {
+        Long tenantId = CurrentUser.getTenantId();
         Integer processedCount = companiesService.parseExcelFile(file, clientId, tenantId);
         return new ResponseEntity<>(processedCount, HttpStatus.OK);
     }
@@ -55,8 +56,8 @@ public class CompaniesController {
      */
     @Operation(summary = "Get Company by ID", description = "Returns a company by its ID")
     @PostMapping()
-    public ResponseEntity<Companies> getCompanyById(@RequestParam Long id, @RequestParam Long clientId,
-            @RequestParam Long tenantId) {
+    public ResponseEntity<Companies> getCompanyById(@RequestParam Long id, @RequestParam Long clientId) {
+        Long tenantId = CurrentUser.getTenantId();
         Companies response = companiesService.getCompanyById(id, clientId, tenantId);
         if (response == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -66,7 +67,8 @@ public class CompaniesController {
 
     @Operation(summary = "Gives all the companies stored in the DB", description = "Returns all the Companies stored in DB")
     @PostMapping("/getAll")
-    public ResponseEntity<List<Companies>> getAllCompanies(@RequestParam Long clientId, @RequestParam Long tenantId) {
+    public ResponseEntity<List<Companies>> getAllCompanies(@RequestParam Long clientId) {
+        Long tenantId = CurrentUser.getTenantId();
         List<Companies> response = companiesService.getAllCompanies(clientId, tenantId);
         if (response.isEmpty()) {
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
@@ -77,7 +79,8 @@ public class CompaniesController {
     // filter api that will filter the companies according to the field passed
     @Operation(summary = "Filter Companies", description = "Filters companies based on the provided field and value.")
     @PostMapping("/filter")
-    public ResponseEntity<List<Companies>> filterCompanies(String field, String value, Long clientId, Long tenantId) {
+    public ResponseEntity<List<Companies>> filterCompanies(String field, String value, Long clientId) {
+        Long tenantId = CurrentUser.getTenantId();
         List<Companies> response = companiesService.filterCompanies(field, value, clientId, tenantId);
         if (response.isEmpty()) {
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
@@ -97,8 +100,8 @@ public class CompaniesController {
 
     @Operation(summary = "Delete Company by ID", description = "Deletes a company from the database using its ID")
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Boolean> deleteCompanyById(@PathVariable Long id, @RequestParam Long clientId,
-            @RequestParam Long tenantId) {
+    public ResponseEntity<Boolean> deleteCompanyById(@PathVariable Long id, @RequestParam Long clientId) {
+        Long tenantId = CurrentUser.getTenantId();
         Boolean response = companiesService.deleteCompanyById(id, clientId, tenantId);
         if (!response) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
