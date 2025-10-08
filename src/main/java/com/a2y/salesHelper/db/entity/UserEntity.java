@@ -25,7 +25,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@Table(name = "user", schema = "dev")
+@Table(name = "user", schema = "sales")
 
 public class UserEntity {
 
