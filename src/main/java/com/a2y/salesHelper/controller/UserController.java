@@ -2,6 +2,7 @@ package com.a2y.salesHelper.controller;
 
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Controller
 @RequestMapping("/api/auth")
 @Tag(name = "User Auth API", description = "API related ")
+@Slf4j
 public class UserController {
 
     private final JwtService jwtService;
@@ -40,6 +42,8 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> loginUser(@RequestBody LoginRequest request) {
         User user = userAuthService.authenticateUser(request.getEmail(), request.getPassword());
+
+        log.info("Authentication attempt for email: {}", request.getEmail());
 
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new AuthResponse());
