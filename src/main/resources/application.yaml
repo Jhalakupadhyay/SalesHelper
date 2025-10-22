@@ -18,6 +18,12 @@ spring:
     password: ${SMTP_PASSWORD}
 
   datasource:
+    hikari:
+      max-lifetime: 600000
+      idle-timeout: 300000
+      connection-timeout: 20000
+      validation-timeout: 5000
+      keepalive-time: 300000
     url: ${DB_URL}
     username: a2y
     password: ${DB_PASSWORD}
