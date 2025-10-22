@@ -34,7 +34,7 @@ public class SwaggerConfig {
                                                                                 .name("X-Developer-Token")
                                                                                 .description("Developer authentication token - Internal use only")))
                                 .servers(List.of(
-                                                new Server().url("http://103.115.19.34:8088")
+                                                new Server().url("http://69.62.77.235:8080")
                                                                 .description("Development server")));
         }
 }
