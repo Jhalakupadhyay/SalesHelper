@@ -133,6 +133,7 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
 
         InteractionHistoryEntity interactionHistoryEntity = InteractionHistoryEntity.builder()
                 .participantName(interactionHistory.getParticipantName())
+                .tenantId(interactionHistory.getTenantId())
                 .clientId(interactionHistory.getClientId()) // Client ID is provided in the method signature
                 .organization(interactionHistory.getOrganization())
                 .eventName(interactionHistory.getEventName())
