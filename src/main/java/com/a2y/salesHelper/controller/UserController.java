@@ -58,6 +58,9 @@ public class UserController {
                     user.getRole().name());
             return ResponseEntity.ok(AuthResponse.builder()
                     .token(jwt)
+                    .firstName(user.getFirstName())
+                    .lastName(user.getLastName())
+                    .isReset(user.getIsReset())
                     .tenantId(user.getTenantId())
                     .role(user.getRole().name())
                     .userId(user.getId())

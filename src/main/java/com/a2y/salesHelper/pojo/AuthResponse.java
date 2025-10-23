@@ -8,6 +8,9 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AuthResponse {
+    private Boolean isReset;
+    private String firstName;
+    private String lastName;
     private String token;
     private Long tenantId;
     private String message;
