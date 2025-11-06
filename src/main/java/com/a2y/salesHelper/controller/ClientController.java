@@ -37,24 +37,24 @@ public class ClientController {
 
     @Operation(summary = "Get Clients", description = "Retrieves all the clients from the database.")
     @GetMapping("/get")
-    public ResponseEntity<List<ClientResponse>> getCooldown() {
+    public ResponseEntity<?> getCooldown() {
         Long tenantId = CurrentUser.getTenantId();
         List<ClientResponse> cooldown = cooldownService.getClients(tenantId);
         if (cooldown == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No clients found");
         }
         return new ResponseEntity<>(cooldown, HttpStatus.OK);
     }
 
     @Operation(summary = "Edit Cooldown Periods", description = "Edits the cooldown periods for a specific client.")
     @PostMapping("/edit")
-    public ResponseEntity<ClientResponse> editCooldownPeriods(Long clientId, Long cooldownPeriod1, Long cooldownPeriod2,
+    public ResponseEntity<?> editCooldownPeriods(Long clientId, Long cooldownPeriod1, Long cooldownPeriod2,
             Long cooldownPeriod3) {
         Long tenantId = CurrentUser.getTenantId();
         ClientResponse updatedClient = cooldownService.editCooldownPeriods(clientId, tenantId, cooldownPeriod1,
                 cooldownPeriod2, cooldownPeriod3);
         if (updatedClient == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Client not found or not updated");
         }
         return new ResponseEntity<>(updatedClient, HttpStatus.OK);
     }

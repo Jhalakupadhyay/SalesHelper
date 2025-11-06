@@ -27,32 +27,35 @@ public class TenantController {
     private TenantService tenantService;
 
     @PostMapping
-    public ResponseEntity<Tenant> createTenant(@RequestBody Tenant tenant) {
+    public ResponseEntity<?> createTenant(@RequestBody Tenant tenant) {
         try {
             Tenant createdTenant = tenantService.createTenant(tenant);
             return new ResponseEntity<>(createdTenant, HttpStatus.CREATED);
         } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage() != null ? e.getMessage() : "Failed to create tenant");
         }
     }
 
     @GetMapping("/{tenantId}")
-    public ResponseEntity<Tenant> getTenantById(@PathVariable Long tenantId) {
+    public ResponseEntity<?> getTenantById(@PathVariable Long tenantId) {
         try {
             Tenant tenant = tenantService.getTenantById(tenantId);
             return new ResponseEntity<>(tenant, HttpStatus.OK);
         } catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage() != null ? e.getMessage() : "Tenant not found");
         }
     }
 
     @GetMapping("/name/{tenantName}")
-    public ResponseEntity<Tenant> getTenantByName(@PathVariable String tenantName) {
+    public ResponseEntity<?> getTenantByName(@PathVariable String tenantName) {
         try {
             Tenant tenant = tenantService.getTenantByName(tenantName);
             return new ResponseEntity<>(tenant, HttpStatus.OK);
         } catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage() != null ? e.getMessage() : "Tenant not found");
         }
     }
 
@@ -63,24 +66,27 @@ public class TenantController {
     }
 
     @PutMapping("/{tenantId}")
-    public ResponseEntity<Tenant> updateTenant(@PathVariable Long tenantId, @RequestBody Tenant tenant) {
+    public ResponseEntity<?> updateTenant(@PathVariable Long tenantId, @RequestBody Tenant tenant) {
         try {
             Tenant updatedTenant = tenantService.updateTenant(tenantId, tenant);
             return new ResponseEntity<>(updatedTenant, HttpStatus.OK);
         } catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage() != null ? e.getMessage() : "Tenant not found");
         } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage() != null ? e.getMessage() : "Failed to update tenant");
         }
     }
 
     @DeleteMapping("/{tenantId}")
-    public ResponseEntity<Void> deleteTenant(@PathVariable Long tenantId) {
+    public ResponseEntity<?> deleteTenant(@PathVariable Long tenantId) {
         try {
             tenantService.deleteTenant(tenantId);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage() != null ? e.getMessage() : "Tenant not found");
         }
     }
 

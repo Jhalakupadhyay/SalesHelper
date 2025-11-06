@@ -2,7 +2,6 @@ package com.a2y.salesHelper.controller;
 
 import java.util.List;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +21,7 @@ import com.a2y.salesHelper.service.interfaces.UserAuthService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 
 @Controller
 @RequestMapping("/api/auth")
@@ -46,7 +46,8 @@ public class UserController {
         log.info("Authentication attempt for email: {}", request.getEmail());
 
         if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new AuthResponse());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(AuthResponse.builder().message("Invalid email or password").build());
         }
 
         // If no token provided → issue a new one
@@ -70,7 +71,8 @@ public class UserController {
 
         // If token provided → validate it
         if (!jwtService.isTokenValid(request.getToken())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new AuthResponse());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(AuthResponse.builder().message("Invalid or expired token").build());
         }
 
         return ResponseEntity.ok(AuthResponse.builder()
@@ -125,12 +127,12 @@ public class UserController {
 
     @Operation(summary = "Get User by ID API", description = "API takes user ID and returns the user details.")
     @GetMapping("/getUserById")
-    public ResponseEntity<User> getUserById(@RequestParam Long userId) {
+    public ResponseEntity<?> getUserById(@RequestParam Long userId) {
         User user = userAuthService.getUserById(userId);
         if (user != null) {
             return new ResponseEntity<>(user, HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
     }
 }
