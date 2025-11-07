@@ -111,7 +111,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                     participant.getName(), participant.getDesignation(), participant.getOrganization()));
             for (ParticipantEntity participant : participants) {
                 if (!map.containsKey(participant.getOrganization())) {
-                    Long orgId = companiesRepository.findByOrganizationAndClientIdAndTenantId(
+                    Long orgId = companiesRepository.findTopByAccountNameIgnoreCaseAndClientIdAndTenantIdOrderByIdDesc(
                             participant.getOrganization(), clientId, tenantId);
                     if (orgId != null) {
                         map.put(participant.getOrganization(), orgId);
