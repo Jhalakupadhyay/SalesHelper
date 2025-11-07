@@ -186,6 +186,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                 .attended(participant.getAttended())
                 .eventDate(participant.getEventDate())
                 .isGoodLead(participant.getIsGoodLead())
+                .eventName(participant.getEventName())
                 .sheetName(participant.getSheetName())
                 .build());
     }
