@@ -48,7 +48,8 @@ public interface CompaniesRepository extends JpaRepository<CompanyEntity, Long> 
     @Query("SELECT c.accountName FROM CompanyEntity c WHERE c.clientId = :clientId AND c.tenantId = :tenantId")
     List<String> findAllAccountsByTenantIdAndClientId(Long clientId, Long tenantId);
 
-    Long findTopByAccountNameIgnoreCaseAndClientIdAndTenantIdOrderByIdDesc(String organization, Long clientId, Long tenantId);
+    @Query("SELECT c.id FROM CompanyEntity c WHERE c.accountName ILIKE :organization AND c.clientId = :clientId AND c.tenantId = :tenantId ORDER BY c.id DESC LIMIT 1",na)
+    Long findByOrganizationAndClientIdAndTenantId(String organization, Long clientId, Long tenantId);
 
     Optional<CompanyEntity> findByIdAndClientIdAndTenantId(Long id, Long clientId, Long tenantId);
 
