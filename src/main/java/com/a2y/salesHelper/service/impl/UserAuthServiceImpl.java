@@ -27,12 +27,17 @@ public class UserAuthServiceImpl implements UserAuthService {
             Long inviteId) {
 
         try {
+            // Get the tenant_id from the admin user who is inviting
+            UserEntity adminUser = userRepository.findById(inviteId)
+                    .orElseThrow(() -> new RuntimeException("Admin user not found with ID: " + inviteId));
+            
             UserEntity userEntity = UserEntity.builder()
                     .firstName(firstName)
                     .lastName(lastName)
                     .email(email)
                     .password(passwordHashingConfig.passwordEncoder().encode(password)) // Hash the password
                     .role(role)
+                    .tenantId(adminUser.getTenantId()) // Get tenant_id from admin user
                     .inviteId(inviteId)// Password should be hashed before saving
                     .build();
             userRepository.save(userEntity);

@@ -4,6 +4,8 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -73,6 +75,9 @@ public interface ParticipantRepository extends JpaRepository<ParticipantEntity, 
 
         @Query("SELECT p FROM ParticipantEntity p WHERE p.tenantId = :tenantId AND p.clientId = :clientId")
         List<ParticipantEntity> getAllByTenantIdAndClientId(Long tenantId, Long clientId);
+
+        @Query("SELECT p FROM ParticipantEntity p WHERE p.tenantId = :tenantId AND p.clientId = :clientId")
+        Page<ParticipantEntity> getAllByTenantIdAndClientId(Long tenantId, Long clientId, Pageable pageable);
 
         Optional<ParticipantEntity> findByNameAndDesignationAndOrganizationAndClientIdAndTenantId(
                         String participantName, String designation, String organization, Long clientId, Long tenantId);

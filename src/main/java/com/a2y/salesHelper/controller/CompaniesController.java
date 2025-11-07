@@ -3,6 +3,8 @@ package com.a2y.salesHelper.controller;
 import java.io.IOException;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -73,6 +75,16 @@ public class CompaniesController {
         if (response.isEmpty()) {
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         }
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @Operation(summary = "Gives all the companies stored in the DB with pagination", description = "Returns all the Companies stored in DB with pagination support. Use query params: page, size, sort (e.g., ?page=0&size=10&sort=accountName,asc)")
+    @PostMapping("/getAllPaginated")
+    public ResponseEntity<Page<Companies>> getAllCompaniesPaginated(
+            @RequestParam Long clientId,
+            Pageable pageable) {
+        Long tenantId = CurrentUser.getTenantId();
+        Page<Companies> response = companiesService.getAllCompanies(clientId, tenantId, pageable);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

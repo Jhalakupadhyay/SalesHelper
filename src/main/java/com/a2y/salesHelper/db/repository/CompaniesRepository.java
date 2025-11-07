@@ -3,6 +3,8 @@ package com.a2y.salesHelper.db.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -28,20 +30,24 @@ public interface CompaniesRepository extends JpaRepository<CompanyEntity, Long> 
     List<CompanyEntity> searchByAccountOrAccountOwnerOrCustomerNameOrEmail(String searchQuery);
 
     @Query("SELECT c FROM CompanyEntity c WHERE c.clientId = :clientId AND LOWER(c.aeNam) LIKE LOWER(:aeName)")
-    List<CompanyEntity> findByAeNamAndTenantIdAndClientIdIgnoreCase(String aeName,Long tenantId, Long clientId);
+    List<CompanyEntity> findByAeNamAndTenantIdAndClientIdIgnoreCase(String aeName, Long tenantId, Long clientId);
 
     @Query("SELECT c FROM CompanyEntity c WHERE c.clientId = :clientId AND LOWER(c.city) LIKE LOWER(:city) ")
     List<CompanyEntity> findByClientIdAndTenantIdAndCityIgnoreCase(String city, Long tenantId, Long clientId);
 
     @Query("SELECT c FROM CompanyEntity c WHERE c.clientId = :clientId AND c.focusedOrAssigned = :focusedOrAssigned")
-    List<CompanyEntity> findByClientIdAndTenantIdAndFocusedOrAssigned(Long clientId,Long tenantId, String focusedOrAssigned);
+    List<CompanyEntity> findByClientIdAndTenantIdAndFocusedOrAssigned(Long clientId, Long tenantId,
+            String focusedOrAssigned);
 
     @Query("SELECT c FROM CompanyEntity c WHERE c.tenantId = :tenantId AND c.clientId = :clientId")
     List<CompanyEntity> findAllByTenantIdAndClientId(Long tenantId, Long clientId);
 
+    @Query("SELECT c FROM CompanyEntity c WHERE c.tenantId = :tenantId AND c.clientId = :clientId")
+    Page<CompanyEntity> findAllByTenantIdAndClientId(Long tenantId, Long clientId, Pageable pageable);
+
     @Query("SELECT c.accountName FROM CompanyEntity c WHERE c.clientId = :clientId AND c.tenantId = :tenantId")
     List<String> findAllAccountsByTenantIdAndClientId(Long clientId, Long tenantId);
-    
+
     @Query("SELECT c.id FROM CompanyEntity c WHERE c.accountName ILIKE :organization AND c.clientId = :clientId AND c.tenantId = :tenantId ORDER BY c.id DESC LIMIT 1")
     Long findByOrganizationAndClientIdAndTenantId(String organization, Long clientId, Long tenantId);
 

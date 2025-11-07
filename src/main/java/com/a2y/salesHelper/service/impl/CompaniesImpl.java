@@ -21,6 +21,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -106,6 +108,23 @@ public class CompaniesImpl implements CompaniesService {
             companiesList.add(company);
         }
         return companiesList;
+    }
+
+    @Override
+    public Page<Companies> getAllCompanies(Long clientId, Long tenantId, Pageable pageable) {
+        Page<CompanyEntity> companyEntities = companiesRepository.findAllByTenantIdAndClientId(tenantId, clientId,
+                pageable);
+        return companyEntities.map(entity -> Companies.builder()
+                .id(entity.getId())
+                .clientId(entity.getClientId())
+                .aeNam(entity.getAeNam())
+                .accountName(entity.getAccountName())
+                .segment(entity.getSegment())
+                .focusedOrAssigned(entity.getFocusedOrAssigned())
+                .accountStatus(entity.getAccountStatus())
+                .pipelineStatus(entity.getPipelineStatus())
+                .accountCategory(entity.getAccountCategory())
+                .build());
     }
 
     private Workbook createWorkbook(String fileName, InputStream inputStream) throws IOException {

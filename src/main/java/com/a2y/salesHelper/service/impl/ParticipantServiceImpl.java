@@ -1,5 +1,33 @@
 package com.a2y.salesHelper.service.impl;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.DateUtil;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.a2y.salesHelper.db.entity.ClientEntity;
 import com.a2y.salesHelper.db.entity.InteractionHistoryEntity;
 import com.a2y.salesHelper.db.entity.ParticipantEntity;
@@ -9,20 +37,8 @@ import com.a2y.salesHelper.db.repository.InteractionHistoryRepository;
 import com.a2y.salesHelper.db.repository.ParticipantRepository;
 import com.a2y.salesHelper.pojo.Participant;
 import com.a2y.salesHelper.service.interfaces.ParticipantService;
+
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.ss.formula.atp.Switch;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.util.*;
 
 @Service
 @Slf4j
@@ -33,13 +49,16 @@ public class ParticipantServiceImpl implements ParticipantService {
     private final InteractionHistoryRepository interactionHistoryRepository;
     private final ClientRepository clientRepository;
 
-    // Fixed header mappings for Participant fields - customize these based on your Excel structure
+    // Fixed header mappings for Participant fields - customize these based on your
+    // Excel structure
     Map<String, Integer> headerMappings = new HashMap<>();
     private static final String[] EXPECTED_HEADERS_PARTICIPANTS = {
-            "name", "designation", "Company Name", "email Id", "mobile no", "assigned/unassigned" , "Event Name" , "Date" ,"Meeting Done","City"
+            "name", "designation", "Company Name", "email Id", "mobile no", "assigned/unassigned", "Event Name", "Date",
+            "Meeting Done", "City"
     };
 
-    public ParticipantServiceImpl(ParticipantRepository participantRepository, CompaniesRepository companiesRepository, InteractionHistoryRepository interactionHistoryRepository, ClientRepository clientRepository) {
+    public ParticipantServiceImpl(ParticipantRepository participantRepository, CompaniesRepository companiesRepository,
+            InteractionHistoryRepository interactionHistoryRepository, ClientRepository clientRepository) {
         this.participantRepository = participantRepository;
         this.companiesRepository = companiesRepository;
         this.interactionHistoryRepository = interactionHistoryRepository;
@@ -47,7 +66,7 @@ public class ParticipantServiceImpl implements ParticipantService {
     }
 
     @Override
-    public Integer parseExcelFile(MultipartFile file,Long clientId,Long tenantId) throws IOException {
+    public Integer parseExcelFile(MultipartFile file, Long clientId, Long tenantId) throws IOException {
         List<ParticipantEntity> participants = new ArrayList<>();
         List<InteractionHistoryEntity> interactionHistories = new ArrayList<>();
         String fileName = file.getOriginalFilename();
@@ -59,21 +78,21 @@ public class ParticipantServiceImpl implements ParticipantService {
             for (int sheetIndex = 0; sheetIndex < workbook.getNumberOfSheets(); sheetIndex++) {
                 Sheet sheet = workbook.getSheetAt(sheetIndex);
                 String sheetName = sheet.getSheetName();
-                parseHeaders(sheet,headerMappings);
+                parseHeaders(sheet, headerMappings);
                 log.info("Headers Parsed for sheet '{}': {}", sheetName, headerMappings);
                 // Skip header row and process data rows
                 for (int rowIndex = 1; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
                     Row row = sheet.getRow(rowIndex);
-                    if (row == null || isRowEmpty(row)) continue;
+                    if (row == null || isRowEmpty(row))
+                        continue;
                     try {
-                        ParticipantEntity participant = parseRowToParticipant(row, sheetName, clientId,tenantId);
-                        InteractionHistoryEntity interactionHistory = parseRowToInteractions(row,clientId);
+                        ParticipantEntity participant = parseRowToParticipant(row, sheetName, clientId, tenantId);
+                        InteractionHistoryEntity interactionHistory = parseRowToInteractions(row, clientId);
                         if (participant != null && isValidParticipant(participant)) {
                             participants.add(participant);
                             log.info("Parsed participant: {}", participant);
                         }
-                        if( interactionHistory != null)
-                        {
+                        if (interactionHistory != null) {
                             interactionHistories.add(interactionHistory);
                         }
                     } catch (Exception e) {
@@ -87,11 +106,13 @@ public class ParticipantServiceImpl implements ParticipantService {
 
         // Save all participants to database
         if (!participants.isEmpty()) {
-            Map<String,Long> map = new HashMap<>();
-            participants.removeIf(participant -> participantRepository.existsByNameAndDesignationAndOrganization(participant.getName(), participant.getDesignation(),participant.getOrganization()));
+            Map<String, Long> map = new HashMap<>();
+            participants.removeIf(participant -> participantRepository.existsByNameAndDesignationAndOrganization(
+                    participant.getName(), participant.getDesignation(), participant.getOrganization()));
             for (ParticipantEntity participant : participants) {
-                if(!map.containsKey(participant.getOrganization())) {
-                    Long orgId = companiesRepository.findByOrganizationAndClientIdAndTenantId(participant.getOrganization(), clientId,tenantId);
+                if (!map.containsKey(participant.getOrganization())) {
+                    Long orgId = companiesRepository.findByOrganizationAndClientIdAndTenantId(
+                            participant.getOrganization(), clientId, tenantId);
                     if (orgId != null) {
                         map.put(participant.getOrganization(), orgId);
                     }
@@ -110,7 +131,7 @@ public class ParticipantServiceImpl implements ParticipantService {
         return participants.size();
     }
 
-    private InteractionHistoryEntity parseRowToInteractions(Row row,Long clientId) {
+    private InteractionHistoryEntity parseRowToInteractions(Row row, Long clientId) {
         return InteractionHistoryEntity.builder()
                 .clientId(clientId)
                 .participantName(getCellValueAsString(getCell(row, "name")))
@@ -119,19 +140,21 @@ public class ParticipantServiceImpl implements ParticipantService {
                 .eventName(getCellValueAsString(getCell(row, "Event Name")))
                 .eventDate(parseOffsetDateTime(getCellValueAsString(getCell(row, "Date"))))
                 .description("")
-                .meetingDone(getCellValueAsString(getCell(row, "Meeting Status")) != null && getCellValueAsString(getCell(row, "Meeting Status")).equalsIgnoreCase("Done"))
+                .meetingDone(getCellValueAsString(getCell(row, "Meeting Status")) != null
+                        && getCellValueAsString(getCell(row, "Meeting Status")).equalsIgnoreCase("Done"))
                 .build();
     }
 
     @Override
-    public List<Participant> getAllParticipant(Long clientId,Long tenantId) {
-        List<ParticipantEntity> participantEntities = participantRepository.getAllByTenantIdAndClientId(clientId,tenantId);
+    public List<Participant> getAllParticipant(Long clientId, Long tenantId) {
+        List<ParticipantEntity> participantEntities = participantRepository.getAllByTenantIdAndClientId(tenantId,
+                clientId);
         List<Participant> response = new ArrayList<>();
 
         for (ParticipantEntity participant : participantEntities) {
             response.add(Participant.builder()
                     .id(participant.getId())
-                            .clientId(participant.getClientId())
+                    .clientId(participant.getClientId())
                     .name(participant.getName())
                     .email(participant.getEmail())
                     .mobile(participant.getMobile())
@@ -148,8 +171,28 @@ public class ParticipantServiceImpl implements ParticipantService {
     }
 
     @Override
+    public Page<Participant> getAllParticipant(Long clientId, Long tenantId, Pageable pageable) {
+        Page<ParticipantEntity> participantEntities = participantRepository.getAllByTenantIdAndClientId(tenantId,
+                clientId, pageable);
+        return participantEntities.map(participant -> Participant.builder()
+                .id(participant.getId())
+                .clientId(participant.getClientId())
+                .name(participant.getName())
+                .email(participant.getEmail())
+                .mobile(participant.getMobile())
+                .designation(participant.getDesignation())
+                .organization(participant.getOrganization())
+                .assignedUnassigned(participant.getAssignedUnassigned())
+                .attended(participant.getAttended())
+                .eventDate(participant.getEventDate())
+                .isGoodLead(participant.getIsGoodLead())
+                .sheetName(participant.getSheetName())
+                .build());
+    }
+
+    @Override
     public Boolean deleteParticipantById(Long id) {
-        try{
+        try {
             participantRepository.deleteById(id);
             log.info("Deleted participant with ID: {}", id);
             return Boolean.TRUE;
@@ -164,7 +207,8 @@ public class ParticipantServiceImpl implements ParticipantService {
 
         try {
             ParticipantEntity existingParticipant = participantRepository.findById(participant.getId())
-                    .orElseThrow(() -> new IllegalArgumentException("Participant not found with ID: " + participant.getId()));
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Participant not found with ID: " + participant.getId()));
 
             // Update fields
             ParticipantEntity updatedParticipant = ParticipantEntity.builder()
@@ -187,7 +231,6 @@ public class ParticipantServiceImpl implements ParticipantService {
         }
     }
 
-
     private Workbook createWorkbook(String fileName, InputStream inputStream) throws IOException {
         if (fileName != null && fileName.toLowerCase().endsWith(".xlsx")) {
             return new XSSFWorkbook(inputStream);
@@ -198,7 +241,7 @@ public class ParticipantServiceImpl implements ParticipantService {
         }
     }
 
-    private ParticipantEntity parseRowToParticipant(Row row, String sheetName, Long clientId,Long tenantId) {
+    private ParticipantEntity parseRowToParticipant(Row row, String sheetName, Long clientId, Long tenantId) {
         ParticipantEntity participant = ParticipantEntity.builder()
                 .sheetName(sheetName)
                 .clientId(clientId)
@@ -239,12 +282,14 @@ public class ParticipantServiceImpl implements ParticipantService {
         }
 
         try {
-            // First, try to parse as ISO-8601 format (if it's already in the correct format)
+            // First, try to parse as ISO-8601 format (if it's already in the correct
+            // format)
             return OffsetDateTime.parse(dateString);
         } catch (DateTimeParseException e1) {
             try {
                 // Try to parse the Java Date.toString() format: "Wed Mar 12 00:00:00 IST 2025"
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH);
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss zzz yyyy",
+                        Locale.ENGLISH);
                 return OffsetDateTime.parse(dateString, formatter);
             } catch (DateTimeParseException e2) {
                 try {
@@ -278,7 +323,8 @@ public class ParticipantServiceImpl implements ParticipantService {
     }
 
     private String getCellValueAsString(Cell cell) {
-        if (cell == null) return null;
+        if (cell == null)
+            return null;
 
         switch (cell.getCellType()) {
             case STRING:
@@ -383,13 +429,14 @@ public class ParticipantServiceImpl implements ParticipantService {
     }
 
     @Override
-    public List<Participant> filterParticipants(String field, String value,Long clientId, String startDate, String endDate) {
+    public List<Participant> filterParticipants(String field, String value, Long clientId, String startDate,
+            String endDate) {
         // Validate field
         if (field == null || field.trim().isEmpty()) {
             log.warn("Invalid field for filtering: {}", field);
             return Collections.emptyList();
         }
-       //switch through all cases and make db call for the fileds
+        // switch through all cases and make db call for the fileds
         List<ParticipantEntity> participants;
         switch (field.toLowerCase()) {
             case "name":
@@ -402,7 +449,8 @@ public class ParticipantServiceImpl implements ParticipantService {
                 participants = participantRepository.findByOrganizationAndClientId(value, clientId);
                 break;
             case "date":
-                participants = participantRepository.findByEventDateBetweenAndClientId(parseOffsetDateTime(startDate),parseOffsetDateTime(endDate),clientId);
+                participants = participantRepository.findByEventDateBetweenAndClientId(parseOffsetDateTime(startDate),
+                        parseOffsetDateTime(endDate), clientId);
                 break;
             case "assignedorunassigned":
                 participants = participantRepository.findByAssignedUnassignedAndClientId(value, clientId);
@@ -491,9 +539,9 @@ public class ParticipantServiceImpl implements ParticipantService {
                 continue; // Skip this record but continue processing others
             }
 
-//            Long cooldown1 = client.getCooldownPeriod1();
-//            Long cooldown2 = client.getCooldownPeriod2();
-//            Long cooldown3 = client.getCooldownPeriod3();
+            // Long cooldown1 = client.getCooldownPeriod1();
+            // Long cooldown2 = client.getCooldownPeriod2();
+            // Long cooldown3 = client.getCooldownPeriod3();
 
             OffsetDateTime cooldownDate = null;
             int cooldownCount = 1;
@@ -502,56 +550,58 @@ public class ParticipantServiceImpl implements ParticipantService {
                     .findTopByParticipantNameAndOrganizationAndClientIdAndTenantIdOrderByCreatedAtDesc(
                             interactionHistory.getParticipantName(),
                             interactionHistory.getOrganization(),
-                            interactionHistory.getClientId()
-                            ,interactionHistory.getTenantId()
-                    );
+                            interactionHistory.getClientId(), interactionHistory.getTenantId());
 
-//            if (latestInteraction != null) {
-//                if (latestInteraction.getCooldownCount() == 1) {
-//                    if (interactionHistory.getEventDate().isBefore(latestInteraction.getCooldownDate())) {
-//                        cooldownDate = interactionHistory.getEventDate().plusDays(cooldown2);
-//                        cooldownCount = 2;
-//                    } else {
-//                        cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
-//                        cooldownCount = 1;
-//                    }
-//                } else if (latestInteraction.getCooldownCount() == 2) {
-//                    if (interactionHistory.getEventDate().isBefore(latestInteraction.getCooldownDate())) {
-//                        cooldownDate = interactionHistory.getEventDate().plusDays(cooldown3);
-//                        cooldownCount = 3;
-//                    } else {
-//                        cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
-//                        cooldownCount = 1;
-//                    }
-//                } else {
-//                    cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
-//                    cooldownCount = 1;
-//                }
-//            } else {
-//                cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
-//                cooldownCount = 1;
-//            }
+            // if (latestInteraction != null) {
+            // if (latestInteraction.getCooldownCount() == 1) {
+            // if
+            // (interactionHistory.getEventDate().isBefore(latestInteraction.getCooldownDate()))
+            // {
+            // cooldownDate = interactionHistory.getEventDate().plusDays(cooldown2);
+            // cooldownCount = 2;
+            // } else {
+            // cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
+            // cooldownCount = 1;
+            // }
+            // } else if (latestInteraction.getCooldownCount() == 2) {
+            // if
+            // (interactionHistory.getEventDate().isBefore(latestInteraction.getCooldownDate()))
+            // {
+            // cooldownDate = interactionHistory.getEventDate().plusDays(cooldown3);
+            // cooldownCount = 3;
+            // } else {
+            // cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
+            // cooldownCount = 1;
+            // }
+            // } else {
+            // cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
+            // cooldownCount = 1;
+            // }
+            // } else {
+            // cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
+            // cooldownCount = 1;
+            // }
 
-            if(latestInteraction!=null)
-            {
-                if(latestInteraction.getCooldownDate().isEqual(interactionHistory.getEventDate()) || latestInteraction.getCooldownDate().isAfter(interactionHistory.getEventDate())) {
-                    //update the pariticpant in db with isGoodLead false
-                    Optional<ParticipantEntity> participantOpt = participantRepository.findByNameAndDesignationAndOrganizationAndClientId(
-                            interactionHistory.getParticipantName(),
-                            interactionHistory.getDesignation(),
-                            interactionHistory.getOrganization(),
-                            interactionHistory.getClientId()
-                    );
+            if (latestInteraction != null) {
+                if (latestInteraction.getCooldownDate().isEqual(interactionHistory.getEventDate())
+                        || latestInteraction.getCooldownDate().isAfter(interactionHistory.getEventDate())) {
+                    // update the pariticpant in db with isGoodLead false
+                    Optional<ParticipantEntity> participantOpt = participantRepository
+                            .findByNameAndDesignationAndOrganizationAndClientId(
+                                    interactionHistory.getParticipantName(),
+                                    interactionHistory.getDesignation(),
+                                    interactionHistory.getOrganization(),
+                                    interactionHistory.getClientId());
                     participantOpt.ifPresent(participant -> {
                         participant.setIsGoodLead(Boolean.FALSE);
                         participantRepository.save(participant);
                     });
                     cooldownDate = latestInteraction.getCooldownDate();
-                }else {
+                } else {
                     cooldownDate = latestInteraction.getCooldownDate().plusDays(30);
                     cooldownCount = 1;
                 }
-            }else {
+            } else {
                 cooldownDate = interactionHistory.getEventDate().plusDays(30);
                 cooldownCount = 1;
             }
@@ -568,11 +618,10 @@ public class ParticipantServiceImpl implements ParticipantService {
                     interactionHistory.getParticipantName(),
                     interactionHistory.getDesignation(),
                     interactionHistory.getOrganization(),
-                    interactionHistory.getClientId()
-            ).ifPresent(participant -> {
-                participant.setEventDate(interactionHistory.getEventDate());
-                participantRepository.save(participant);
-            });
+                    interactionHistory.getClientId()).ifPresent(participant -> {
+                        participant.setEventDate(interactionHistory.getEventDate());
+                        participantRepository.save(participant);
+                    });
 
             entitiesToSave.add(interactionHistory);
         }

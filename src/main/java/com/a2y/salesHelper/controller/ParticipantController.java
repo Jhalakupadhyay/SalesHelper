@@ -3,6 +3,8 @@ package com.a2y.salesHelper.controller;
 import java.io.IOException;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -53,10 +55,21 @@ public class ParticipantController {
     public ResponseEntity<List<Participant>> getAllParticipants(@RequestParam Long clientId) {
 
         Long tenantId = CurrentUser.getTenantId();
+        System.out.println("Tenant ID in Controller: " + tenantId); // Debugging line
         List<Participant> response = participantService.getAllParticipant(clientId, tenantId);
         if (response.isEmpty()) {
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         }
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @Operation(summary = "Gives all The participant stored in the DB with pagination", description = "Returns all the Participants stored in DB with pagination support. Use query params: page, size, sort (e.g., ?page=0&size=10&sort=name,desc)")
+    @GetMapping("/paginated")
+    public ResponseEntity<Page<Participant>> getAllParticipantsPaginated(
+            @RequestParam Long clientId,
+            Pageable pageable) {
+        Long tenantId = CurrentUser.getTenantId();
+        Page<Participant> response = participantService.getAllParticipant(clientId, tenantId, pageable);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
