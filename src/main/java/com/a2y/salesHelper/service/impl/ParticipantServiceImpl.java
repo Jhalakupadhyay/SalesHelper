@@ -160,6 +160,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                     .mobile(participant.getMobile())
                     .designation(participant.getDesignation())
                     .organization(participant.getOrganization())
+                    .eventName(participant.getEventName())
                     .assignedUnassigned(participant.getAssignedUnassigned())
                     .attended(participant.getAttended())
                     .eventDate(participant.getEventDate())
