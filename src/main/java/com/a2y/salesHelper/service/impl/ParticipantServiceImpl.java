@@ -158,6 +158,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                     .name(participant.getName())
                     .email(participant.getEmail())
                     .mobile(participant.getMobile())
+                    .city(participant.getCity())
                     .designation(participant.getDesignation())
                     .organization(participant.getOrganization())
                     .eventName(participant.getEventName())
