@@ -584,11 +584,12 @@ public class ParticipantServiceImpl implements ParticipantService {
                         || latestInteraction.getCooldownDate().isAfter(interactionHistory.getEventDate())) {
                     // update the pariticpant in db with isGoodLead false
                     Optional<ParticipantEntity> participantOpt = participantRepository
-                            .findByNameAndDesignationAndOrganizationAndClientId(
+                            .findByNameAndDesignationAndOrganizationAndClientIdAndTenantId(
                                     interactionHistory.getParticipantName(),
                                     interactionHistory.getDesignation(),
                                     interactionHistory.getOrganization(),
-                                    interactionHistory.getClientId());
+                                    interactionHistory.getClientId(),
+                                    interactionHistory.getTenantId());
                     participantOpt.ifPresent(participant -> {
                         participant.setIsGoodLead(Boolean.FALSE);
                         participantRepository.save(participant);
@@ -609,11 +610,12 @@ public class ParticipantServiceImpl implements ParticipantService {
             interactionHistory.setMeetingDone(Boolean.TRUE);
 
             // Update participant event date
-            participantRepository.findByNameAndDesignationAndOrganizationAndClientId(
+            participantRepository.findByNameAndDesignationAndOrganizationAndClientIdAndTenantId(
                     interactionHistory.getParticipantName(),
                     interactionHistory.getDesignation(),
                     interactionHistory.getOrganization(),
-                    interactionHistory.getClientId()).ifPresent(participant -> {
+                    interactionHistory.getClientId(),
+                    interactionHistory.getTenantId()).ifPresent(participant -> {
                         participant.setEventDate(interactionHistory.getEventDate());
                         participantRepository.save(participant);
                     });

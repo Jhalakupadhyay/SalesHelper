@@ -154,9 +154,9 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
 
         // also update the eventDate in participant table
         participantRepository
-                .findByNameAndDesignationAndOrganizationAndClientId(interactionHistory.getParticipantName(),
+                .findByNameAndDesignationAndOrganizationAndClientIdAndTenantId(interactionHistory.getParticipantName(),
                         interactionHistory.getDesignation(), interactionHistory.getOrganization(),
-                        interactionHistory.getClientId())
+                        interactionHistory.getClientId(), interactionHistory.getTenantId())
                 .ifPresent(participant -> {
                     participant.setEventDate(interactionHistory.getEventDate());
                     participantRepository.save(participant);

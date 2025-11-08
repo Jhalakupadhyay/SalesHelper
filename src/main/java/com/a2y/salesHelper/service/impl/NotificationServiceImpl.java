@@ -1,5 +1,12 @@
 package com.a2y.salesHelper.service.impl;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
 import com.a2y.salesHelper.db.entity.InteractionHistoryEntity;
 import com.a2y.salesHelper.db.repository.InteractionHistoryRepository;
 import com.a2y.salesHelper.db.repository.NotificationRepository;
@@ -7,14 +14,8 @@ import com.a2y.salesHelper.db.repository.ParticipantRepository;
 import com.a2y.salesHelper.db.repository.UserRepository;
 import com.a2y.salesHelper.pojo.Notification;
 import com.a2y.salesHelper.service.interfaces.NotificationService;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.xmlbeans.impl.xb.xmlconfig.Extensionconfig;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 @EnableScheduling
 @Slf4j
@@ -26,41 +27,42 @@ public class NotificationServiceImpl implements NotificationService {
     private final ParticipantRepository participantRepository;
     private final UserRepository userRepository;
 
-    public NotificationServiceImpl(InteractionHistoryRepository interactionHistoryRepository, NotificationRepository notificationRepository, ParticipantRepository participantRepository, UserRepository userRepository) {
+    public NotificationServiceImpl(InteractionHistoryRepository interactionHistoryRepository,
+            NotificationRepository notificationRepository, ParticipantRepository participantRepository,
+            UserRepository userRepository) {
         this.interactionHistoryRepository = interactionHistoryRepository;
         this.notificationRepository = notificationRepository;
         this.participantRepository = participantRepository;
         this.userRepository = userRepository;
     }
 
-
-    @Scheduled(fixedRate = 30000)// Every day at 9 AM
-    public void addNotificationForWeek()
-    {
-        //get all the interactions whose cooldown_date is 7 days from now
+    @Scheduled(fixedRate = 30000) // Every day at 9 AM
+    public void addNotificationForWeek() {
+        // get all the interactions whose cooldown_date is 7 days from now
         List<InteractionHistoryEntity> interactionHistories = interactionHistoryRepository.findAllByCooldownDateIsAfter(
-                java.time.OffsetDateTime.now().plusDays(6)
-        );
+                java.time.OffsetDateTime.now().plusDays(6));
 
-        if(interactionHistories.size() >= 10)
-        {
+        if (interactionHistories.size() >= 10) {
             List<Long> participantIds = new ArrayList<>();
-            for(InteractionHistoryEntity interactionHistory : interactionHistories)
-            {
-                Long participantId = participantRepository.findByNameAndDesignationAndOrganizationAndClientId(
-                        interactionHistory.getParticipantName(),interactionHistory.getDesignation(),interactionHistory.getOrganization(),interactionHistory.getClientId()
-                ).map(participant -> participant.getId()).orElse(null);
+            for (InteractionHistoryEntity interactionHistory : interactionHistories) {
+                Long participantId = participantRepository
+                        .findByNameAndDesignationAndOrganizationAndClientIdAndTenantId(
+                                interactionHistory.getParticipantName(), interactionHistory.getDesignation(),
+                                interactionHistory.getOrganization(), interactionHistory.getClientId(),
+                                interactionHistory.getTenantId())
+                        .map(participant -> participant.getId()).orElse(null);
                 participantIds.add(participantId != null ? participantId : 0);
             }
 
-            //get all the user IDs from userRepository
+            // get all the user IDs from userRepository
             List<Long> userIds = new ArrayList<>();
             userRepository.findAll().forEach(user -> userIds.add(user.getId()));
 
-            //check if the notification already exists for the participantIds
-            if(Boolean.FALSE.equals(notificationRepository.existsByParticipantId(participantIds.get(0)))) {
-                //if not, create a new notification
-                com.a2y.salesHelper.db.entity.NotificationEntity notificationEntity = com.a2y.salesHelper.db.entity.NotificationEntity.builder()
+            // check if the notification already exists for the participantIds
+            if (Boolean.FALSE.equals(notificationRepository.existsByParticipantId(participantIds.get(0)))) {
+                // if not, create a new notification
+                com.a2y.salesHelper.db.entity.NotificationEntity notificationEntity = com.a2y.salesHelper.db.entity.NotificationEntity
+                        .builder()
                         .participantIds(participantIds)
                         .userIds(userIds)
                         .type("WEEKLY")
@@ -72,39 +74,40 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Scheduled(fixedRate = 30000) // every minute
-    public void addNotificationAtCooldownDate()
-    {
+    public void addNotificationAtCooldownDate() {
         log.info("Checking for interactions with cooldown date today");
-        //get all the interactions whose cooldown_date is today
-        List<InteractionHistoryEntity> interactionHistories = interactionHistoryRepository.findAllByCooldownDateIsBefore(
-                java.time.OffsetDateTime.now().plusDays(-1)
-        );
+        // get all the interactions whose cooldown_date is today
+        List<InteractionHistoryEntity> interactionHistories = interactionHistoryRepository
+                .findAllByCooldownDateIsBefore(
+                        java.time.OffsetDateTime.now().plusDays(-1));
 
         log.info("Found {} interactions with cooldown date today", interactionHistories.size());
 
-        if(interactionHistories.size() >= 10)
-        {
+        if (interactionHistories.size() >= 10) {
             List<Long> participantIds = new ArrayList<>();
-            for(InteractionHistoryEntity interactionHistory : interactionHistories)
-            {
-                Long participantId = participantRepository.findByNameAndDesignationAndOrganizationAndClientId(
-                        interactionHistory.getParticipantName(),interactionHistory.getDesignation(),interactionHistory.getOrganization(),interactionHistory.getClientId()
-                ).map(participant -> participant.getId()).orElse(null);
+            for (InteractionHistoryEntity interactionHistory : interactionHistories) {
+                Long participantId = participantRepository
+                        .findByNameAndDesignationAndOrganizationAndClientIdAndTenantId(
+                                interactionHistory.getParticipantName(), interactionHistory.getDesignation(),
+                                interactionHistory.getOrganization(), interactionHistory.getClientId(),
+                                interactionHistory.getTenantId())
+                        .map(participant -> participant.getId()).orElse(null);
                 participantIds.add(participantId != null ? participantId : 0);
             }
 
             log.info("Found {} participants for notifications", participantIds.size());
 
-            //get all the user IDs from userRepository
+            // get all the user IDs from userRepository
             List<Long> userIds = new ArrayList<>();
             userRepository.findAll().forEach(user -> userIds.add(user.getId()));
 
             log.info("Found {} users for notifications", userIds.size());
 
-            //check if the notification already exists for the participantIds
-            if(Boolean.FALSE.equals(notificationRepository.existsByParticipantId(participantIds.get(0)))) {
-                //if not, create a new notification
-                com.a2y.salesHelper.db.entity.NotificationEntity notificationEntity = com.a2y.salesHelper.db.entity.NotificationEntity.builder()
+            // check if the notification already exists for the participantIds
+            if (Boolean.FALSE.equals(notificationRepository.existsByParticipantId(participantIds.get(0)))) {
+                // if not, create a new notification
+                com.a2y.salesHelper.db.entity.NotificationEntity notificationEntity = com.a2y.salesHelper.db.entity.NotificationEntity
+                        .builder()
                         .participantIds(participantIds)
                         .tenantId(interactionHistories.get(0).getTenantId())
                         .userIds(userIds)
@@ -117,10 +120,10 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public Boolean addSeenByUserId(Long userId, Long notificationId) {
-        try{
+        try {
             notificationRepository.findById(notificationId).ifPresent(notification -> {
                 List<Long> userIds = notification.getUserIds();
-                if(userIds.contains(userId)) {
+                if (userIds.contains(userId)) {
                     userIds.remove(userId);
                     notification.setUserIds(userIds);
                     notificationRepository.save(notification);
@@ -137,12 +140,11 @@ public class NotificationServiceImpl implements NotificationService {
     public List<Notification> getNotificationsForUserId(Long userId) {
 
         List<Notification> notifications = new ArrayList<>();
-        try{
-            List<com.a2y.salesHelper.db.entity.NotificationEntity> notificationEntities = notificationRepository.findAll();
-            for(com.a2y.salesHelper.db.entity.NotificationEntity notificationEntity : notificationEntities)
-            {
-                if(notificationEntity.getUserIds().contains(userId))
-                {
+        try {
+            List<com.a2y.salesHelper.db.entity.NotificationEntity> notificationEntities = notificationRepository
+                    .findAll();
+            for (com.a2y.salesHelper.db.entity.NotificationEntity notificationEntity : notificationEntities) {
+                if (notificationEntity.getUserIds().contains(userId)) {
                     Notification notification = Notification.builder()
                             .notificationId(notificationEntity.getId())
                             .participantIds(notificationEntity.getParticipantIds())
@@ -158,6 +160,5 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
     }
-
 
 }
