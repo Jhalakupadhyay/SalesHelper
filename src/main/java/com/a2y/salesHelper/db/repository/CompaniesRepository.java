@@ -49,7 +49,7 @@ public interface CompaniesRepository extends JpaRepository<CompanyEntity, Long> 
         List<String> findAllAccountsByTenantIdAndClientId(Long clientId, Long tenantId);
 
         @Query(value = "SELECT c.id FROM sales.companies c WHERE c.account ILIKE :organization AND c.client_id = :clientId AND c.tenant_id = :tenantId ORDER BY c.id DESC LIMIT 1", nativeQuery = true)
-        Optional<Long> findByOrganizationAndClientIdAndTenantId(String organization, Long clientId, Long tenantId);
+        List<Long> findByOrganizationAndClientIdAndTenantId(String organization, Long clientId, Long tenantId);
 
         Optional<CompanyEntity> findByIdAndClientIdAndTenantId(Long id, Long clientId, Long tenantId);
 

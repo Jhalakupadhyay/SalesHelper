@@ -100,11 +100,12 @@ public class PersonaServiceImpl implements PersonaService {
                     if (existingCompanies.containsKey(contact.getCompany())) {
                         contact.setCompanyId(existingCompanies.get(contact.getCompany()));
                     } else {
-                        Long id = companiesRepository.findByOrganizationAndClientIdAndTenantId(contact.getCompany(),
-                                clientId, tenantId).orElse(null);
-                        if (id != null) {
-                            contact.setCompanyId(id);
-                            existingCompanies.put(contact.getCompany(), id);
+                        List<Long> ids = companiesRepository.findByOrganizationAndClientIdAndTenantId(
+                                contact.getCompany(),
+                                clientId, tenantId);
+                        if (!ids.isEmpty()) {
+                            contact.setCompanyId(ids.get(0));
+                            existingCompanies.put(contact.getCompany(), ids.get(0));
                         }
                     }
                 }
