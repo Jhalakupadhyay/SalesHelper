@@ -60,7 +60,7 @@ public class PersonaServiceImpl implements PersonaService {
                 // Clear and parse headers for each sheet
                 headerMappings.clear();
                 parseHeaders(sheet, headerMappings);
-                log.info("Headers parsed for sheet '{}': {}", sheetName, headerMappings);
+                log.info("Headers parsed for sheet '{}'", sheetName);
 
                 // Skip header row and process data rows
                 for (int rowIndex = 1; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
@@ -72,11 +72,9 @@ public class PersonaServiceImpl implements PersonaService {
                         PersonaEntity companyContact = parseRowToCompanyContact(row, sheetName, clientId, tenantId);
                         if (companyContact != null && isValidCompanyContact(companyContact)) {
                             companyContacts.add(companyContact);
-                            log.info("Parsed company contact: {}", companyContact);
                         }
                     } catch (Exception e) {
-                        log.error("Error parsing row {} in sheet {} of file {}: {}",
-                                rowIndex, sheetName, fileName, e.getMessage());
+                        log.error("Error parsing row {} in sheet {} of file {}", rowIndex, sheetName, fileName, e);
                     }
                 }
             }
@@ -155,7 +153,7 @@ public class PersonaServiceImpl implements PersonaService {
             }
             return Boolean.FALSE;
         } catch (Exception e) {
-            log.error("Error deleting company contact with ID {}: {}", id, e.getMessage());
+            log.error("Error deleting company contact with ID {}", id, e);
             return Boolean.FALSE;
         }
     }
@@ -181,7 +179,7 @@ public class PersonaServiceImpl implements PersonaService {
             log.info("Updated company contact with ID: {}", companyContact.getId());
             return Boolean.TRUE;
         } catch (Exception e) {
-            log.error("Error updating company contact: {}", e.getMessage());
+            log.error("Error updating company contact", e);
             return Boolean.FALSE;
         }
     }
@@ -252,7 +250,6 @@ public class PersonaServiceImpl implements PersonaService {
                 .designation(getCellValueAsString(getCell(row, "designation")))
                 .build();
 
-        log.debug("Parsed company contact from row {}: {}", row.getRowNum(), companyContact);
         return companyContact;
     }
 
@@ -346,14 +343,11 @@ public class PersonaServiceImpl implements PersonaService {
             Cell cell = headerRow.getCell(cellIndex);
             if (cell != null) {
                 String headerValue = getCellValueAsString(cell);
-                log.debug("Header cell {}: '{}'", cellIndex, headerValue);
                 if (headerValue != null) {
                     // Check if this header matches any of our expected headers
                     for (String expectedHeader : EXPECTED_HEADERS) {
                         if (expectedHeader.equalsIgnoreCase(headerValue.trim())) {
                             headerMappings.put(expectedHeader, cellIndex);
-                            log.debug("Mapped header '{}' (original: '{}') to column {}",
-                                    expectedHeader, headerValue, cellIndex);
                             break;
                         }
                     }
@@ -361,7 +355,6 @@ public class PersonaServiceImpl implements PersonaService {
             }
         }
 
-        log.info("Final header mappings: {}", headerMappings);
         return headerMappings;
     }
 }

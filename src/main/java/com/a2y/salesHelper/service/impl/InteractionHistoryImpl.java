@@ -152,8 +152,6 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
                 .meetingDone(Boolean.TRUE)// Default value, can be changed based on requirements
                 .build();
 
-        log.info("Adding interaction history for participant: {}", interactionHistoryEntity.toString());
-
         // also update the eventDate in participant table
         participantRepository
                 .findByNameAndDesignationAndOrganizationAndClientId(interactionHistory.getParticipantName(),

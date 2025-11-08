@@ -58,11 +58,11 @@ public class PersonaController {
             return ResponseEntity.ok().body("Successfully parsed and saved " + parsedCount + " company contacts");
 
         } catch (IOException e) {
-            log.error("Error parsing file: {}", e.getMessage());
+            log.error("Error parsing file", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error parsing file: " + e.getMessage());
         } catch (Exception e) {
-            log.error("Unexpected error: {}", e.getMessage());
+            log.error("Unexpected error during file upload", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Unexpected error: " + e.getMessage());
         }
@@ -78,7 +78,7 @@ public class PersonaController {
             List<Persona> contacts = companyContactService.getAllCompanyContacts(clientId, tenantId);
             return ResponseEntity.ok(contacts);
         } catch (Exception e) {
-            log.error("Error retrieving company contacts: {}", e.getMessage());
+            log.error("Error retrieving company contacts for client {}", clientId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -98,7 +98,7 @@ public class PersonaController {
                         .body("Failed to delete company contact");
             }
         } catch (Exception e) {
-            log.error("Error deleting company contact: {}", e.getMessage());
+            log.error("Error deleting company contact with ID {}", id, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error deleting company contact: " + e.getMessage());
         }
@@ -123,7 +123,7 @@ public class PersonaController {
                         .body("Failed to update company contact");
             }
         } catch (Exception e) {
-            log.error("Error updating company contact: {}", e.getMessage());
+            log.error("Error updating company contact with ID {}", id, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error updating company contact: " + e.getMessage());
         }
@@ -142,7 +142,7 @@ public class PersonaController {
             List<Persona> contacts = companyContactService.searchByCompany(company, clientId, tenantId);
             return ResponseEntity.ok(contacts);
         } catch (Exception e) {
-            log.error("Error searching by company: {}", e.getMessage());
+            log.error("Error searching by company '{}' for client {}", company, clientId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -160,7 +160,7 @@ public class PersonaController {
             List<Persona> contacts = companyContactService.searchByName(name, clientId, tenantId);
             return ResponseEntity.ok(contacts);
         } catch (Exception e) {
-            log.error("Error searching by name: {}", e.getMessage());
+            log.error("Error searching by name '{}' for client {}", name, clientId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

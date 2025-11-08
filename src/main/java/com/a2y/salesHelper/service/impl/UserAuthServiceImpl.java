@@ -11,6 +11,9 @@ import com.a2y.salesHelper.enums.Role;
 import com.a2y.salesHelper.pojo.User;
 import com.a2y.salesHelper.service.interfaces.UserAuthService;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class UserAuthServiceImpl implements UserAuthService {
 
@@ -43,6 +46,7 @@ public class UserAuthServiceImpl implements UserAuthService {
             userRepository.save(userEntity);
             return true;
         } catch (Exception e) {
+            log.error("User registration failed for email {}", email, e);
             throw new RuntimeException("User registration failed: " + e.getMessage(), e);
         }
     }
@@ -70,6 +74,7 @@ public class UserAuthServiceImpl implements UserAuthService {
                 throw new RuntimeException("Invalid credentials"); // Password does not match
             }
         } catch (Exception e) {
+            log.error("User authentication failed for email {}", email, e);
             throw new RuntimeException("User authentication failed: " + e.getMessage(), e);
         }
     }
@@ -81,7 +86,6 @@ public class UserAuthServiceImpl implements UserAuthService {
             if (userEntity == null) {
                 throw new RuntimeException("User does not exist"); // User not found
             }
-            System.out.println("Old Password: " + passwordHashingConfig.passwordEncoder());
             if (passwordHashingConfig.passwordEncoder().matches(oldPassword, userEntity.getPassword())) {
                 userEntity.setPassword(passwordHashingConfig.passwordEncoder().encode(newPassword));
                 userEntity.setIsReset(Boolean.TRUE); // Set isReset to true
@@ -91,6 +95,7 @@ public class UserAuthServiceImpl implements UserAuthService {
                 throw new RuntimeException("Old password does not match.");
             }
         } catch (Exception e) {
+            log.error("Password reset failed for email {}", email, e);
             throw new RuntimeException("Password reset failed: " + e.getMessage(), e);
         }
     }
@@ -121,6 +126,7 @@ public class UserAuthServiceImpl implements UserAuthService {
             userRepository.save(userEntity);
             return true;
         } catch (Exception e) {
+            log.error("User update failed for user ID {}", user.getId(), e);
             throw new RuntimeException("User update failed: " + e.getMessage(), e);
         }
     }

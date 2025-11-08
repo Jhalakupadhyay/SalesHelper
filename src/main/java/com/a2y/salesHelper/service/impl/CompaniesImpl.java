@@ -59,7 +59,7 @@ public class CompaniesImpl implements CompaniesService {
             Sheet sheet = workbook.getSheetAt(0);
             String sheetName = sheet.getSheetName();
             parseHeaders(sheet, headerMappings);
-            log.info("Headers Parsed for sheet '{}': {}", sheetName, headerMappings);
+            log.info("Headers parsed for sheet '{}'", sheetName);
             // Skip header row and process data rows
             for (int rowIndex = 1; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
                 Row row = sheet.getRow(rowIndex);
@@ -71,8 +71,7 @@ public class CompaniesImpl implements CompaniesService {
                         companies.add(company);
                     }
                 } catch (Exception e) {
-                    log.error("Error parsing row " + rowIndex + " in sheet " + sheetName +
-                            " of file " + fileName + ": " + e.getMessage());
+                    log.error("Error parsing row {} in sheet {} of file {}", rowIndex, sheetName, fileName, e);
                 }
             }
             workbook.close();
@@ -237,7 +236,6 @@ public class CompaniesImpl implements CompaniesService {
             Cell cell = headerRow.getCell(cellIndex);
             if (cell != null) {
                 String headerValue = getCellValueAsString(cell);
-                log.info("Header cell {}: '{}'", cellIndex, headerValue);
                 if (headerValue != null) {
                     // Check if this header matches any of our expected headers
                     for (String expectedHeader : EXPECTED_HEADERS_PARTICIPANTS) {

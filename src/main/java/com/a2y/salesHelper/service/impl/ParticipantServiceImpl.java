@@ -79,7 +79,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                 Sheet sheet = workbook.getSheetAt(sheetIndex);
                 String sheetName = sheet.getSheetName();
                 parseHeaders(sheet, headerMappings);
-                log.info("Headers Parsed for sheet '{}': {}", sheetName, headerMappings);
+                log.info("Headers parsed for sheet '{}'", sheetName);
                 // Skip header row and process data rows
                 for (int rowIndex = 1; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
                     Row row = sheet.getRow(rowIndex);
@@ -90,14 +90,12 @@ public class ParticipantServiceImpl implements ParticipantService {
                         InteractionHistoryEntity interactionHistory = parseRowToInteractions(row, clientId);
                         if (participant != null && isValidParticipant(participant)) {
                             participants.add(participant);
-                            log.info("Parsed participant: {}", participant);
                         }
                         if (interactionHistory != null) {
                             interactionHistories.add(interactionHistory);
                         }
                     } catch (Exception e) {
-                        log.error("Error parsing row " + rowIndex + " in sheet " + sheetName +
-                                " of file " + fileName + ": " + e.getMessage());
+                        log.error("Error parsing row {} in sheet {} of file {}", rowIndex, sheetName, fileName, e);
                     }
                 }
             }
@@ -124,7 +122,7 @@ public class ParticipantServiceImpl implements ParticipantService {
         }
         // Save all interaction histories to database
         if (!interactionHistories.isEmpty()) {
-            log.info("Saving interaction histories: {}", interactionHistories);
+            log.info("Saving {} interaction histories", interactionHistories.size());
             interactionHistories.removeIf(interactionHistory -> interactionHistory.getEventDate() == null);
             addInteractionHistories(interactionHistories);
         }
@@ -200,8 +198,8 @@ public class ParticipantServiceImpl implements ParticipantService {
             log.info("Deleted participant with ID: {}", id);
             return Boolean.TRUE;
         } catch (Exception e) {
-            log.error("Error deleting participant with ID {}: {}", id, e.getMessage());
-            return Boolean.FALSE; // Return empty list on error
+            log.error("Error deleting participant with ID {}", id, e);
+            return Boolean.FALSE;
         }
     }
 
@@ -229,8 +227,8 @@ public class ParticipantServiceImpl implements ParticipantService {
             participantRepository.save(updatedParticipant);
             return Boolean.TRUE;
         } catch (Exception e) {
-            log.error("Error updating participant: {}", e.getMessage());
-            return Boolean.FALSE; // Return empty list on error
+            log.error("Error updating participant", e);
+            return Boolean.FALSE;
         }
     }
 
@@ -260,7 +258,6 @@ public class ParticipantServiceImpl implements ParticipantService {
                 .assignedUnassigned(getCellValueAsString(getCell(row, "assigned/unassigned")))
                 .eventDate(parseOffsetDateTime(getCellValueAsString(getCell(row, "Date"))))
                 .build();
-        log.info("Parsed participant from row {}: {}", row.getRowNum(), participant);
         return participant;
     }
 
@@ -413,15 +410,11 @@ public class ParticipantServiceImpl implements ParticipantService {
             Cell cell = headerRow.getCell(cellIndex);
             if (cell != null) {
                 String headerValue = getCellValueAsString(cell);
-                log.info("Header cell {}: '{}'", cellIndex, headerValue);
                 if (headerValue != null) {
                     // Check if this header matches any of our expected headers
                     for (String expectedHeader : EXPECTED_HEADERS_PARTICIPANTS) {
-                        log.info("Checking header '{}' against expected '{}'", headerValue, expectedHeader);
                         if (expectedHeader.equalsIgnoreCase(headerValue)) {
                             headerMappings.put(expectedHeader, cellIndex);
-                            log.debug("Mapped header '{}' (original: '{}') to column {}",
-                                    expectedHeader, headerValue, cellIndex);
                             break;
                         }
                     }
@@ -614,8 +607,6 @@ public class ParticipantServiceImpl implements ParticipantService {
             interactionHistory.setCooldownCount(cooldownCount);
             interactionHistory.setTenantId(client.getTenantId());
             interactionHistory.setMeetingDone(Boolean.TRUE);
-
-            log.info("Prepared interaction history for participant: {}", interactionHistory);
 
             // Update participant event date
             participantRepository.findByNameAndDesignationAndOrganizationAndClientId(

@@ -55,7 +55,6 @@ public class ParticipantController {
     public ResponseEntity<List<Participant>> getAllParticipants(@RequestParam Long clientId) {
 
         Long tenantId = CurrentUser.getTenantId();
-        System.out.println("Tenant ID in Controller: " + tenantId); // Debugging line
         List<Participant> response = participantService.getAllParticipant(clientId, tenantId);
         if (response.isEmpty()) {
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);

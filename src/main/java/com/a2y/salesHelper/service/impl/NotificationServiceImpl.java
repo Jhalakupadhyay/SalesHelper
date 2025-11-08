@@ -74,13 +74,13 @@ public class NotificationServiceImpl implements NotificationService {
     @Scheduled(fixedRate = 30000) // every minute
     public void addNotificationAtCooldownDate()
     {
-        log.error("Checking for interactions with cooldown date today...");
+        log.info("Checking for interactions with cooldown date today");
         //get all the interactions whose cooldown_date is today
         List<InteractionHistoryEntity> interactionHistories = interactionHistoryRepository.findAllByCooldownDateIsBefore(
                 java.time.OffsetDateTime.now().plusDays(-1)
         );
 
-        log.info("Found {} interactions with cooldown date today.", interactionHistories.size());
+        log.info("Found {} interactions with cooldown date today", interactionHistories.size());
 
         if(interactionHistories.size() >= 10)
         {
@@ -93,13 +93,13 @@ public class NotificationServiceImpl implements NotificationService {
                 participantIds.add(participantId != null ? participantId : 0);
             }
 
-            log.info("Participant IDs for notifications: {}", participantIds);
+            log.info("Found {} participants for notifications", participantIds.size());
 
             //get all the user IDs from userRepository
             List<Long> userIds = new ArrayList<>();
             userRepository.findAll().forEach(user -> userIds.add(user.getId()));
 
-            log.info("User IDs for notifications: {}", userIds);
+            log.info("Found {} users for notifications", userIds.size());
 
             //check if the notification already exists for the participantIds
             if(Boolean.FALSE.equals(notificationRepository.existsByParticipantId(participantIds.get(0)))) {
@@ -128,6 +128,7 @@ public class NotificationServiceImpl implements NotificationService {
             });
             return true;
         } catch (Exception e) {
+            log.error("Error marking notification as seen for user {} and notification {}", userId, notificationId, e);
             throw new RuntimeException(e);
         }
     }
@@ -152,6 +153,7 @@ public class NotificationServiceImpl implements NotificationService {
             }
             return notifications;
         } catch (Exception e) {
+            log.error("Error getting notifications for user {}", userId, e);
             return notifications;
         }
 

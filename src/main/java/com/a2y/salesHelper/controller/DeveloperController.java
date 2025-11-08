@@ -78,8 +78,7 @@ public class DeveloperController {
             // Create tenant
             Tenant createdTenant = tenantService.createTenant(tenant);
 
-            log.info("Developer {} successfully created tenant: {}",
-                    maskDeveloperInfo(developerToken), createdTenant.getTenantName());
+            log.info("Developer successfully created tenant: {}", createdTenant.getTenantName());
 
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body("{\"message\": \"Tenant created successfully\", \"tenant\": {\"id\": " +
@@ -88,11 +87,11 @@ public class DeveloperController {
                             ", \"createdAt\": \"" + createdTenant.getCreatedAt() + "\"}}");
 
         } catch (RuntimeException e) {
-            log.error("Developer tenant creation failed: {}", e.getMessage());
+            log.error("Developer tenant creation failed", e);
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body("{\"error\": \"" + e.getMessage() + "\"}");
         } catch (Exception e) {
-            log.error("Unexpected error in developer tenant creation: {}", e.getMessage());
+            log.error("Unexpected error in developer tenant creation", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("{\"error\": \"Internal server error occurred while creating tenant.\"}");
         }
@@ -119,14 +118,13 @@ public class DeveloperController {
             // Get all tenants
             var tenants = tenantService.getAllTenants();
 
-            log.info("Developer {} accessed tenant list. Found {} tenants.",
-                    maskDeveloperInfo(developerToken), tenants.size());
+            log.info("Developer accessed tenant list. Found {} tenants", tenants.size());
 
             return ResponseEntity.ok()
                     .body("{\"tenants\": " + tenants + ", \"totalCount\": " + tenants.size() + "}");
 
         } catch (Exception e) {
-            log.error("Error retrieving tenants for developer: {}", e.getMessage());
+            log.error("Error retrieving tenants for developer", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("{\"error\": \"Failed to retrieve tenants.\"}");
         }
@@ -162,14 +160,13 @@ public class DeveloperController {
             // Delete tenant
             tenantService.deleteTenant(tenantId);
 
-            log.info("Developer {} successfully deleted tenant ID: {}",
-                    maskDeveloperInfo(developerToken), tenantId);
+            log.info("Developer successfully deleted tenant ID: {}", tenantId);
 
             return ResponseEntity.ok()
                     .body("{\"message\": \"Tenant successfully deleted\"}");
 
         } catch (Exception e) {
-            log.error("Error deleting tenant {} for developer: {}", tenantId, e.getMessage());
+            log.error("Error deleting tenant {} for developer", tenantId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("{\"error\": \"Failed to delete tenant.\"}");
         }
@@ -186,11 +183,6 @@ public class DeveloperController {
             return false;
         }
 
-        // Debug logging
-        log.debug("Validating developer access. Provided token: {}, Expected token: {}",
-                developerToken != null ? "***" : "null",
-                developerConfig.getDeveloperToken() != null ? "***" : "null");
-
         // In a real implementation, this would:
         // 1. Validate JWT tokens
         // 2. Check against a developer registry
@@ -206,7 +198,6 @@ public class DeveloperController {
                 developerToken.equals(validDevToken) &&
                 (developerSecret == null || developerSecret.equals(validDevSecret));
 
-        log.debug("Developer access validation result: {}", isValid);
         return isValid;
     }
 
