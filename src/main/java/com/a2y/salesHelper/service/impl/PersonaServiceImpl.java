@@ -101,7 +101,7 @@ public class PersonaServiceImpl implements PersonaService {
                         contact.setCompanyId(existingCompanies.get(contact.getCompany()));
                     } else {
                         Long id = companiesRepository.findByOrganizationAndClientIdAndTenantId(contact.getCompany(),
-                                clientId, tenantId);
+                                clientId, tenantId).orElse(null);
                         if (id != null) {
                             contact.setCompanyId(id);
                             existingCompanies.put(contact.getCompany(), id);

@@ -112,7 +112,7 @@ public class ParticipantServiceImpl implements ParticipantService {
             for (ParticipantEntity participant : participants) {
                 if (!map.containsKey(participant.getOrganization())) {
                     Long orgId = companiesRepository.findByOrganizationAndClientIdAndTenantId(
-                            participant.getOrganization(), clientId, tenantId);
+                            participant.getOrganization(), clientId, tenantId).orElse(null);
                     if (orgId != null) {
                         map.put(participant.getOrganization(), orgId);
                     }
