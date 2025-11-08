@@ -46,7 +46,7 @@ public class NotificationServiceImpl implements NotificationService {
             List<Long> participantIds = new ArrayList<>();
             for (InteractionHistoryEntity interactionHistory : interactionHistories) {
                 Long participantId = participantRepository
-                        .findByNameAndDesignationAndOrganizationAndClientIdAndTenantId(
+                        .findFirstByNameAndDesignationAndOrganizationAndClientIdAndTenantId(
                                 interactionHistory.getParticipantName(), interactionHistory.getDesignation(),
                                 interactionHistory.getOrganization(), interactionHistory.getClientId(),
                                 interactionHistory.getTenantId())
@@ -87,7 +87,7 @@ public class NotificationServiceImpl implements NotificationService {
             List<Long> participantIds = new ArrayList<>();
             for (InteractionHistoryEntity interactionHistory : interactionHistories) {
                 Long participantId = participantRepository
-                        .findByNameAndDesignationAndOrganizationAndClientIdAndTenantId(
+                        .findFirstByNameAndDesignationAndOrganizationAndClientIdAndTenantId(
                                 interactionHistory.getParticipantName(), interactionHistory.getDesignation(),
                                 interactionHistory.getOrganization(), interactionHistory.getClientId(),
                                 interactionHistory.getTenantId())

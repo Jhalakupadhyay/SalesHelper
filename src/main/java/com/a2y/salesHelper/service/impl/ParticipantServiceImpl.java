@@ -584,7 +584,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                         || latestInteraction.getCooldownDate().isAfter(interactionHistory.getEventDate())) {
                     // update the pariticpant in db with isGoodLead false
                     Optional<ParticipantEntity> participantOpt = participantRepository
-                            .findByNameAndDesignationAndOrganizationAndClientIdAndTenantId(
+                            .findFirstByNameAndDesignationAndOrganizationAndClientIdAndTenantId(
                                     interactionHistory.getParticipantName(),
                                     interactionHistory.getDesignation(),
                                     interactionHistory.getOrganization(),
@@ -610,7 +610,7 @@ public class ParticipantServiceImpl implements ParticipantService {
             interactionHistory.setMeetingDone(Boolean.TRUE);
 
             // Update participant event date
-            participantRepository.findByNameAndDesignationAndOrganizationAndClientIdAndTenantId(
+            participantRepository.findFirstByNameAndDesignationAndOrganizationAndClientIdAndTenantId(
                     interactionHistory.getParticipantName(),
                     interactionHistory.getDesignation(),
                     interactionHistory.getOrganization(),

@@ -30,7 +30,7 @@ public interface ParticipantRepository extends JpaRepository<ParticipantEntity, 
                         "ORDER BY p.eventDate")
         List<ParticipantEntity> findByNameOrDesignationOrOrganization(String name, Long clientId);
 
-        Optional<ParticipantEntity> findByNameAndDesignationAndOrganizationAndClientId(String participantName,
+        Optional<ParticipantEntity> findFirstByNameAndDesignationAndOrganizationAndClientId(String participantName,
                         String designation, String organization, Long clientId);
 
         @Query("SELECT p FROM ParticipantEntity p WHERE " +
@@ -79,7 +79,7 @@ public interface ParticipantRepository extends JpaRepository<ParticipantEntity, 
         @Query("SELECT p FROM ParticipantEntity p WHERE p.tenantId = :tenantId AND p.clientId = :clientId")
         Page<ParticipantEntity> getAllByTenantIdAndClientId(Long tenantId, Long clientId, Pageable pageable);
 
-        Optional<ParticipantEntity> findByNameAndDesignationAndOrganizationAndClientIdAndTenantId(
+        Optional<ParticipantEntity> findFirstByNameAndDesignationAndOrganizationAndClientIdAndTenantId(
                         String participantName, String designation, String organization, Long clientId, Long tenantId);
 
         @Query("SELECT p FROM ParticipantEntity p WHERE " +
