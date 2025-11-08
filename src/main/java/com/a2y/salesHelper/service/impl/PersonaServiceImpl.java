@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -98,34 +99,44 @@ public class PersonaServiceImpl implements PersonaService {
 
         // Save all company contacts to database
         if (!companyContacts.isEmpty()) {
-            // Remove duplicates based on company, name, and designation (tenant-scoped)
-            companyContacts.removeIf(
-                    contact -> companyContactRepository.existsByCompanyAndNameAndDesignationAndClientIdAndTenantId(
-                            contact.getCompany(),
-                            contact.getName(),
-                            contact.getDesignation(),
-                            contact.getClientId(),
-                            contact.getTenantId()));
+            log.info("Processing {} company contacts for bulk insert", companyContacts.size());
 
-            if (!companyContacts.isEmpty()) {
-                Map<String, Long> existingCompanies = new HashMap<>();
-                for (PersonaEntity contact : companyContacts) {
-                    if (existingCompanies.containsKey(contact.getCompany())) {
-                        contact.setCompanyId(existingCompanies.get(contact.getCompany()));
-                    } else {
-                        List<Long> ids = companiesRepository.findByOrganizationAndClientIdAndTenantId(
-                                contact.getCompany(),
-                                clientId, tenantId);
-                        if (!ids.isEmpty()) {
-                            contact.setCompanyId(ids.get(0));
-                            existingCompanies.put(contact.getCompany(), ids.get(0));
-                        }
-                    }
+            // PERFORMANCE: Fetch all existing personas in ONE query instead of N queries
+            List<PersonaEntity> existingPersonas = companyContactRepository.findByClientIdAndTenantId(clientId,
+                    tenantId);
+            Set<String> existingKeys = existingPersonas.stream()
+                    .map(p -> p.getCompany() + "|" + p.getName() + "|" + p.getDesignation())
+                    .collect(java.util.stream.Collectors.toSet());
+
+            // PERFORMANCE: Get unique companies and fetch their IDs in minimal queries
+            Set<String> uniqueCompanies = companyContacts.stream()
+                    .map(PersonaEntity::getCompany)
+                    .collect(java.util.stream.Collectors.toSet());
+
+            Map<String, Long> companyToIdMap = new HashMap<>();
+            for (String company : uniqueCompanies) {
+                List<Long> ids = companiesRepository.findByOrganizationAndClientIdAndTenantId(
+                        company, clientId, tenantId);
+                if (!ids.isEmpty()) {
+                    companyToIdMap.put(company, ids.get(0));
                 }
-                companyContactRepository.saveAll(companyContacts);
-                log.info("Saved {} company contacts to database", companyContacts.size());
+            }
+
+            // Filter out existing contacts and set companyId
+            List<PersonaEntity> newContacts = companyContacts.stream()
+                    .filter(contact -> {
+                        String key = contact.getCompany() + "|" + contact.getName() + "|" + contact.getDesignation();
+                        return !existingKeys.contains(key);
+                    })
+                    .peek(contact -> contact.setCompanyId(companyToIdMap.get(contact.getCompany())))
+                    .toList();
+
+            if (!newContacts.isEmpty()) {
+                companyContactRepository.saveAll(newContacts);
+                log.info("Saved {} new company contacts (skipped {} duplicates)", newContacts.size(),
+                        companyContacts.size() - newContacts.size());
             } else {
-                log.info("All company contacts already exist in database");
+                log.info("All {} company contacts already exist, skipped insertion", companyContacts.size());
             }
         }
 

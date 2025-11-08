@@ -42,6 +42,11 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          batch_size: 100
+        order_inserts: true
+        order_updates: true
+        batch_versioned_data: true
 
 jwt:
   secret: ${JWT_SECRET}

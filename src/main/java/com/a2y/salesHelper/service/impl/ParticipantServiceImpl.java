@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -118,21 +119,50 @@ public class ParticipantServiceImpl implements ParticipantService {
 
         // Save all participants to database
         if (!participants.isEmpty()) {
-            Map<String, Long> map = new HashMap<>();
-            participants.removeIf(participant -> participantRepository.existsByNameAndDesignationAndOrganization(
-                    participant.getName(), participant.getDesignation(), participant.getOrganization()));
-            for (ParticipantEntity participant : participants) {
-                if (!map.containsKey(participant.getOrganization())) {
-                    List<Long> orgIds = companiesRepository.findByOrganizationAndClientIdAndTenantId(
-                            participant.getOrganization(), clientId, tenantId);
-                    if (!orgIds.isEmpty()) {
-                        map.put(participant.getOrganization(), orgIds.get(0));
-                    }
+            log.info("Processing {} participants for bulk insert", participants.size());
+
+            // PERFORMANCE: Fetch all existing participants in ONE query instead of N
+            // queries
+            List<ParticipantEntity> existingParticipants = participantRepository.getAllByTenantIdAndClientId(tenantId,
+                    clientId);
+            Set<String> existingKeys = existingParticipants.stream()
+                    .map(p -> p.getName() + "|" + p.getDesignation() + "|" + p.getOrganization())
+                    .collect(java.util.stream.Collectors.toSet());
+
+            // PERFORMANCE: Build organization to ID mapping (minimal queries)
+            Map<String, Long> orgToIdMap = new HashMap<>();
+            Set<String> uniqueOrganizations = participants.stream()
+                    .map(ParticipantEntity::getOrganization)
+                    .collect(java.util.stream.Collectors.toSet());
+
+            for (String organization : uniqueOrganizations) {
+                List<Long> orgIds = companiesRepository.findByOrganizationAndClientIdAndTenantId(
+                        organization, clientId, tenantId);
+                if (!orgIds.isEmpty()) {
+                    orgToIdMap.put(organization, orgIds.get(0));
                 }
-                participant.setOrgId(map.get(participant.getOrganization()));
-                participant.setClientId(clientId);
             }
-            participantRepository.saveAll(participants);
+
+            // Filter out existing participants and set orgId
+            List<ParticipantEntity> newParticipants = participants.stream()
+                    .filter(participant -> {
+                        String key = participant.getName() + "|" + participant.getDesignation() + "|"
+                                + participant.getOrganization();
+                        return !existingKeys.contains(key);
+                    })
+                    .peek(participant -> {
+                        participant.setOrgId(orgToIdMap.get(participant.getOrganization()));
+                        participant.setClientId(clientId);
+                    })
+                    .toList();
+
+            if (!newParticipants.isEmpty()) {
+                participantRepository.saveAll(newParticipants);
+                log.info("Saved {} new participants (skipped {} duplicates)", newParticipants.size(),
+                        participants.size() - newParticipants.size());
+            } else {
+                log.info("All {} participants already exist, skipped insertion", participants.size());
+            }
         }
         // Save all interaction histories to database
         if (!interactionHistories.isEmpty()) {

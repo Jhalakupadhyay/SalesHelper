@@ -84,11 +84,21 @@ public class CompaniesImpl implements CompaniesService {
             workbook.close();
         }
         if (!companies.isEmpty()) {
-            log.info("Saving {} companies to the database", companies.size());
+            log.info("Processing {} companies for bulk insert", companies.size());
             Set<String> existingAccounts = new HashSet<>(
                     companiesRepository.findAllAccountsByTenantIdAndClientId(clientId, tenantId));
-            companies.removeIf(company -> existingAccounts.contains(company.getAccountName()));
-            companiesRepository.saveAll(companies);
+
+            List<CompanyEntity> newCompanies = companies.stream()
+                    .filter(company -> !existingAccounts.contains(company.getAccountName()))
+                    .toList();
+
+            if (!newCompanies.isEmpty()) {
+                companiesRepository.saveAll(newCompanies);
+                log.info("Saved {} new companies (skipped {} duplicates)", newCompanies.size(),
+                        companies.size() - newCompanies.size());
+            } else {
+                log.info("All {} companies already exist, skipped insertion", companies.size());
+            }
         } else {
             log.warn("No valid company data found in the file: {}", fileName);
         }
