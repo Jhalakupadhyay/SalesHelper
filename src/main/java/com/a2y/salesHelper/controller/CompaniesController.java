@@ -17,12 +17,15 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.a2y.salesHelper.config.CurrentUser;
+import com.a2y.salesHelper.exception.ExcelValidationException;
 import com.a2y.salesHelper.pojo.Companies;
 import com.a2y.salesHelper.service.interfaces.CompaniesService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/companies/excel")
 @Tag(name = "Companies Excel Parser", description = "All the API related to Companies")
@@ -43,10 +46,22 @@ public class CompaniesController {
      */
     @PostMapping("/upload")
     @Operation(summary = "Upload the Excel Sheets", description = "Accepts Multipart file and Parses it to save data in DB")
-    public ResponseEntity<Integer> uploadExcelFile(MultipartFile file, @RequestParam Long clientId) throws IOException {
-        Long tenantId = CurrentUser.getTenantId();
-        Integer processedCount = companiesService.parseExcelFile(file, clientId, tenantId);
-        return new ResponseEntity<>(processedCount, HttpStatus.OK);
+    public ResponseEntity<String> uploadExcelFile(MultipartFile file, @RequestParam Long clientId) {
+        try {
+            Long tenantId = CurrentUser.getTenantId();
+            Integer processedCount = companiesService.parseExcelFile(file, clientId, tenantId);
+            return new ResponseEntity<>("Successfully processed " + processedCount + " companies.", HttpStatus.OK);
+        } catch (ExcelValidationException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (IOException e) {
+            log.error("Error processing file", e);
+            return new ResponseEntity<>("Failed to process the file: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (Exception e) {
+            log.error("Unexpected error during file upload", e);
+            return new ResponseEntity<>("Unexpected error: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**

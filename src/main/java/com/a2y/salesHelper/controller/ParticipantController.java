@@ -45,6 +45,8 @@ public class ParticipantController {
             Long tenantId = CurrentUser.getTenantId();
             int processedCount = participantService.parseExcelFile(file, clientId, tenantId);
             return new ResponseEntity<>("Successfully processed " + processedCount + " participants.", HttpStatus.OK);
+        } catch (IllegalStateException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.PRECONDITION_REQUIRED);
         } catch (ExcelValidationException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (IOException e) {

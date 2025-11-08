@@ -70,6 +70,13 @@ public class ParticipantServiceImpl implements ParticipantService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Integer parseExcelFile(MultipartFile file, Long clientId, Long tenantId) throws IOException {
+        // Validate that companies exist for this client and tenant
+        List<String> existingCompanies = companiesRepository.findAllAccountsByTenantIdAndClientId(clientId, tenantId);
+        if (existingCompanies.isEmpty()) {
+            throw new IllegalStateException(
+                    "No companies found for this client. Please upload companies data first before uploading participants.");
+        }
+
         List<ParticipantEntity> participants = new ArrayList<>();
         List<InteractionHistoryEntity> interactionHistories = new ArrayList<>();
         String fileName = file.getOriginalFilename();

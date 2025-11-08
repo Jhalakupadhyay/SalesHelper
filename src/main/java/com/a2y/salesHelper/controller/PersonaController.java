@@ -58,6 +58,8 @@ public class PersonaController {
 
             return ResponseEntity.ok().body("Successfully parsed and saved " + parsedCount + " company contacts");
 
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.PRECONDITION_REQUIRED).body(e.getMessage());
         } catch (ExcelValidationException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (IOException e) {

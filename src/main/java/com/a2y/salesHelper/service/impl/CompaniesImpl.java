@@ -24,10 +24,12 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.a2y.salesHelper.db.entity.CompanyEntity;
 import com.a2y.salesHelper.db.repository.CompaniesRepository;
+import com.a2y.salesHelper.exception.ExcelValidationException;
 import com.a2y.salesHelper.pojo.Companies;
 import com.a2y.salesHelper.service.interfaces.CompaniesService;
 
@@ -48,6 +50,7 @@ public class CompaniesImpl implements CompaniesService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Integer parseExcelFile(MultipartFile file, Long clientId, Long tenantId) throws IOException {
         List<CompanyEntity> companies = new ArrayList<>();
         String fileName = file.getOriginalFilename();
@@ -66,12 +69,16 @@ public class CompaniesImpl implements CompaniesService {
                 if (row == null || isRowEmpty(row))
                     continue;
                 try {
-                    CompanyEntity company = parseRowToCompany(row, clientId, tenantId);
+                    CompanyEntity company = parseRowToCompany(row, clientId, tenantId, sheetName, rowIndex + 1);
                     if (company != null) {
                         companies.add(company);
                     }
+                } catch (ExcelValidationException e) {
+                    // Re-throw validation exceptions to rollback transaction
+                    throw e;
                 } catch (Exception e) {
                     log.error("Error parsing row {} in sheet {} of file {}", rowIndex, sheetName, fileName, e);
+                    throw new ExcelValidationException("row data", rowIndex + 1, sheetName);
                 }
             }
             workbook.close();
@@ -136,12 +143,19 @@ public class CompaniesImpl implements CompaniesService {
         }
     }
 
-    private CompanyEntity parseRowToCompany(Row row, Long clientId, Long tenantId) {
+    private CompanyEntity parseRowToCompany(Row row, Long clientId, Long tenantId, String sheetName, int rowNumber) {
+        // Validate required fields
+        String accountName = getCellValue(row, "Account Name");
+
+        // Check for null or empty required fields
+        if (accountName == null || accountName.trim().isEmpty()) {
+            throw new ExcelValidationException("Account Name", rowNumber, sheetName);
+        }
 
         return CompanyEntity.builder()
                 .clientId(clientId)
                 .tenantId(tenantId)
-                .accountName(getCellValue(row, "Account Name"))
+                .accountName(accountName.trim())
                 .aeNam(getCellValue(row, "AE Name"))
                 .segment(getCellValue(row, "Segment"))
                 .focusedOrAssigned(getCellValue(row, "Focus/Assigned"))

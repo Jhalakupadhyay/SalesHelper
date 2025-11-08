@@ -49,6 +49,13 @@ public class PersonaServiceImpl implements PersonaService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Integer parseExcelFile(MultipartFile file, Long clientId, Long tenantId) throws IOException {
+        // Validate that companies exist for this client and tenant
+        List<String> companyAccounts = companiesRepository.findAllAccountsByTenantIdAndClientId(clientId, tenantId);
+        if (companyAccounts.isEmpty()) {
+            throw new IllegalStateException(
+                    "No companies found for this client. Please upload companies data first before uploading personas.");
+        }
+
         List<PersonaEntity> companyContacts = new ArrayList<>();
         String fileName = file.getOriginalFilename();
 
