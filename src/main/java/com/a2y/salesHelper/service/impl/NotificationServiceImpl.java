@@ -2,6 +2,7 @@ package com.a2y.salesHelper.service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -43,32 +44,43 @@ public class NotificationServiceImpl implements NotificationService {
                 java.time.OffsetDateTime.now().plusDays(6));
 
         if (interactionHistories.size() >= 10) {
-            List<Long> participantIds = new ArrayList<>();
-            for (InteractionHistoryEntity interactionHistory : interactionHistories) {
-                Long participantId = participantRepository
-                        .findFirstByNameAndDesignationAndOrganizationAndClientIdAndTenantId(
-                                interactionHistory.getParticipantName(), interactionHistory.getDesignation(),
-                                interactionHistory.getOrganization(), interactionHistory.getClientId(),
-                                interactionHistory.getTenantId())
-                        .map(participant -> participant.getId()).orElse(null);
-                participantIds.add(participantId != null ? participantId : 0);
-            }
+            // Group interactions by tenant to maintain tenant isolation
+            Map<Long, List<InteractionHistoryEntity>> interactionsByTenant = interactionHistories.stream()
+                    .collect(java.util.stream.Collectors.groupingBy(InteractionHistoryEntity::getTenantId));
 
-            // get all the user IDs from userRepository
-            List<Long> userIds = new ArrayList<>();
-            userRepository.findAll().forEach(user -> userIds.add(user.getId()));
+            // Process notifications for each tenant separately
+            interactionsByTenant.forEach((tenantId, tenantInteractions) -> {
+                List<Long> participantIds = new ArrayList<>();
+                for (InteractionHistoryEntity interactionHistory : tenantInteractions) {
+                    Long participantId = participantRepository
+                            .findFirstByNameAndDesignationAndOrganizationAndClientIdAndTenantId(
+                                    interactionHistory.getParticipantName(), interactionHistory.getDesignation(),
+                                    interactionHistory.getOrganization(), interactionHistory.getClientId(),
+                                    interactionHistory.getTenantId())
+                            .map(participant -> participant.getId()).orElse(null);
+                    participantIds.add(participantId != null ? participantId : 0);
+                }
 
-            // check if the notification already exists for the participantIds
-            if (Boolean.FALSE.equals(notificationRepository.existsByParticipantId(participantIds.get(0)))) {
-                // if not, create a new notification
-                com.a2y.salesHelper.db.entity.NotificationEntity notificationEntity = com.a2y.salesHelper.db.entity.NotificationEntity
-                        .builder()
-                        .participantIds(participantIds)
-                        .userIds(userIds)
-                        .type("WEEKLY")
-                        .build();
-                notificationRepository.save(notificationEntity);
-            }
+                // get all the user IDs for this specific tenant only
+                List<Long> userIds = new ArrayList<>();
+                userRepository.findByTenantId(tenantId).forEach(user -> userIds.add(user.getId()));
+
+                // check if the notification already exists for the participantIds
+                if (!participantIds.isEmpty()
+                        && Boolean.FALSE.equals(notificationRepository.existsByParticipantId(participantIds.get(0)))) {
+                    // if not, create a new notification for this tenant
+                    com.a2y.salesHelper.db.entity.NotificationEntity notificationEntity = com.a2y.salesHelper.db.entity.NotificationEntity
+                            .builder()
+                            .participantIds(participantIds)
+                            .tenantId(tenantId)
+                            .userIds(userIds)
+                            .type("WEEKLY")
+                            .build();
+                    notificationRepository.save(notificationEntity);
+                    log.info("Created weekly notification for tenant {} with {} participants", tenantId,
+                            participantIds.size());
+                }
+            });
         }
 
     }
@@ -84,65 +96,85 @@ public class NotificationServiceImpl implements NotificationService {
         log.info("Found {} interactions with cooldown date today", interactionHistories.size());
 
         if (interactionHistories.size() >= 10) {
-            List<Long> participantIds = new ArrayList<>();
-            for (InteractionHistoryEntity interactionHistory : interactionHistories) {
-                Long participantId = participantRepository
-                        .findFirstByNameAndDesignationAndOrganizationAndClientIdAndTenantId(
-                                interactionHistory.getParticipantName(), interactionHistory.getDesignation(),
-                                interactionHistory.getOrganization(), interactionHistory.getClientId(),
-                                interactionHistory.getTenantId())
-                        .map(participant -> participant.getId()).orElse(null);
-                participantIds.add(participantId != null ? participantId : 0);
-            }
+            // Group interactions by tenant to maintain tenant isolation
+            Map<Long, List<InteractionHistoryEntity>> interactionsByTenant = interactionHistories.stream()
+                    .collect(java.util.stream.Collectors.groupingBy(InteractionHistoryEntity::getTenantId));
 
-            log.info("Found {} participants for notifications", participantIds.size());
+            // Process notifications for each tenant separately
+            interactionsByTenant.forEach((tenantId, tenantInteractions) -> {
+                List<Long> participantIds = new ArrayList<>();
+                for (InteractionHistoryEntity interactionHistory : tenantInteractions) {
+                    Long participantId = participantRepository
+                            .findFirstByNameAndDesignationAndOrganizationAndClientIdAndTenantId(
+                                    interactionHistory.getParticipantName(), interactionHistory.getDesignation(),
+                                    interactionHistory.getOrganization(), interactionHistory.getClientId(),
+                                    interactionHistory.getTenantId())
+                            .map(participant -> participant.getId()).orElse(null);
+                    participantIds.add(participantId != null ? participantId : 0);
+                }
 
-            // get all the user IDs from userRepository
-            List<Long> userIds = new ArrayList<>();
-            userRepository.findAll().forEach(user -> userIds.add(user.getId()));
+                log.info("Found {} participants for notifications in tenant {}", participantIds.size(), tenantId);
 
-            log.info("Found {} users for notifications", userIds.size());
+                // get all the user IDs for this specific tenant only
+                List<Long> userIds = new ArrayList<>();
+                userRepository.findByTenantId(tenantId).forEach(user -> userIds.add(user.getId()));
 
-            // check if the notification already exists for the participantIds
-            if (Boolean.FALSE.equals(notificationRepository.existsByParticipantId(participantIds.get(0)))) {
-                // if not, create a new notification
-                com.a2y.salesHelper.db.entity.NotificationEntity notificationEntity = com.a2y.salesHelper.db.entity.NotificationEntity
-                        .builder()
-                        .participantIds(participantIds)
-                        .tenantId(interactionHistories.get(0).getTenantId())
-                        .userIds(userIds)
-                        .type("DAILY")
-                        .build();
-                notificationRepository.save(notificationEntity);
-            }
+                log.info("Found {} users for notifications in tenant {}", userIds.size(), tenantId);
+
+                // check if the notification already exists for the participantIds
+                if (!participantIds.isEmpty()
+                        && Boolean.FALSE.equals(notificationRepository.existsByParticipantId(participantIds.get(0)))) {
+                    // if not, create a new notification for this tenant
+                    com.a2y.salesHelper.db.entity.NotificationEntity notificationEntity = com.a2y.salesHelper.db.entity.NotificationEntity
+                            .builder()
+                            .participantIds(participantIds)
+                            .tenantId(tenantId)
+                            .userIds(userIds)
+                            .type("DAILY")
+                            .build();
+                    notificationRepository.save(notificationEntity);
+                    log.info("Created daily notification for tenant {} with {} participants", tenantId,
+                            participantIds.size());
+                }
+            });
         }
     }
 
     @Override
-    public Boolean addSeenByUserId(Long userId, Long notificationId) {
+    public Boolean addSeenByUserId(Long userId, Long notificationId, Long tenantId) {
         try {
             notificationRepository.findById(notificationId).ifPresent(notification -> {
+                // Validate tenant access
+                if (notification.getTenantId() != null && !notification.getTenantId().equals(tenantId)) {
+                    log.warn("User {} from tenant {} attempted to access notification {} from tenant {}",
+                            userId, tenantId, notificationId, notification.getTenantId());
+                    return;
+                }
+
                 List<Long> userIds = notification.getUserIds();
                 if (userIds.contains(userId)) {
                     userIds.remove(userId);
                     notification.setUserIds(userIds);
                     notificationRepository.save(notification);
+                    log.info("User {} marked notification {} as seen in tenant {}", userId, notificationId, tenantId);
                 }
             });
             return true;
         } catch (Exception e) {
-            log.error("Error marking notification as seen for user {} and notification {}", userId, notificationId, e);
+            log.error("Error marking notification as seen for user {} and notification {} in tenant {}", userId,
+                    notificationId, tenantId, e);
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public List<Notification> getNotificationsForUserId(Long userId) {
+    public List<Notification> getNotificationsForUserId(Long userId, Long tenantId) {
 
         List<Notification> notifications = new ArrayList<>();
         try {
+            // Fetch only notifications for this specific tenant
             List<com.a2y.salesHelper.db.entity.NotificationEntity> notificationEntities = notificationRepository
-                    .findAll();
+                    .findByTenantId(tenantId);
             for (com.a2y.salesHelper.db.entity.NotificationEntity notificationEntity : notificationEntities) {
                 if (notificationEntity.getUserIds().contains(userId)) {
                     Notification notification = Notification.builder()
@@ -153,9 +185,10 @@ public class NotificationServiceImpl implements NotificationService {
                     notifications.add(notification);
                 }
             }
+            log.info("Found {} notifications for user {} in tenant {}", notifications.size(), userId, tenantId);
             return notifications;
         } catch (Exception e) {
-            log.error("Error getting notifications for user {}", userId, e);
+            log.error("Error getting notifications for user {} in tenant {}", userId, tenantId, e);
             return notifications;
         }
 

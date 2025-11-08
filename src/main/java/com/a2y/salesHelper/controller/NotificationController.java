@@ -27,19 +27,21 @@ public class NotificationController {
         this.notificationService = notificationService;
     }
 
-    @Operation(summary = "Get Notifications for a User", description = "Fetches all notifications for a given user ID")
+    @Operation(summary = "Get Notifications for a User", description = "Fetches all notifications for the current user within their tenant")
     @GetMapping
     public ResponseEntity<List<Notification>> getNotificationsForUser() {
         Long userId = CurrentUser.getUserId();
-        List<Notification> notifications = notificationService.getNotificationsForUserId(userId);
+        Long tenantId = CurrentUser.getTenantId();
+        List<Notification> notifications = notificationService.getNotificationsForUserId(userId, tenantId);
         return ResponseEntity.ok(notifications);
     }
 
-    @Operation(summary = "Mark Notification as Seen", description = "Marks a notification as seen by a specific user")
+    @Operation(summary = "Mark Notification as Seen", description = "Marks a notification as seen by the current user within their tenant")
     @PostMapping
     public ResponseEntity<Boolean> addSeenByUserId(@RequestParam Long notificationId) {
         Long userId = CurrentUser.getUserId();
-        Boolean result = notificationService.addSeenByUserId(userId, notificationId);
+        Long tenantId = CurrentUser.getTenantId();
+        Boolean result = notificationService.addSeenByUserId(userId, notificationId, tenantId);
         return ResponseEntity.ok(result);
     }
 }

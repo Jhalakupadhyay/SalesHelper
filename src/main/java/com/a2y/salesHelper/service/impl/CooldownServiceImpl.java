@@ -1,17 +1,20 @@
 package com.a2y.salesHelper.service.impl;
 
+import java.util.List;
+
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.stereotype.Service;
+
 import com.a2y.salesHelper.db.entity.ClientEntity;
 import com.a2y.salesHelper.db.repository.ClientRepository;
 import com.a2y.salesHelper.db.repository.CompaniesRepository;
 import com.a2y.salesHelper.pojo.ClientPojo;
 import com.a2y.salesHelper.pojo.ClientResponse;
 import com.a2y.salesHelper.service.interfaces.CooldownService;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.stereotype.Service;
 
-import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
-
+@Slf4j
 @Service
 @EnableScheduling
 public class CooldownServiceImpl implements CooldownService {
@@ -26,7 +29,7 @@ public class CooldownServiceImpl implements CooldownService {
 
     @Override
     public Boolean addCooldown(ClientPojo client) {
-        try{
+        try {
             clientRepository.save(ClientEntity.builder()
                     .orgName(client.getOrgName())
                     .tenantId(client.getTenantId())
@@ -34,15 +37,17 @@ public class CooldownServiceImpl implements CooldownService {
                     .cooldownPeriod2(client.getCooldownPeriod2())
                     .cooldownPeriod3(client.getCooldownPeriod3())
                     .build());
+            log.info("Created client '{}' for tenant {}", client.getOrgName(), client.getTenantId());
             return true;
         } catch (RuntimeException e) {
+            log.error("Failed to add client for tenant {}", client.getTenantId(), e);
             throw new RuntimeException(e);
         }
     }
 
     @Override
     public List<ClientResponse> getClients(Long tenantId) {
-        return clientRepository.findAll().stream().filter(clientEntity -> clientEntity.getTenantId().equals(tenantId))
+        return clientRepository.findByTenantId(tenantId).stream()
                 .map(clientEntity -> ClientResponse.builder()
                         .clientId(clientEntity.getOrgId())
                         .orgName(clientEntity.getOrgName())
@@ -54,9 +59,11 @@ public class CooldownServiceImpl implements CooldownService {
     }
 
     @Override
-    public ClientResponse editCooldownPeriods(Long clientId, Long tenantId, Long cooldownPeriod1, Long cooldownPeriod2, Long cooldownPeriod3) {
-        ClientEntity clientEntity = clientRepository.findByTenantIdAndOrgId(tenantId,clientId).orElse(null);
+    public ClientResponse editCooldownPeriods(Long clientId, Long tenantId, Long cooldownPeriod1, Long cooldownPeriod2,
+            Long cooldownPeriod3) {
+        ClientEntity clientEntity = clientRepository.findByTenantIdAndOrgId(tenantId, clientId).orElse(null);
         if (clientEntity == null) {
+            log.warn("Client with ID {} not found for tenant {}", clientId, tenantId);
             return null;
         }
         if (cooldownPeriod1 != null) {
@@ -69,6 +76,7 @@ public class CooldownServiceImpl implements CooldownService {
             clientEntity.setCooldownPeriod3(cooldownPeriod3);
         }
         clientRepository.save(clientEntity);
+        log.info("Updated cooldown periods for client {} in tenant {}", clientId, tenantId);
         return ClientResponse.builder()
                 .clientId(clientEntity.getOrgId())
                 .orgName(clientEntity.getOrgName())
@@ -78,22 +86,23 @@ public class CooldownServiceImpl implements CooldownService {
                 .build();
     }
 
-    //edit cooldown periods for a client
+    // edit cooldown periods for a client
 
-
-//    @Scheduled(fixedRate = 86400000) // Runs every 24 hours
-//    public void mailCooldownWhenLessThan7Days() {
-//        cooldownRepository.findAll().forEach(cooldownEntity -> {
-//            CompanyEntity company = companiesRepository.findById(cooldownEntity.getOrgId()).orElse(null);
-//            if (company != null && company.getEmail() != null) {
-//                //get all the three cooldown periods
-//                //one that is less than 7 days from now
-//                if (cooldownEntity.getCooldownPeriod1() != null &&
-//                    cooldownEntity.getCooldownPeriod1().isBefore(OffsetDateTime.now().plusDays(7))) {
-//                    // TODO: SEND THE MAIL TO THE A2Y TEAM
-//                }
-//            }
-//        });
-//    }
+    // @Scheduled(fixedRate = 86400000) // Runs every 24 hours
+    // public void mailCooldownWhenLessThan7Days() {
+    // cooldownRepository.findAll().forEach(cooldownEntity -> {
+    // CompanyEntity company =
+    // companiesRepository.findById(cooldownEntity.getOrgId()).orElse(null);
+    // if (company != null && company.getEmail() != null) {
+    // //get all the three cooldown periods
+    // //one that is less than 7 days from now
+    // if (cooldownEntity.getCooldownPeriod1() != null &&
+    // cooldownEntity.getCooldownPeriod1().isBefore(OffsetDateTime.now().plusDays(7)))
+    // {
+    // // TODO: SEND THE MAIL TO THE A2Y TEAM
+    // }
+    // }
+    // });
+    // }
 
 }
