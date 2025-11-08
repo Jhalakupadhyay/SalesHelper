@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -567,9 +566,9 @@ public class ParticipantServiceImpl implements ParticipantService {
                 continue; // Skip this record but continue processing others
             }
 
-            // Long cooldown1 = client.getCooldownPeriod1();
-            // Long cooldown2 = client.getCooldownPeriod2();
-            // Long cooldown3 = client.getCooldownPeriod3();
+            Long cooldown1 = client.getCooldownPeriod1();
+            Long cooldown2 = client.getCooldownPeriod2();
+            Long cooldown3 = client.getCooldownPeriod3();
 
             OffsetDateTime cooldownDate = null;
             int cooldownCount = 1;
@@ -581,58 +580,29 @@ public class ParticipantServiceImpl implements ParticipantService {
                             interactionHistory.getClientId(), interactionHistory.getTenantId())
                     .orElse(null);
 
-            // if (latestInteraction != null) {
-            // if (latestInteraction.getCooldownCount() == 1) {
-            // if
-            // (interactionHistory.getEventDate().isBefore(latestInteraction.getCooldownDate()))
-            // {
-            // cooldownDate = interactionHistory.getEventDate().plusDays(cooldown2);
-            // cooldownCount = 2;
-            // } else {
-            // cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
-            // cooldownCount = 1;
-            // }
-            // } else if (latestInteraction.getCooldownCount() == 2) {
-            // if
-            // (interactionHistory.getEventDate().isBefore(latestInteraction.getCooldownDate()))
-            // {
-            // cooldownDate = interactionHistory.getEventDate().plusDays(cooldown3);
-            // cooldownCount = 3;
-            // } else {
-            // cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
-            // cooldownCount = 1;
-            // }
-            // } else {
-            // cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
-            // cooldownCount = 1;
-            // }
-            // } else {
-            // cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
-            // cooldownCount = 1;
-            // }
-
             if (latestInteraction != null) {
-                if (latestInteraction.getCooldownDate().isEqual(interactionHistory.getEventDate())
-                        || latestInteraction.getCooldownDate().isAfter(interactionHistory.getEventDate())) {
-                    // update the pariticpant in db with isGoodLead false
-                    Optional<ParticipantEntity> participantOpt = participantRepository
-                            .findFirstByNameAndDesignationAndOrganizationAndClientIdAndTenantId(
-                                    interactionHistory.getParticipantName(),
-                                    interactionHistory.getDesignation(),
-                                    interactionHistory.getOrganization(),
-                                    interactionHistory.getClientId(),
-                                    interactionHistory.getTenantId());
-                    participantOpt.ifPresent(participant -> {
-                        participant.setIsGoodLead(Boolean.FALSE);
-                        participantRepository.save(participant);
-                    });
-                    cooldownDate = latestInteraction.getCooldownDate();
+                if (latestInteraction.getCooldownCount() == 1) {
+                    if (interactionHistory.getEventDate().isBefore(latestInteraction.getCooldownDate())) {
+                        cooldownDate = interactionHistory.getEventDate().plusDays(cooldown2);
+                        cooldownCount = 2;
+                    } else {
+                        cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
+                        cooldownCount = 1;
+                    }
+                } else if (latestInteraction.getCooldownCount() == 2) {
+                    if (interactionHistory.getEventDate().isBefore(latestInteraction.getCooldownDate())) {
+                        cooldownDate = interactionHistory.getEventDate().plusDays(cooldown3);
+                        cooldownCount = 3;
+                    } else {
+                        cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
+                        cooldownCount = 1;
+                    }
                 } else {
-                    cooldownDate = latestInteraction.getCooldownDate().plusDays(30);
+                    cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
                     cooldownCount = 1;
                 }
             } else {
-                cooldownDate = interactionHistory.getEventDate().plusDays(30);
+                cooldownDate = interactionHistory.getEventDate().plusDays(cooldown1);
                 cooldownCount = 1;
             }
 
