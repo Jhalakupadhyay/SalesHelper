@@ -1,5 +1,11 @@
 package com.a2y.salesHelper.service.impl;
 
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
 import com.a2y.salesHelper.db.entity.ClientEntity;
 import com.a2y.salesHelper.db.entity.InteractionHistoryEntity;
 import com.a2y.salesHelper.db.repository.ClientRepository;
@@ -8,13 +14,8 @@ import com.a2y.salesHelper.db.repository.ParticipantRepository;
 import com.a2y.salesHelper.pojo.EditRequest;
 import com.a2y.salesHelper.pojo.InteractionHistory;
 import com.a2y.salesHelper.service.interfaces.InteractionHistoryService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
@@ -24,7 +25,8 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
     private final ParticipantRepository participantRepository;
     private final ClientRepository clientRepository;
 
-    public InteractionHistoryImpl(InteractionHistoryRepository interactionHistoryRepository, ParticipantRepository participantRepository, ClientRepository clientRepository) {
+    public InteractionHistoryImpl(InteractionHistoryRepository interactionHistoryRepository,
+            ParticipantRepository participantRepository, ClientRepository clientRepository) {
         this.interactionHistoryRepository = interactionHistoryRepository;
         this.participantRepository = participantRepository;
         this.clientRepository = clientRepository;
@@ -33,11 +35,12 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
     @Override
     public boolean editInteractionHistory(EditRequest editRequest) {
         InteractionHistoryEntity existingInteraction = interactionHistoryRepository
-                .findByParticipantNameAndCreatedAtAndClientIdAndTenantId(editRequest.getParticipantName(), editRequest.getCreatedAt(), editRequest.getClientId(),editRequest.getTenantId());
+                .findByParticipantNameAndCreatedAtAndClientIdAndTenantId(editRequest.getParticipantName(),
+                        editRequest.getCreatedAt(), editRequest.getClientId(), editRequest.getTenantId())
+                .orElse(null);
         if (existingInteraction == null) {
             return false;
         }
-
 
         InteractionHistoryEntity interactionHistoryEntity = InteractionHistoryEntity.builder()
                 .participantName(editRequest.getParticipantName())
@@ -55,14 +58,16 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
         return true;
     }
 
-    //add interaction history
-
+    // add interaction history
 
     @Override
-    public List<InteractionHistory> getInteractionHistory(String participantName, String organization,Long clientId,Long tenantId) {
-        List<InteractionHistoryEntity> interaction = interactionHistoryRepository.findByTenantIdAndParticipantNameAndOrganizationAndClientId(tenantId,participantName, organization,clientId);
+    public List<InteractionHistory> getInteractionHistory(String participantName, String organization, Long clientId,
+            Long tenantId) {
+        List<InteractionHistoryEntity> interaction = interactionHistoryRepository
+                .findByTenantIdAndParticipantNameAndOrganizationAndClientId(tenantId, participantName, organization,
+                        clientId);
 
-        if(interaction == null) {
+        if (interaction == null) {
             return new ArrayList<>();
         }
         List<InteractionHistory> interactionHistoryList = new ArrayList<>();
@@ -100,9 +105,12 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
         OffsetDateTime cooldownDate;
         int cooldownCount;
 
-        //get the latest interaction history for the participant
+        // get the latest interaction history for the participant
         InteractionHistoryEntity latestInteraction = interactionHistoryRepository
-                .findTopByParticipantNameAndOrganizationAndClientIdAndTenantIdOrderByCreatedAtDesc(interactionHistory.getParticipantName(), interactionHistory.getOrganization(), interactionHistory.getClientId(),interactionHistory.getTenantId());
+                .findTopByParticipantNameAndOrganizationAndClientIdAndTenantIdOrderByCreatedAtDesc(
+                        interactionHistory.getParticipantName(), interactionHistory.getOrganization(),
+                        interactionHistory.getClientId(), interactionHistory.getTenantId())
+                .orElse(null);
 
         if (latestInteraction != null) {
             if (latestInteraction.getCooldownCount() == 1) {
@@ -130,7 +138,6 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
             cooldownCount = 1;
         }
 
-
         InteractionHistoryEntity interactionHistoryEntity = InteractionHistoryEntity.builder()
                 .participantName(interactionHistory.getParticipantName())
                 .tenantId(interactionHistory.getTenantId())
@@ -147,9 +154,11 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
 
         log.info("Adding interaction history for participant: {}", interactionHistoryEntity.toString());
 
-        //also update the eventDate in participant table
-        participantRepository.findByNameAndDesignationAndOrganizationAndClientId(interactionHistory.getParticipantName(),
-                        interactionHistory.getDesignation(), interactionHistory.getOrganization(), interactionHistory.getClientId())
+        // also update the eventDate in participant table
+        participantRepository
+                .findByNameAndDesignationAndOrganizationAndClientId(interactionHistory.getParticipantName(),
+                        interactionHistory.getDesignation(), interactionHistory.getOrganization(),
+                        interactionHistory.getClientId())
                 .ifPresent(participant -> {
                     participant.setEventDate(interactionHistory.getEventDate());
                     participantRepository.save(participant);

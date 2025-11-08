@@ -553,7 +553,8 @@ public class ParticipantServiceImpl implements ParticipantService {
                     .findTopByParticipantNameAndOrganizationAndClientIdAndTenantIdOrderByCreatedAtDesc(
                             interactionHistory.getParticipantName(),
                             interactionHistory.getOrganization(),
-                            interactionHistory.getClientId(), interactionHistory.getTenantId());
+                            interactionHistory.getClientId(), interactionHistory.getTenantId())
+                    .orElse(null);
 
             // if (latestInteraction != null) {
             // if (latestInteraction.getCooldownCount() == 1) {
