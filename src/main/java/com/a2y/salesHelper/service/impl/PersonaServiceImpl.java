@@ -16,11 +16,13 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.a2y.salesHelper.db.entity.PersonaEntity;
 import com.a2y.salesHelper.db.repository.CompaniesRepository;
 import com.a2y.salesHelper.db.repository.PersonaRepository;
+import com.a2y.salesHelper.exception.ExcelValidationException;
 import com.a2y.salesHelper.pojo.Persona;
 import com.a2y.salesHelper.service.interfaces.PersonaService;
 
@@ -45,6 +47,7 @@ public class PersonaServiceImpl implements PersonaService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Integer parseExcelFile(MultipartFile file, Long clientId, Long tenantId) throws IOException {
         List<PersonaEntity> companyContacts = new ArrayList<>();
         String fileName = file.getOriginalFilename();
@@ -69,12 +72,17 @@ public class PersonaServiceImpl implements PersonaService {
                         continue;
 
                     try {
-                        PersonaEntity companyContact = parseRowToCompanyContact(row, sheetName, clientId, tenantId);
+                        PersonaEntity companyContact = parseRowToCompanyContact(row, sheetName, clientId, tenantId,
+                                rowIndex + 1);
                         if (companyContact != null && isValidCompanyContact(companyContact)) {
                             companyContacts.add(companyContact);
                         }
+                    } catch (ExcelValidationException e) {
+                        // Re-throw validation exceptions to rollback transaction
+                        throw e;
                     } catch (Exception e) {
                         log.error("Error parsing row {} in sheet {} of file {}", rowIndex, sheetName, fileName, e);
+                        throw new ExcelValidationException("row data", rowIndex + 1, sheetName);
                     }
                 }
             }
@@ -240,14 +248,31 @@ public class PersonaServiceImpl implements PersonaService {
         }
     }
 
-    private PersonaEntity parseRowToCompanyContact(Row row, String sheetName, Long clientId, Long tenantId) {
+    private PersonaEntity parseRowToCompanyContact(Row row, String sheetName, Long clientId, Long tenantId,
+            int rowNumber) {
+        // Validate required fields
+        String company = getCellValueAsString(getCell(row, "company"));
+        String name = getCellValueAsString(getCell(row, "name"));
+        String designation = getCellValueAsString(getCell(row, "designation"));
+
+        // Check for null or empty required fields
+        if (company == null || company.trim().isEmpty()) {
+            throw new ExcelValidationException("company", rowNumber, sheetName);
+        }
+        if (name == null || name.trim().isEmpty()) {
+            throw new ExcelValidationException("name", rowNumber, sheetName);
+        }
+        if (designation == null || designation.trim().isEmpty()) {
+            throw new ExcelValidationException("designation", rowNumber, sheetName);
+        }
+
         PersonaEntity companyContact = PersonaEntity.builder()
                 .sheetName(sheetName)
                 .clientId(clientId)
                 .tenantId(tenantId)
-                .company(getCellValueAsString(getCell(row, "company")))
-                .name(getCellValueAsString(getCell(row, "name")))
-                .designation(getCellValueAsString(getCell(row, "designation")))
+                .company(company.trim())
+                .name(name.trim())
+                .designation(designation.trim())
                 .build();
 
         return companyContact;

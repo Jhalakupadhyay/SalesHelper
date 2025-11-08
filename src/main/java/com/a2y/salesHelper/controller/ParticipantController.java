@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.a2y.salesHelper.config.CurrentUser;
 import com.a2y.salesHelper.db.entity.ParticipantEntity;
+import com.a2y.salesHelper.exception.ExcelValidationException;
 import com.a2y.salesHelper.pojo.Participant;
 import com.a2y.salesHelper.service.interfaces.ParticipantService;
 
@@ -44,6 +45,8 @@ public class ParticipantController {
             Long tenantId = CurrentUser.getTenantId();
             int processedCount = participantService.parseExcelFile(file, clientId, tenantId);
             return new ResponseEntity<>("Successfully processed " + processedCount + " participants.", HttpStatus.OK);
+        } catch (ExcelValidationException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (IOException e) {
             return new ResponseEntity<>("Failed to process the file: " + e.getMessage(),
                     HttpStatus.INTERNAL_SERVER_ERROR);

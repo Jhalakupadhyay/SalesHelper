@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.a2y.salesHelper.config.CurrentUser;
+import com.a2y.salesHelper.exception.ExcelValidationException;
 import com.a2y.salesHelper.pojo.Persona;
 import com.a2y.salesHelper.service.interfaces.PersonaService;
 
@@ -57,6 +58,8 @@ public class PersonaController {
 
             return ResponseEntity.ok().body("Successfully parsed and saved " + parsedCount + " company contacts");
 
+        } catch (ExcelValidationException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (IOException e) {
             log.error("Error parsing file", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

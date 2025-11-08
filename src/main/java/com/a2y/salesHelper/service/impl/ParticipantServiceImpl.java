@@ -26,6 +26,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.a2y.salesHelper.db.entity.ClientEntity;
@@ -35,6 +36,7 @@ import com.a2y.salesHelper.db.repository.ClientRepository;
 import com.a2y.salesHelper.db.repository.CompaniesRepository;
 import com.a2y.salesHelper.db.repository.InteractionHistoryRepository;
 import com.a2y.salesHelper.db.repository.ParticipantRepository;
+import com.a2y.salesHelper.exception.ExcelValidationException;
 import com.a2y.salesHelper.pojo.Participant;
 import com.a2y.salesHelper.service.interfaces.ParticipantService;
 
@@ -66,6 +68,7 @@ public class ParticipantServiceImpl implements ParticipantService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Integer parseExcelFile(MultipartFile file, Long clientId, Long tenantId) throws IOException {
         List<ParticipantEntity> participants = new ArrayList<>();
         List<InteractionHistoryEntity> interactionHistories = new ArrayList<>();
@@ -86,7 +89,8 @@ public class ParticipantServiceImpl implements ParticipantService {
                     if (row == null || isRowEmpty(row))
                         continue;
                     try {
-                        ParticipantEntity participant = parseRowToParticipant(row, sheetName, clientId, tenantId);
+                        ParticipantEntity participant = parseRowToParticipant(row, sheetName, clientId, tenantId,
+                                rowIndex + 1);
                         InteractionHistoryEntity interactionHistory = parseRowToInteractions(row, clientId);
                         if (participant != null && isValidParticipant(participant)) {
                             participants.add(participant);
@@ -94,8 +98,12 @@ public class ParticipantServiceImpl implements ParticipantService {
                         if (interactionHistory != null) {
                             interactionHistories.add(interactionHistory);
                         }
+                    } catch (ExcelValidationException e) {
+                        // Re-throw validation exceptions to rollback transaction
+                        throw e;
                     } catch (Exception e) {
                         log.error("Error parsing row {} in sheet {} of file {}", rowIndex, sheetName, fileName, e);
+                        throw new ExcelValidationException("row data", rowIndex + 1, sheetName);
                     }
                 }
             }
@@ -242,13 +250,30 @@ public class ParticipantServiceImpl implements ParticipantService {
         }
     }
 
-    private ParticipantEntity parseRowToParticipant(Row row, String sheetName, Long clientId, Long tenantId) {
+    private ParticipantEntity parseRowToParticipant(Row row, String sheetName, Long clientId, Long tenantId,
+            int rowNumber) {
+        // Validate required fields
+        String name = getCellValueAsString(getCell(row, "name"));
+        String designation = getCellValueAsString(getCell(row, "designation"));
+        String organization = getCellValueAsString(getCell(row, "Company Name"));
+
+        // Check for null or empty required fields
+        if (name == null || name.trim().isEmpty()) {
+            throw new ExcelValidationException("name", rowNumber, sheetName);
+        }
+        if (designation == null || designation.trim().isEmpty()) {
+            throw new ExcelValidationException("designation", rowNumber, sheetName);
+        }
+        if (organization == null || organization.trim().isEmpty()) {
+            throw new ExcelValidationException("Company Name", rowNumber, sheetName);
+        }
+
         ParticipantEntity participant = ParticipantEntity.builder()
                 .sheetName(sheetName)
                 .clientId(clientId)
-                .name(getCellValueAsString(getCell(row, "name")))
-                .designation(getCellValueAsString(getCell(row, "designation")))
-                .organization(getCellValueAsString(getCell(row, "Company Name")))
+                .name(name.trim())
+                .designation(designation.trim())
+                .organization(organization.trim())
                 .email(getCellValueAsString(getCell(row, "email Id")))
                 .mobile(getCellValueAsString(getCell(row, "mobile no")))
                 .eventName(getCellValueAsString(getCell(row, "Event Name")))
