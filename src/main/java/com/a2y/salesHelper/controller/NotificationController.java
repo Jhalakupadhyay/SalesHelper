@@ -2,6 +2,7 @@ package com.a2y.salesHelper.controller;
 
 import java.util.List;
 
+import com.a2y.salesHelper.pojo.Participant;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -47,11 +48,12 @@ public class NotificationController {
 
     @Operation(summary = "API to return the participant entities for particular notification type")
     @GetMapping("/participantsByType")
-    public ResponseEntity<List<Notification>> getParticipantsByNotificationType(@RequestParam String type) {
+    public ResponseEntity<List<Participant>> getParticipantsByNotificationType(@RequestParam String type) {
         Long tenantId = CurrentUser.getTenantId();
         Long userId = CurrentUser.getUserId();
 
         // Implementation to fetch participants by notification type
-        List<Notification> notifications = notificationService.getNotificationsByType(type, userId, tenantId);
+        List<Participant> notifications = notificationService.getNotificationsByType(type, userId, tenantId);
+        return ResponseEntity.ok(notifications);
     }
 }
