@@ -257,8 +257,8 @@ public class ParticipantServiceImpl implements ParticipantService {
 
             // Update fields
             ParticipantEntity updatedParticipant = ParticipantEntity.builder()
-                    .id(existingParticipant.getId())
-                    .clientId(existingParticipant.getClientId()) // Keep original client ID
+                    .id(participant.getId())
+                    .clientId(participant.getClientId())
                     .name(participant.getName())
                     .email(participant.getEmail())
                     .mobile(participant.getMobile())
@@ -266,7 +266,10 @@ public class ParticipantServiceImpl implements ParticipantService {
                     .organization(participant.getOrganization())
                     .assignedUnassigned(participant.getAssignedUnassigned())
                     .attended(participant.getAttended())
-                    .sheetName(existingParticipant.getSheetName()) // Keep original sheet name
+                    .eventDate(participant.getEventDate())
+                    .isGoodLead(participant.getIsGoodLead())
+                    .eventName(participant.getEventName())
+                    .sheetName(participant.getSheetName())
                     .build();
             participantRepository.save(updatedParticipant);
             return Boolean.TRUE;
