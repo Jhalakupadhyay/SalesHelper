@@ -51,6 +51,7 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
                 .eventDate(existingInteraction.getEventDate())
                 .description(editRequest.getDescription())
                 .createdAt(editRequest.getCreatedAt())
+                .cooldownCount(existingInteraction.getCooldownCount())
                 .meetingDone(Boolean.TRUE)
                 .build();
 
