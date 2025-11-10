@@ -48,7 +48,7 @@ public class InteractionHistoryImpl implements InteractionHistoryService {
                 .organization(existingInteraction.getOrganization())
                 .designation(existingInteraction.getDesignation())
                 .eventName(existingInteraction.getEventName())
-                .eventDate(OffsetDateTime.now())
+                .eventDate(existingInteraction.getEventDate())
                 .description(editRequest.getDescription())
                 .createdAt(editRequest.getCreatedAt())
                 .meetingDone(Boolean.TRUE)

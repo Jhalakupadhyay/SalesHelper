@@ -126,7 +126,7 @@ public class ParticipantServiceImpl implements ParticipantService {
             List<ParticipantEntity> existingParticipants = participantRepository.getAllByTenantIdAndClientId(tenantId,
                     clientId);
             Set<String> existingKeys = existingParticipants.stream()
-                    .map(p -> p.getName() + "|" + p.getDesignation() + "|" + p.getOrganization())
+                    .map(p -> p.getName() + "|" + p.getDesignation() + "|" + p.getOrganization() + "|" + p.getEventDate())
                     .collect(java.util.stream.Collectors.toSet());
 
             // PERFORMANCE: Build organization to ID mapping (minimal queries)
@@ -147,7 +147,7 @@ public class ParticipantServiceImpl implements ParticipantService {
             List<ParticipantEntity> newParticipants = participants.stream()
                     .filter(participant -> {
                         String key = participant.getName() + "|" + participant.getDesignation() + "|"
-                                + participant.getOrganization();
+                                + participant.getOrganization() + "|" + participant.getEventDate();
                         return !existingKeys.contains(key);
                     })
                     .peek(participant -> {
