@@ -346,6 +346,7 @@ public class CompaniesImpl implements CompaniesService {
             return Companies.builder()
                     .id(updatedEntity.getId())
                     .clientId(updatedEntity.getClientId())
+                    .tenantId(updatedEntity.getTenantId())
                     .accountName(updatedEntity.getAccountName())
                     .aeNam(updatedEntity.getAeNam())
                     .segment(updatedEntity.getSegment())
