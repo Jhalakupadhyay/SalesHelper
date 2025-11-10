@@ -258,6 +258,7 @@ public class ParticipantServiceImpl implements ParticipantService {
             // Update fields
             ParticipantEntity updatedParticipant = ParticipantEntity.builder()
                     .id(participant.getId())
+                    .tenantId(existingParticipant.getTenantId())
                     .clientId(participant.getClientId())
                     .name(participant.getName())
                     .email(participant.getEmail())
