@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.a2y.salesHelper.pojo.Participant;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -190,6 +191,52 @@ public class NotificationServiceImpl implements NotificationService {
         } catch (Exception e) {
             log.error("Error getting notifications for user {} in tenant {}", userId, tenantId, e);
             return notifications;
+        }
+
+    }
+
+    //fetches all the participant Ids for particular notification type and for a particular user in a tenant
+    //and then maps the participants to Participant POJO and returns the list of Participant POJOs
+    @Override
+    public List<Participant> getNotificationsByType(String type, Long userId, Long tenantId) {
+        List<Participant> participants = new ArrayList<>();
+        try {
+            // Fetch only notifications for this specific tenant
+            List<com.a2y.salesHelper.db.entity.NotificationEntity> notificationEntities = notificationRepository
+                    .findByTenantId(tenantId);
+            for (com.a2y.salesHelper.db.entity.NotificationEntity notificationEntity : notificationEntities) {
+                if (notificationEntity.getUserIds().contains(userId)
+                        && notificationEntity.getType().equalsIgnoreCase(type)) {
+                    for (Long participantId : notificationEntity.getParticipantIds()) {
+                        participantRepository.findById(participantId).ifPresent(participantEntity -> {
+                            Participant participant = Participant.builder()
+                                    .id(participantEntity.getId())
+                                    .clientId(participantEntity.getClientId())
+                                    .name(participantEntity.getName())
+                                    .email(participantEntity.getEmail())
+                                    .mobile(participantEntity.getMobile())
+                                    .city(participantEntity.getCity())
+                                    .designation(participantEntity.getDesignation())
+                                    .organization(participantEntity.getOrganization())
+                                    .eventName(participantEntity.getEventName())
+                                    .assignedUnassigned(participantEntity.getAssignedUnassigned())
+                                    .attended(participantEntity.getAttended())
+                                    .eventDate(participantEntity.getEventDate())
+                                    .isGoodLead(participantEntity.getIsGoodLead())
+                                    .sheetName(participantEntity.getSheetName())
+                                    .build();
+                            participants.add(participant);
+                        });
+                    }
+                }
+            }
+            log.info("Found {} participants for user {} in tenant {} for notification type {}", participants.size(),
+                    userId, tenantId, type);
+            return participants;
+        } catch (Exception e) {
+            log.error("Error getting participants for user {} in tenant {} for notification type {}", userId, tenantId,
+                    type, e);
+            return participants;
         }
 
     }

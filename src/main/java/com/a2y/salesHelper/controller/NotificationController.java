@@ -44,4 +44,14 @@ public class NotificationController {
         Boolean result = notificationService.addSeenByUserId(userId, notificationId, tenantId);
         return ResponseEntity.ok(result);
     }
+
+    @Operation(summary = "API to return the participant entities for particular notification type")
+    @GetMapping("/participantsByType")
+    public ResponseEntity<List<Notification>> getParticipantsByNotificationType(@RequestParam String type) {
+        Long tenantId = CurrentUser.getTenantId();
+        Long userId = CurrentUser.getUserId();
+
+        // Implementation to fetch participants by notification type
+        List<Notification> notifications = notificationService.getNotificationsByType(type, userId, tenantId);
+    }
 }

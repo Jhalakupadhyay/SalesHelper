@@ -3,6 +3,7 @@ package com.a2y.salesHelper.service.interfaces;
 import java.util.List;
 
 import com.a2y.salesHelper.pojo.Notification;
+import com.a2y.salesHelper.pojo.Participant;
 
 public interface NotificationService {
 
@@ -11,4 +12,6 @@ public interface NotificationService {
 
     // service to be polled by client for notifications for a user
     List<Notification> getNotificationsForUserId(Long userId, Long tenantId);
+
+    List<Participant> getNotificationsByType(String type, Long userId, Long tenantId);
 }
