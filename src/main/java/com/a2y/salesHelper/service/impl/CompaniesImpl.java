@@ -334,6 +334,9 @@ public class CompaniesImpl implements CompaniesService {
                 company.getClientId(), company.getTenantId());
         if (optionalEntity.isPresent()) {
             CompanyEntity entity = optionalEntity.get();
+            entity.setId(company.getId());
+            entity.setClientId(company.getClientId());
+            entity.setTenantId(company.getTenantId());
             entity.setAccountName(company.getAccountName());
             entity.setAeNam(company.getAeNam());
             entity.setSegment(company.getSegment());
