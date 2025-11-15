@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -117,7 +118,7 @@ public class CompaniesController {
 
     @Operation(summary = "Update Company by ID", description = "Updates a company in the database using its ID")
     @PutMapping("/update")
-    public ResponseEntity<Companies> updateCompanyById(Companies company) {
+    public ResponseEntity<Companies> updateCompanyById(@RequestBody Companies company) {
         Companies response = companiesService.updateCompanyById(company);
         if (response == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

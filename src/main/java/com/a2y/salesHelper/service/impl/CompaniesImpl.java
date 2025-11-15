@@ -327,7 +327,7 @@ public class CompaniesImpl implements CompaniesService {
 
     @Override
     public Companies updateCompanyById(Companies company) {
-        if (company == null || company.getId() == null) {
+        if (company.getTenantId() == null || company.getId() == null) {
             throw new IllegalArgumentException("Company or Company ID cannot be null");
         }
         Optional<CompanyEntity> optionalEntity = companiesRepository.findByIdAndClientIdAndTenantId(company.getId(),
