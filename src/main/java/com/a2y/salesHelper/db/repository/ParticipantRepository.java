@@ -96,7 +96,4 @@ public interface ParticipantRepository extends JpaRepository<ParticipantEntity, 
                         "p.clientId = :clientId AND p.tenantId = :tenantId")
         List<ParticipantEntity> findByEventDateBetweenAndClientIdAndTenantId(OffsetDateTime startDate,
                         OffsetDateTime endDate, Long clientId, Long tenantId);
-
-
-        List<ParticipantEntity> findAllByIdAndClientIdAndTenantId(List<Long> ids, Long clientId, Long tenantId);
 }

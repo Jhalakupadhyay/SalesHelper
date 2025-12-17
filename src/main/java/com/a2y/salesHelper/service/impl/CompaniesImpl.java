@@ -381,8 +381,10 @@ public class CompaniesImpl implements CompaniesService {
         if (ids == null || ids.isEmpty()) {
             throw new IllegalArgumentException("Company IDs cannot be null or empty");
         }
-        List<CompanyEntity> entitiesToDelete = companiesRepository.findAllByIdAndClientIdAndTenantId(ids, clientId,
-                tenantId);
+        List<CompanyEntity> entitiesToDelete = companiesRepository.findAllById(ids).stream()
+                .filter(entity -> entity.getClientId().equals(clientId)
+                        && entity.getTenantId().equals(tenantId))
+                .toList();
         if (!entitiesToDelete.isEmpty()) {
             companiesRepository.deleteAll(entitiesToDelete);
             return true;
