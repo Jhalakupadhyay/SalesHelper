@@ -58,4 +58,6 @@ public interface ParticipantService {
     List<Participant> searchParticipant(String name, Long clientId);
 
     List<ParticipantEntity> getParticipantsForOrganization(Long orgId, Long clientId);
+
+    Boolean deleteMultipleParticipantsByIds(List<Long> ids, Long clientId, Long tenantId);
 }

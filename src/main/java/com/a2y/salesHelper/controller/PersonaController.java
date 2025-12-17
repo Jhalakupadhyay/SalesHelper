@@ -3,6 +3,7 @@ package com.a2y.salesHelper.controller;
 import java.io.IOException;
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -168,5 +169,16 @@ public class PersonaController {
             log.error("Error searching by name '{}' for client {}", name, clientId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    @Operation(summary = "Delete multiple persona by IDs", description = "Deletes multiple persona from the database using their IDs")
+    @PostMapping("/bulkDelete")
+    public ResponseEntity<Boolean> deleteMultiplePersonaByIds(@RequestParam List<Long> ids, @RequestParam Long clientId) {
+        Long tenantId = CurrentUser.getTenantId();
+        Boolean response = companyContactService.deleteMultiplePersonaByIds(ids, clientId, tenantId);
+        if (!response) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

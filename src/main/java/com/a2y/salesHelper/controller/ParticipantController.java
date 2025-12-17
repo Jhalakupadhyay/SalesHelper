@@ -130,4 +130,12 @@ public class ParticipantController {
         }
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
+    @Operation(summary = "Delete multiple participants by IDs", description = "Deletes multiple participants from the database using their IDs")
+    @PostMapping("/deleteMultiple")
+    public ResponseEntity<Boolean> deleteMultipleParticipantsByIds(@RequestBody List<Long> ids , @RequestParam Long clientId) {
+        Long tenantId = CurrentUser.getTenantId();
+        Boolean response = participantService.deleteMultipleParticipantsByIds(ids, clientId,tenantId);
+        return new ResponseEntity<>(response, response ? HttpStatus.OK : HttpStatus.NOT_FOUND);
+    }
 }

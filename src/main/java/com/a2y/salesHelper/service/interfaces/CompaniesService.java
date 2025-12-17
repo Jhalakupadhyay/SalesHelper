@@ -26,4 +26,6 @@ public interface CompaniesService {
     Companies updateCompanyById(Companies company);
 
     Boolean deleteCompanyById(Long id, Long clientId, Long tenantId);
+
+    Boolean deleteMultipleCompaniesByIds(List<Long> ids, Long clientId, Long tenantId);
 }

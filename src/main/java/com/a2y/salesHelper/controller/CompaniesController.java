@@ -136,4 +136,15 @@ public class CompaniesController {
         }
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
+    @Operation(summary = "Delete Multiple Companies by IDs", description = "Deletes multiple companies from the database using their IDs")
+    @PostMapping("/deleteMultiple")
+    public ResponseEntity<Boolean> deleteMultipleCompaniesByIds(@RequestBody List<Long> ids, @RequestParam Long clientId) {
+        Long tenantId = CurrentUser.getTenantId();
+        Boolean response = companiesService.deleteMultipleCompaniesByIds(ids, clientId, tenantId);
+        if (!response) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 }

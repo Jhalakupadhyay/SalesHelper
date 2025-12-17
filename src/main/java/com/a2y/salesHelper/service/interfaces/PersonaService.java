@@ -66,4 +66,6 @@ public interface PersonaService {
      * @return List of matching company contacts
      */
     List<Persona> searchByName(String name, Long clientId, Long tenantId);
+
+    Boolean deleteMultiplePersonaByIds(List<Long> ids, Long clientId, Long tenantId);
 }

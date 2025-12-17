@@ -1,6 +1,8 @@
 server:
   port: 8080
 spring:
+  mvc:
+    dispatch-options-request: true
   application:
     name: salesHelper
   security:

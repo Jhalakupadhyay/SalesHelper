@@ -674,4 +674,21 @@ public class ParticipantServiceImpl implements ParticipantService {
         return participantRepository.findByClientIdAndOrgId(clientId, orgId);
     }
 
+    @Override
+    public Boolean deleteMultipleParticipantsByIds(List<Long> ids, Long clientId, Long tenantId) {
+        try {
+            List<ParticipantEntity> participantsToDelete = participantRepository.findAllByIdAndClientIdAndTenantId(ids,clientId,tenantId);
+            if (participantsToDelete.isEmpty()) {
+                log.warn("No participants found for the provided IDs");
+                return Boolean.FALSE;
+            }
+            participantRepository.deleteAll(participantsToDelete);
+            log.info("Deleted {} participants", participantsToDelete.size());
+            return Boolean.TRUE;
+        } catch (Exception e) {
+            log.error("Error deleting multiple participants", e);
+            return Boolean.FALSE;
+        }
+    }
+
 }

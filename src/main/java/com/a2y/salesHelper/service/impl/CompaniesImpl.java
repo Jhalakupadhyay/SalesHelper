@@ -376,6 +376,20 @@ public class CompaniesImpl implements CompaniesService {
         return false; // Return false if the company with the given ID does not exist
     }
 
+    @Override
+    public Boolean deleteMultipleCompaniesByIds(List<Long> ids, Long clientId, Long tenantId) {
+        if (ids == null || ids.isEmpty()) {
+            throw new IllegalArgumentException("Company IDs cannot be null or empty");
+        }
+        List<CompanyEntity> entitiesToDelete = companiesRepository.findAllByIdAndClientIdAndTenantId(ids, clientId,
+                tenantId);
+        if (!entitiesToDelete.isEmpty()) {
+            companiesRepository.deleteAll(entitiesToDelete);
+            return true;
+        }
+        return false; // Return false if none of the companies with the given IDs exist
+    }
+
     private List<CompanyEntity> getFieldValue(String field, String value, Long clientId, Long tennatId) {
         switch (field.toLowerCase()) {
             case "company":

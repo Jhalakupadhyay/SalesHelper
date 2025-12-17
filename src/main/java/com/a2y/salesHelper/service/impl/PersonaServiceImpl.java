@@ -256,6 +256,33 @@ public class PersonaServiceImpl implements PersonaService {
         return response;
     }
 
+    @Override
+    public Boolean deleteMultiplePersonaByIds(List<Long> ids, Long clientId, Long tenantId) {
+        try {
+            List<PersonaEntity> contactsToDelete = companyContactRepository.findAllById(ids);
+            List<PersonaEntity> filteredContacts = new ArrayList<>();
+
+            // Filter contacts by tenantId and clientId
+            for (PersonaEntity contact : contactsToDelete) {
+                if (contact.getTenantId().equals(tenantId) && contact.getClientId().equals(clientId)) {
+                    filteredContacts.add(contact);
+                }
+            }
+
+            if (!filteredContacts.isEmpty()) {
+                companyContactRepository.deleteAll(filteredContacts);
+                log.info("Deleted {} company contacts", filteredContacts.size());
+            } else {
+                log.info("No matching company contacts found for deletion");
+            }
+
+            return Boolean.TRUE;
+        } catch (Exception e) {
+            log.error("Error deleting multiple company contacts", e);
+            return Boolean.FALSE;
+        }
+    }
+
     private Workbook createWorkbook(String fileName, InputStream inputStream) throws IOException {
         if (fileName != null && fileName.toLowerCase().endsWith(".xlsx")) {
             return new XSSFWorkbook(inputStream);
