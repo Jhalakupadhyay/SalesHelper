@@ -173,7 +173,7 @@ public class PersonaController {
 
     @Operation(summary = "Delete multiple persona by IDs", description = "Deletes multiple persona from the database using their IDs")
     @PostMapping("/bulkDelete")
-    public ResponseEntity<Boolean> deleteMultiplePersonaByIds(@RequestParam List<Long> ids, @RequestParam Long clientId) {
+    public ResponseEntity<Boolean> deleteMultiplePersonaByIds(@RequestBody List<Long> ids, @RequestParam Long clientId) {
         Long tenantId = CurrentUser.getTenantId();
         Boolean response = companyContactService.deleteMultiplePersonaByIds(ids, clientId, tenantId);
         if (!response) {
